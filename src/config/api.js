@@ -1,55 +1,20 @@
-// API configuration
-const isDevelopment = process.env.NODE_ENV === 'development';
-const API_HOST = isDevelopment ? 'localhost' : 'hackathon-dashboard-backend-md49.onrender.com';
-const API_PORT = isDevelopment ? 5000 : 443;
-const API_PROTOCOL = isDevelopment ? 'http' : 'https';
-const API_BASE_URL = isDevelopment 
-  ? `${API_PROTOCOL}://${API_HOST}:${API_PORT}/api`
-  : `${API_PROTOCOL}://${API_HOST}/api`;
-
-// Test if backend is running
-const testBackendConnection = async () => {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+// Direct API URL detection - NO MORE LOCALHOST ISSUES!
+const getApiUrl = () => {
+  const isLocalhost = window.location.hostname === 'localhost';
+  const apiUrl = isLocalhost 
+    ? 'http://localhost:5000/api'
+    : 'https://hackathon-dashboard-backend-md49.onrender.com/api';
     
-    const healthUrl = isDevelopment 
-      ? `${API_PROTOCOL}://${API_HOST}:${API_PORT}/health`
-      : `${API_PROTOCOL}://${API_HOST}/health`;
-    
-    const response = await fetch(healthUrl, {
-      method: 'GET',
-      signal: controller.signal
-    });
-    
-    clearTimeout(timeoutId);
-    return response.ok;
-  } catch (error) {
-    console.error('Backend connection test failed:', error.message);
-    return false;
-  }
+  console.log('🔧 API URL:', apiUrl);
+  console.log('🌐 Hostname:', window.location.hostname);
+  return apiUrl;
 };
 
-// Get API base URL with connection check
-export const getApiBaseUrl = async () => {
-  // Skip connection test in production to avoid CORS issues
-  if (!isDevelopment) {
-    console.log(`🚀 Using production API: ${API_BASE_URL}`);
-    return API_BASE_URL;
-  }
-  
-  const isConnected = await testBackendConnection();
-  
-  if (!isConnected) {
-    const errorMsg = `Backend server not responding on port ${API_PORT}. Please start the server with: cd server && npm start`;
-    throw new Error(errorMsg);
-  }
-  
-  console.log(`✅ Backend connected at ${API_BASE_URL}`);
-  return API_BASE_URL;
+// Export the direct function
+export const getApiBaseUrl = () => {
+  return getApiUrl();
 };
 
-// Direct API URL (use when you know backend is running)
-export const getDirectApiUrl = () => API_BASE_URL;
-
-export { API_HOST, API_PORT, API_BASE_URL };
+// Legacy exports for compatibility
+export const getDirectApiUrl = () => getApiUrl();
+export const API_BASE_URL = getApiUrl();
