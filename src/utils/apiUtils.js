@@ -1,20 +1,25 @@
 // API utility functions for consistent error handling
-import { getApiBaseUrl } from '../config/api.js';
 import { DebugLogger, debugApiCall } from './debugUtils.js';
 
 const apiLogger = new DebugLogger('ApiUtils');
 
+// Direct API URL detection
+const getApiUrl = () => {
+  const isLocalhost = window.location.hostname === 'localhost';
+  const apiUrl = isLocalhost 
+    ? 'http://localhost:5000/api'
+    : 'https://hackathon-dashboard-backend-md49.onrender.com/api';
+    
+  console.log('🔧 API URL:', apiUrl);
+  console.log('🌐 Hostname:', window.location.hostname);
+  return apiUrl;
+};
+
 // Enhanced fetch with error handling and debugging
 export const apiCall = async (endpoint, options = {}) => {
   return debugApiCall(apiLogger, endpoint, options, async () => {
-    let apiBaseUrl;
-    try {
-      apiBaseUrl = await getApiBaseUrl();
-      apiLogger.debug('API Base URL resolved', { apiBaseUrl });
-    } catch (urlError) {
-      apiLogger.error('Failed to get API base URL', { error: urlError });
-      throw new Error(`Backend connection failed: ${urlError.message}`);
-    }
+    const apiBaseUrl = getApiUrl();
+    apiLogger.debug('API Base URL resolved', { apiBaseUrl });
     
     const url = `${apiBaseUrl}${endpoint}`;
     
