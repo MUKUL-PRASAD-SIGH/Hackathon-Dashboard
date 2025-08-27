@@ -1,8 +1,14 @@
 // Auth service for handling OTP and user authentication
 import { toast } from 'react-hot-toast';
 
-// Direct API URL for production
+// API URL with environment variable support
 const getApiUrl = () => {
+  // Use environment variable if available
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  
+  // Fallback to hostname detection
   const isDev = window.location.hostname === 'localhost';
   return isDev 
     ? 'http://localhost:5000/api'
