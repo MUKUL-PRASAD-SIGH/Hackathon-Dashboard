@@ -553,15 +553,8 @@ app.get('/metrics', metricsEndpoint);
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
-// Serve static files from React build (for production)
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../build')));
-  
-  // Handle React routing, return all requests to React app
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../build', 'index.html'));
-  });
-} else {
+// API-only server - frontend is deployed separately
+if (process.env.NODE_ENV !== 'production') {
   // 404 handler for development (API routes only)
   app.use('/api/*', (req, res) => {
     res.status(404).json({
@@ -593,6 +586,42 @@ if (process.env.NODE_ENV === 'production') {
         }
       });
     }
+  });
+} else {
+  // Production: Root endpoint
+  app.get('/', (req, res) => {
+    res.json({
+      success: true,
+      message: 'Hackathon Dashboard API Server',
+      version: '1.0.0',
+      status: 'running',
+      endpoints: {
+        health: '/health',
+        api: '/api/*'
+      }
+    });
+  });
+  
+  // API 404 handler
+  app.use('/api/*', (req, res) => {
+    res.status(404).json({
+      success: false,
+      error: {
+        code: 'API_NOT_FOUND',
+        message: `API endpoint ${req.originalUrl} not found`
+      }
+    });
+  });
+  
+  // Catch all other routes
+  app.use('*', (req, res) => {
+    res.status(404).json({
+      success: false,
+      error: {
+        code: 'NOT_FOUND',
+        message: 'This is the API server. Frontend is deployed separately.'
+      }
+    });
   });
 }
 
