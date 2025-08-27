@@ -1,21 +1,19 @@
 // Auth service for handling OTP and user authentication
 import { toast } from 'react-hot-toast';
 
-// API base URL - will be dynamically detected
-import { getApiBaseUrl } from '../config/api.js';
-
-const getApiUrl_cached = async () => {
-  if (!window.cachedApiUrl) {
-    window.cachedApiUrl = await getApiBaseUrl();
-  }
-  return window.cachedApiUrl;
+// Direct API URL for production
+const getApiUrl = () => {
+  const isDev = window.location.hostname === 'localhost';
+  return isDev 
+    ? 'http://localhost:5000/api'
+    : 'https://hackathon-dashboard-backend-md49.onrender.com/api';
 };
 
 const authService = {
   // Send OTP to email
   sendOtp: async (email) => {
     try {
-      const apiUrl = await getApiUrl_cached();
+      const apiUrl = getApiUrl();
       const response = await fetch(`${apiUrl}/send-otp`, {
         method: 'POST',
         headers: {
@@ -41,7 +39,7 @@ const authService = {
   // Verify OTP
   verifyOtp: async (email, otp) => {
     try {
-      const apiUrl = await getApiUrl_cached();
+      const apiUrl = getApiUrl();
       const response = await fetch(`${apiUrl}/verify-otp`, {
         method: 'POST',
         headers: {
@@ -67,7 +65,7 @@ const authService = {
   // Login user
   login: async (email, password) => {
     try {
-      const apiUrl = await getApiUrl_cached();
+      const apiUrl = getApiUrl();
       const response = await fetch(`${apiUrl}/login`, {
         method: 'POST',
         headers: {
@@ -98,7 +96,7 @@ const authService = {
   // Register a new user
   registerUser: async (email, password, name) => {
     try {
-      const apiUrl = await getApiUrl_cached();
+      const apiUrl = getApiUrl();
       const response = await fetch(`${apiUrl}/register`, {
         method: 'POST',
         headers: {
