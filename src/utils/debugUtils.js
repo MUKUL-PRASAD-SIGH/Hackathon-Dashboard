@@ -156,11 +156,21 @@ export const debugApiCall = async (debugLogger, endpoint, options, apiCallFn) =>
   }
 };
 
+// Get correct backend URL
+const getBackendUrl = () => {
+  const isLocalhost = window.location.hostname === 'localhost';
+  return isLocalhost 
+    ? 'http://localhost:5000'
+    : 'https://hackathon-dashboard-backend-md49.onrender.com';
+};
+
 // Network diagnostics
 export const runNetworkDiagnostics = async () => {
+  const backendUrl = getBackendUrl();
   const diagnostics = {
     timestamp: new Date().toISOString(),
     online: navigator.onLine,
+    backendUrl,
     connection: navigator.connection ? {
       effectiveType: navigator.connection.effectiveType,
       downlink: navigator.connection.downlink,
@@ -172,7 +182,7 @@ export const runNetworkDiagnostics = async () => {
   // Test backend health
   try {
     const startTime = performance.now();
-    const response = await fetch('http://localhost:5000/health', {
+    const response = await fetch(`${backendUrl}/health`, {
       method: 'GET',
       timeout: 5000
     });
@@ -196,7 +206,7 @@ export const runNetworkDiagnostics = async () => {
   // Test API endpoint
   try {
     const startTime = performance.now();
-    const response = await fetch('http://localhost:5000/api/users', {
+    const response = await fetch(`${backendUrl}/api/users`, {
       method: 'GET',
       timeout: 5000
     });
