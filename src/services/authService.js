@@ -1,18 +1,26 @@
 // Auth service for handling OTP and user authentication
 import { toast } from 'react-hot-toast';
 
-// API URL with environment variable support
+// API URL - Force HTTPS for production
 const getApiUrl = () => {
+  console.log('🔧 Getting API URL...');
+  console.log('Environment API URL:', process.env.REACT_APP_API_URL);
+  console.log('Current hostname:', window.location.hostname);
+  
   // Use environment variable if available
   if (process.env.REACT_APP_API_URL) {
+    console.log('✅ Using env var:', process.env.REACT_APP_API_URL);
     return process.env.REACT_APP_API_URL;
   }
   
   // Fallback to hostname detection
   const isDev = window.location.hostname === 'localhost';
-  return isDev 
+  const apiUrl = isDev 
     ? 'http://localhost:5000/api'
     : 'https://hackathon-dashboard-backend-md49.onrender.com/api';
+    
+  console.log('✅ Using fallback:', apiUrl);
+  return apiUrl;
 };
 
 const authService = {

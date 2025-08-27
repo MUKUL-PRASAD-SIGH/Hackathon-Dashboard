@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head><title>HTTPS Test</title></head>
+<body>
+    <h1>Test HTTPS Issue</h1>
+    <button onclick="testHTTPS()">Test HTTPS Backend</button>
+    <button onclick="testHTTP()">Test HTTP Backend</button>
+    <div id="result"></div>
+
+    <script>
+        async function testHTTPS() {
+            const result = document.getElementById('result');
+            try {
+                const response = await fetch('https://hackathon-dashboard-backend-md49.onrender.com/health');
+                const data = await response.json();
+                result.innerHTML = `<p>✅ HTTPS Works: ${data.status}</p>`;
+            } catch (error) {
+                result.innerHTML = `<p>❌ HTTPS Failed: ${error.message}</p>`;
+            }
+        }
+
+        async function testHTTP() {
+            const result = document.getElementById('result');
+            try {
+                const response = await fetch('http://hackathon-dashboard-backend-md49.onrender.com/health');
+                const data = await response.json();
+                result.innerHTML = `<p>✅ HTTP Works: ${data.status}</p>`;
+            } catch (error) {
+                result.innerHTML = `<p>❌ HTTP Failed: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
