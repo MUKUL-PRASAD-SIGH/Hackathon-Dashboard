@@ -32,12 +32,16 @@ const testBackendConnection = async () => {
 
 // Get API base URL with connection check
 export const getApiBaseUrl = async () => {
+  // Skip connection test in production to avoid CORS issues
+  if (!isDevelopment) {
+    console.log(`🚀 Using production API: ${API_BASE_URL}`);
+    return API_BASE_URL;
+  }
+  
   const isConnected = await testBackendConnection();
   
   if (!isConnected) {
-    const errorMsg = isDevelopment 
-      ? `Backend server not responding on port ${API_PORT}. Please start the server with: cd server && npm start`
-      : `Backend server not responding at ${API_HOST}. Please check if the server is deployed and MongoDB is connected.`;
+    const errorMsg = `Backend server not responding on port ${API_PORT}. Please start the server with: cd server && npm start`;
     throw new Error(errorMsg);
   }
   
