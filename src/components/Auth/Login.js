@@ -38,7 +38,8 @@ const Login = () => {
         localStorage.setItem('token', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
         toast.success('Login successful!');
-        navigate('/dashboard');
+        // Force page reload to update AuthContext
+        window.location.href = '/dashboard';
       } else {
         // Handle OTP login
         if (!showOtpField) {
@@ -58,7 +59,8 @@ const Login = () => {
             localStorage.setItem('token', 'verified_' + Date.now());
             localStorage.setItem('user', JSON.stringify({ email }));
             toast.success('Login successful!');
-            navigate('/dashboard');
+            // Force page reload to update AuthContext
+            window.location.href = '/dashboard';
           }
         }
       }
