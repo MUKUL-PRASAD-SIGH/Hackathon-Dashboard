@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OTP Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input[type="email"], input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #message {
+            margin-top: 15px;
+            padding: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Email Verification</h2>
+        
+        <!-- Send OTP Form -->
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" placeholder="Enter your email">
+            <button onclick="sendOTP()">Send OTP</button>
+        </div>
+        
+        <!-- Verify OTP Form (initially hidden) -->
+        <div id="verifySection" style="display: none;">
+            <div class="form-group">
+                <label for="otp">Enter OTP:</label>
+                <input type="text" id="otp" placeholder="Enter the OTP you received">
+                <button onclick="verifyOTP()">Verify OTP</button>
+            </div>
+        </div>
+        
+        <div id="message"></div>
+    </div>
+
+    <script>
+        let currentEmail = '';
+
+        function showMessage(text, isError = false) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.style.display = 'block';
+            messageDiv.style.color = isError ? 'red' : 'green';
+            messageDiv.textContent = text;
+        }
+
+        async function sendOTP() {
+            const email = document.getElementById('email').value;
+            if (!email) {
+                showMessage('Please enter an email address', true);
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/api/send-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentEmail = email;
+                    document.getElementById('verifySection').style.display = 'block';
+                    showMessage('OTP sent successfully! Check your email.');
+                    
+                    // For testing purposes, if we have the OTP in the response
+                    if (data.debug && data.debug.otp) {
+                        console.log('TESTING ONLY - OTP:', data.debug.otp);
+                        document.getElementById('otp').value = data.debug.otp;
+                    }
+                } else {
+                    showMessage(data.message || 'Failed to send OTP', true);
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, true);
+            }
+        }
+
+        async function verifyOTP() {
+            const otp = document.getElementById('otp').value;
+            if (!otp) {
+                showMessage('Please enter the OTP', true);
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/api/verify-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: currentEmail,
+                        otp: otp
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('Email verified successfully!');
+                    // Redirect or do something on success
+                } else {
+                    showMessage(data.message || 'Invalid OTP', true);
+                }
+            } catch (error) {
+                showMessage('Error: ' + error.message, true);
+            }
+        }
+    </script>
+</body>
+</html>

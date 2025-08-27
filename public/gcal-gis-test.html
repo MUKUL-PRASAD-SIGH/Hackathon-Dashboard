@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Google Identity Services + Calendar API Test</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+  </head>
+  <body>
+    <h2>Google Identity Services + Calendar API Test</h2>
+    <div id="g_id_onload"
+         data-client_id="507618059169-eljil3v8bah6ks9fug43qk9t8garnuh4.apps.googleusercontent.com"
+         data-auto_prompt="false"
+         data-callback="handleCredentialResponse">
+    </div>
+    <div class="g_id_signin" data-type="standard"></div>
+    <button id="listEventsBtn" disabled>List Calendar Events</button>
+    <pre id="output"></pre>
+    <script>
+      let accessToken = null;
+      let email = null;
+
+      function handleCredentialResponse(response) {
+        document.getElementById('output').textContent = 'ID Token: ' + response.credential + '\n';
+        // Exchange ID token for access token using OAuth 2.0 endpoint
+        fetchAccessToken(response.credential);
+      }
+
+      function fetchAccessToken(idToken) {
+        // This is a demo: in production, exchange the ID token for an access token on your backend!
+        // For testing, use the OAuth 2.0 implicit flow
+        const params = new URLSearchParams({
+          client_id: '507618059169-eljil3v8bah6ks9fug43qk9t8garnuh4.apps.googleusercontent.com',
+          redirect_uri: window.location.origin + '/gcal-test.html',
+          response_type: 'token',
+          scope: 'https://www.googleapis.com/auth/calendar.readonly email openid',
+          include_granted_scopes: 'true',
+          state: 'pass-through value'
+        });
+        window.location = 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString();
+      }
+
+      // Parse access token from URL hash
+      function parseAccessTokenFromHash() {
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        accessToken = params.get('access_token');
+        if (accessToken) {
+          document.getElementById('output').textContent += 'Access Token: ' + accessToken + '\n';
+          document.getElementById('listEventsBtn').disabled = false;
+        }
+      }
+
+      document.getElementById('listEventsBtn').onclick = function() {
+        if (!accessToken) return;
+        gapi.load('client', () => {
+          gapi.client.init({
+            apiKey: 'AIzaSyD-2r01xGtYmo-hugPhG8PcApPmpAkZ7Qc',
+          }).then(() => {
+            gapi.client.setToken({ access_token: accessToken });
+            return gapi.client.calendar.events.list({
+              calendarId: 'primary',
+              maxResults: 5,
+              orderBy: 'startTime',
+              singleEvents: true,
+              timeMin: new Date().toISOString(),
+            });
+          }).then(response => {
+            const events = response.result.items;
+            document.getElementById('output').textContent += '\nUpcoming events:\n';
+            if (!events || events.length === 0) {
+              document.getElementById('output').textContent += 'No events found.';
+            } else {
+              events.forEach(event => {
+                document.getElementById('output').textContent += (event.summary + ' (' + event.start.dateTime + ')\n');
+              });
+            }
+          }, err => {
+            document.getElementById('output').textContent += 'Error: ' + JSON.stringify(err) + '\n';
+          });
+        });
+      };
+
+      window.onload = parseAccessTokenFromHash;
+    </script>
+  </body>
+</html>
