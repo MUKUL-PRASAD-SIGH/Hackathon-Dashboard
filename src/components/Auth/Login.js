@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { FcGoogle } from 'react-icons/fc';
-import { sendOtp, verifyOtp, loginUser } from '../../utils/apiUtils';
+import authService from '../../services/authService';
 import './Auth.css';
 
 const Login = () => {
@@ -34,7 +34,7 @@ const Login = () => {
           return;
         }
         
-        const response = await loginUser({ email, password });
+        const response = await authService.login(email, password);
         localStorage.setItem('token', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
         toast.success('Login successful!');
@@ -44,7 +44,7 @@ const Login = () => {
         // Handle OTP login
         if (!showOtpField) {
           // Request OTP
-          await sendOtp(email);
+          await authService.sendOtp(email);
           setShowOtpField(true);
           toast.success('OTP sent to your email!');
         } else {
@@ -54,7 +54,7 @@ const Login = () => {
             return;
           }
           
-          const response = await verifyOtp(email, otp);
+          const response = await authService.verifyOtp(email, otp);
           if (response.success) {
             localStorage.setItem('token', 'verified_' + Date.now());
             localStorage.setItem('user', JSON.stringify({ email }));
