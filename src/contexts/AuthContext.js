@@ -24,85 +24,60 @@ export const AuthProvider = ({ children }) => {
   // Send OTP to email
   const sendOtp = async (email) => {
     try {
-      await authService.sendOTP(email);
+      await authService.sendOtp(email);
       setOtpSent(true);
-      toast.success('OTP sent to your email!');
       return true;
     } catch (error) {
-      toast.error('Failed to send OTP');
-      return false;
+      console.error('Send OTP error:', error);
+      throw error;
     }
   };
 
-  // Verify OTP and login
+  // Verify OTP
   const verifyOtp = async (email, otp) => {
     try {
-      const isValid = await authService.verifyOTP(email, otp);
-      if (isValid) {
-        // In a real app, you would get user data from your backend
-        const user = { email, name: email.split('@')[0] };
-        setUser(user);
-        localStorage.setItem('user', JSON.stringify(user));
-        toast.success('Logged in successfully!');
-        return true;
-      }
-      return false;
+      await authService.verifyOtp(email, otp);
+      return true;
     } catch (error) {
-      toast.error('Invalid OTP');
-      return false;
+      console.error('Verify OTP error:', error);
+      throw error;
     }
   };
 
   // Login with email/password
   const login = async (email, password) => {
     try {
-      const user = await authService.loginUser(email, password);
-      if (user) {
-        setUser(user);
-        localStorage.setItem('user', JSON.stringify(user));
-        toast.success('Logged in successfully!');
+      const response = await authService.login(email, password);
+      if (response.user) {
+        setUser(response.user);
         return true;
       }
       return false;
     } catch (error) {
-      toast.error('Login failed');
-      return false;
+      console.error('Login error:', error);
+      throw error;
     }
   };
 
   // Register new user
   const register = async (name, email, password) => {
     try {
-      const user = await authService.registerUser(email, password, name);
-      if (user) {
-        setUser(user);
-        localStorage.setItem('user', JSON.stringify(user));
-        toast.success('Registration successful!');
+      const response = await authService.registerUser(email, password, name);
+      if (response.user) {
+        setUser(response.user);
         return true;
       }
       return false;
     } catch (error) {
-      toast.error('Registration failed');
-      return false;
+      console.error('Registration error:', error);
+      throw error;
     }
   };
 
-  // Login with Gmail
+  // Login with Gmail (placeholder)
   const loginWithGmail = async () => {
-    try {
-      // In a real app, this would use Google's OAuth flow
-      const user = await authService.gmailLogin('gmail-token');
-      if (user) {
-        setUser(user);
-        localStorage.setItem('user', JSON.stringify(user));
-        toast.success('Logged in with Gmail!');
-        return true;
-      }
-      return false;
-    } catch (error) {
-      toast.error('Gmail login failed');
-      return false;
-    }
+    toast.error('Gmail login not implemented yet');
+    return false;
   };
 
   // Logout
