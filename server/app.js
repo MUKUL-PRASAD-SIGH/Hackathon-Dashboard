@@ -20,9 +20,13 @@ connectDB();
 const otpService = new OtpService();
 const emailService = new EmailService();
 
-// CORS - Allow all origins for development
+// CORS - Allow specific origins
 app.use(cors({
-  origin: true,
+  origin: [
+    'https://hackathon-dashboard-mukul.netlify.app',
+    'http://localhost:3000',
+    'http://localhost:3001'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
