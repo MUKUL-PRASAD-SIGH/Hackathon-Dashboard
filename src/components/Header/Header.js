@@ -1,12 +1,34 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import './Header.css';
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const isAuthenticated = !!localStorage.getItem('token');
 
   const isActive = (path) => {
     return location.pathname === path ? 'active' : '';
+  };
+
+  const handleLogout = () => {
+    // Clear all authentication data
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Clear cookies
+    document.cookie.split(";").forEach(function(c) { 
+      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+    });
+    
+    toast.success('Logged out successfully!');
+    
+    // Force page reload to clear all state
+    setTimeout(() => {
+      window.location.href = '/login';
+      window.location.reload();
+    }, 500);
   };
 
   return (
@@ -43,6 +65,14 @@ const Header = () => {
           >
             📅 Google Sync
           </Link>
+          {isAuthenticated && (
+            <button 
+              onClick={handleLogout}
+              className="nav-link logout-btn"
+            >
+              🚪 Logout
+            </button>
+          )}
         </nav>
       </div>
     </header>

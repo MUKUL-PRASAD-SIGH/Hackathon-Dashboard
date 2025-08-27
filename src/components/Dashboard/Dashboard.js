@@ -1,9 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './Dashboard.css';
+import './UserInfo.css';
 
-const Dashboard = ({ hackathons = [], onUpdateHackathon, onDeleteHackathon }) => {
+const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackathon, onReload }) => {
   const navigate = useNavigate();
+  
+  // Get user info from localStorage
+  const getUserInfo = () => {
+    try {
+      const user = localStorage.getItem('user');
+      return user ? JSON.parse(user) : null;
+    } catch {
+      return null;
+    }
+  };
+  
+  const userInfo = getUserInfo();
   const [filteredHackathons, setFilteredHackathons] = useState([]);
   const [filters, setFilters] = useState({
     platform: '',
@@ -156,7 +169,15 @@ const Dashboard = ({ hackathons = [], onUpdateHackathon, onDeleteHackathon }) =>
   return (
     <div className="dashboard">
       <div className="container">
-        <h2 className="section-title">📊 Hackathon Dashboard</h2>
+        <div className="dashboard-header">
+          <h2 className="section-title">📊 Hackathon Dashboard</h2>
+          {userInfo && (
+            <div className="user-info">
+              <span className="welcome-text">Welcome back, <strong>{userInfo.name}</strong>!</span>
+              <span className="user-email">{userInfo.email}</span>
+            </div>
+          )}
+        </div>
         
         {/* Filters and Search */}
         <div className="dashboard-controls">
@@ -267,10 +288,10 @@ const Dashboard = ({ hackathons = [], onUpdateHackathon, onDeleteHackathon }) =>
             </div>
           ) : (
             filteredHackathons.map(hackathon => (
-              <div key={hackathon.id} className="hackathon-item">
+              <div key={hackathon._id || hackathon.id} className="hackathon-item">
                 <button 
                   className="delete-hackathon"
-                  onClick={() => handleDelete(hackathon.id)}
+                  onClick={() => handleDelete(hackathon._id || hackathon.id)}
                   title="Delete hackathon"
                   aria-label="Delete hackathon"
                 >
@@ -293,7 +314,7 @@ const Dashboard = ({ hackathons = [], onUpdateHackathon, onDeleteHackathon }) =>
                   <div className="hackathon-actions">
                     <div className="action-buttons">
                       <Link 
-                        to={`/edit-hackathon/${hackathon.id}`}
+                        to={`/edit-hackathon/${hackathon._id || hackathon.id}`}
                         className="edit-button"
                         title="Edit hackathon"
                         aria-label="Edit hackathon"
@@ -303,7 +324,7 @@ const Dashboard = ({ hackathons = [], onUpdateHackathon, onDeleteHackathon }) =>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDelete(hackathon.id);
+                          handleDelete(hackathon._id || hackathon.id);
                         }}
                         className="delete-hackathon"
                         title="Delete hackathon"
@@ -323,7 +344,7 @@ const Dashboard = ({ hackathons = [], onUpdateHackathon, onDeleteHackathon }) =>
                       <label>Update Status:</label>
                       <select
                         value={hackathon.status}
-                        onChange={(e) => handleStatusUpdate(hackathon.id, e.target.value)}
+                        onChange={(e) => handleStatusUpdate(hackathon._id || hackathon.id, e.target.value)}
                         className="form-select"
                       >
                         <option value="Planning">Planning</option>

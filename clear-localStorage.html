@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear localStorage</title>
+</head>
+<body>
+    <h1>localStorage Debug</h1>
+    <div id="output"></div>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        // Show current localStorage
+        output.innerHTML += '<h2>Current localStorage:</h2>';
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            const value = localStorage.getItem(key);
+            output.innerHTML += `<p><strong>${key}:</strong> ${value}</p>`;
+        }
+        
+        // Clear hackathons from localStorage
+        localStorage.removeItem('hackathons');
+        output.innerHTML += '<h2>Removed "hackathons" from localStorage</h2>';
+        
+        // Show updated localStorage
+        output.innerHTML += '<h2>Updated localStorage:</h2>';
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            const value = localStorage.getItem(key);
+            output.innerHTML += `<p><strong>${key}:</strong> ${value}</p>`;
+        }
+    </script>
+</body>
+</html>

@@ -3,6 +3,7 @@ import '../src/debugEnv'; // Debug: Log environment variables
 import EnvDebugPage from './EnvDebugPage';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { getUserHackathons, createHackathon, updateHackathon, deleteHackathon } from './utils/hackathonApi';
 import './App.css';
 import Header from './components/Header/Header';
 import CalendarView from './components/CalendarView/CalendarView';
@@ -13,142 +14,126 @@ import RegisterWithOtp from './components/Auth/RegisterWithOtp';
 import Login from './components/Auth/Login';
 import DebugPanel from './components/DebugPanel';
 import ConnectionTest from './components/ConnectionTest';
-// Simple auth helper
-const isAuthenticated = () => !!localStorage.getItem('token');
-
-// Default hackathon data for first-time users
-const defaultHackathons = [
-  {
-    id: 1,
-    name: 'HackTheMountains',
-    platform: 'Devpost',
-    email: 'test@example.com',
-    team: 'Solo',
-    date: '2025-01-15',
-    rounds: 3,
-    status: 'Planning',
-    remarks: {
-      round1: 'Registration open',
-      round2: 'Project submission',
-      round3: 'Final presentation'
-    },
-    notifications: [
-      { trigger: '2 days before' },
-      { trigger: 'before each round' }
-    ]
-  },
-  {
-    id: 2,
-    name: 'CodeFest 2025',
-    platform: 'HackerEarth',
-    email: 'test@example.com',
-    team: '2-4 members',
-    date: '2025-02-20',
-    rounds: 2,
-    status: 'Participating',
-    remarks: {
-      round1: 'Ideation phase',
-      round2: 'Development phase'
-    },
-    notifications: [
-      { trigger: '1 hour before' }
-    ]
-  },
-  {
-    id: 3,
-    name: 'Innovation Challenge',
-    platform: 'Devpost',
-    email: 'test@example.com',
-    team: '5+ members',
-    date: '2025-03-10',
-    rounds: 4,
-    status: 'Won',
-    remarks: {
-      round1: 'Initial screening',
-      round2: 'Prototype development',
-      round3: 'Final presentation',
-      round4: 'Award ceremony'
-    },
-    notifications: [
-      { trigger: '2 days before' },
-      { trigger: 'before each round' }
-    ]
+// Proper auth helper with validation
+const isAuthenticated = () => {
+  const token = localStorage.getItem('token');
+  const user = localStorage.getItem('user');
+  
+  // Both token and user must exist
+  if (!token || !user) {
+    // Clear invalid state
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    return false;
   }
-];
-
-// Load hackathons from localStorage or use default data
-const loadHackathons = () => {
+  
   try {
-    const saved = localStorage.getItem('hackathons');
-    return saved ? JSON.parse(saved) : defaultHackathons;
-  } catch (error) {
-    console.error('Failed to load hackathons:', error);
-    return defaultHackathons;
+    // Validate user data
+    JSON.parse(user);
+    return true;
+  } catch {
+    // Invalid user data
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    return false;
   }
 };
 
+// All hackathons are now loaded from MongoDB via API
+
+// Hackathons are now loaded from MongoDB via API
+
 function App() {
-  const [hackathons, setHackathons] = useState(loadHackathons);
+  const [hackathons, setHackathons] = useState([]);
+  const [loading, setLoading] = useState(true);
   
-  // Clear auth for testing (remove this in production)
+  // Authentication state management
   useEffect(() => {
-    // Uncomment next line to test authentication flow
-    // localStorage.removeItem('token');
+    // Check if user is properly authenticated
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    if (token && !user) {
+      // Invalid state - clear token
+      localStorage.removeItem('token');
+    }
+  }, []);
+  
+  // Load user's hackathons from database
+  const loadUserHackathons = async () => {
+    if (!isAuthenticated()) {
+      console.log('🔒 Not authenticated, clearing hackathons');
+      setHackathons([]);
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      console.log('📡 Loading hackathons from API...');
+      const response = await getUserHackathons();
+      console.log('📊 API Response:', response);
+      console.log('📋 Hackathons array:', response.hackathons);
+      console.log('📊 Setting hackathons count:', response.hackathons?.length || 0);
+      setHackathons(response.hackathons || []);
+    } catch (error) {
+      console.error('❌ Failed to load hackathons:', error);
+      setHackathons([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Load hackathons when component mounts or auth changes
+  useEffect(() => {
+    loadUserHackathons();
   }, []);
 
-  // Save to localStorage whenever hackathons change
-  useEffect(() => {
-    try {
-      localStorage.setItem('hackathons', JSON.stringify(hackathons));
-    } catch (error) {
-      console.error('Failed to save hackathons:', error);
-    }
-  }, [hackathons]);
+  // Note: Hackathons are now stored in MongoDB, not localStorage
 
-  // Get a hackathon by ID
+  // Get a hackathon by ID (MongoDB uses _id)
   const getHackathonById = (id) => {
-    return hackathons.find(h => h.id === Number(id));
+    return hackathons.find(h => h._id === id || h.id === Number(id));
   };
 
   // Add a new hackathon
-  const addHackathon = (newHackathon) => {
-    const newId = Math.max(0, ...hackathons.map(h => h.id)) + 1;
-    const hackathonWithId = { 
-      ...newHackathon, 
-      id: newId,
-      notifications: Array.isArray(newHackathon.notifications) 
-        ? newHackathon.notifications 
-        : []
-    };
-    
-    setHackathons(prevHackathons => [...prevHackathons, hackathonWithId]);
-    return hackathonWithId;
+  const addHackathon = async (newHackathon) => {
+    try {
+      console.log('🚀 Adding hackathon:', newHackathon);
+      const response = await createHackathon(newHackathon);
+      console.log('✅ Hackathon created:', response);
+      await loadUserHackathons(); // Reload to get updated list
+      return response.hackathon;
+    } catch (error) {
+      console.error('❌ Failed to add hackathon:', error);
+      console.error('Error details:', error.message, error.stack);
+      throw error;
+    }
   };
 
   // Update an existing hackathon
-  const updateHackathon = (id, updates) => {
-    setHackathons(prevHackathons => 
-      prevHackathons.map(hackathon => 
-        hackathon.id === id ? { ...hackathon, ...updates } : hackathon
-      )
-    );
-  };
-
-  // Update an existing hackathon by ID
-  const updateHackathonById = (id, updatedHackathon) => {
-    setHackathons(prevHackathons =>
-      prevHackathons.map(hackathon =>
-        hackathon.id === id ? { ...hackathon, ...updatedHackathon } : hackathon
-      )
-    );
+  const updateHackathonById = async (id, updates) => {
+    try {
+      await updateHackathon(id, updates);
+      await loadUserHackathons(); // Reload to get updated list
+    } catch (error) {
+      console.error('Failed to update hackathon:', error);
+      throw error;
+    }
   };
 
   // Delete a hackathon
-  const deleteHackathon = (id) => {
-    setHackathons(prevHackathons => 
-      prevHackathons.filter(hackathon => hackathon.id !== id)
-    );
+  const deleteHackathonById = async (id) => {
+    try {
+      await deleteHackathon(id);
+      await loadUserHackathons(); // Reload to get updated list
+    } catch (error) {
+      console.error('Failed to delete hackathon:', error);
+      throw error;
+    }
   };
+
+
 
   // Protected Route component
   const ProtectedRoute = ({ children }) => {
@@ -182,15 +167,20 @@ function App() {
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard 
-                  hackathons={hackathons} 
-                  onUpdateHackathon={updateHackathon}
-                  onDeleteHackathon={deleteHackathon}
+                  hackathons={hackathons}
+                  loading={loading}
+                  onUpdateHackathon={updateHackathonById}
+                  onDeleteHackathon={deleteHackathonById}
+                  onReload={loadUserHackathons}
                 />
               </ProtectedRoute>
             } />
             <Route path="/add-hackathon" element={
               <ProtectedRoute>
-                <HackathonForm onAddHackathon={addHackathon} />
+                <HackathonForm 
+                  onAddHackathon={addHackathon}
+                  onReload={loadUserHackathons}
+                />
               </ProtectedRoute>
             } />
             <Route path="/edit-hackathon/:id" element={
@@ -198,6 +188,7 @@ function App() {
                 <HackathonForm 
                   hackathons={hackathons}
                   onUpdateHackathon={updateHackathonById}
+                  onReload={loadUserHackathons}
                 />
               </ProtectedRoute>
             } />
@@ -217,8 +208,8 @@ function App() {
                 <button onClick={() => {
                   localStorage.removeItem('token');
                   localStorage.removeItem('user');
-                  window.location.href = '/login';
-                }}>Go to Login</button>
+                  window.location.href = '/register';
+                }}>Go to Register</button>
               </div>
             } />
             

@@ -7,6 +7,7 @@ require('dotenv').config({ path: dotenvPath });
 console.log('🔍 Environment Debug:');
 console.log('GMAIL_USER:', process.env.GMAIL_USER ? '✅ Found' : '❌ Missing');
 console.log('GMAIL_APP_PASSWORD:', process.env.GMAIL_APP_PASSWORD ? '✅ Found' : '❌ Missing');
+console.log('MONGODB_URI:', process.env.MONGODB_URI ? '✅ Found' : '❌ Missing');
 console.log('PORT:', process.env.PORT || 'Using default 5000');
 console.log('🔍 Full PORT debug:', { 
   envPORT: process.env.PORT, 
@@ -20,11 +21,14 @@ const bodyParser = require('body-parser');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const validator = require('validator');
+const connectDB = require('./config/database');
 
 // Import services and models
 const OtpService = require('./services/otpService');
 const EmailService = require('./services/emailService');
 const User = require('./models/User');
+const UserMongoDB = require('./models/UserMongoDB');
+const hackathonRoutes = require('./routes/hackathons');
 
 // Import middleware
 const { errorHandler, asyncHandler } = require('./middleware/errorHandler');
@@ -35,6 +39,9 @@ const { requestDeduplicationMiddleware, memoryMonitor } = require('./utils/cache
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Connect to MongoDB
+connectDB();
 
 // Security middleware
 app.use(helmet({
@@ -153,6 +160,18 @@ app.post('/api/send-otp', otpLimiter, validateEmail, asyncHandler(async (req, re
   console.log(`📧 SEND OTP REQUEST for ${email}`);
   
   try {
+    // Check if user already exists in MongoDB
+    const existingUser = await UserMongoDB.findOne({ email: email.toLowerCase().trim() });
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        error: {
+          code: 'USER_EXISTS',
+          message: 'User already registered! Please login instead.'
+        }
+      });
+    }
+    
     // Use thread-safe OTP generation
     const otpResult = await otpService.generateOtp(email);
     
@@ -324,18 +343,41 @@ app.post('/api/register', authLimiter, validateRegistration, asyncHandler(async 
   const { email, password, name } = req.body;
   
   try {
-    // Create new user with email verification check
-    const user = await User.create({ email, password, name });
+    // Check email verification
+    if (!User.isEmailVerified(email)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'EMAIL_NOT_VERIFIED',
+          message: 'Email not verified. Please verify your email with OTP first.'
+        }
+      });
+    }
+    
+    // Create user in MongoDB
+    const user = new UserMongoDB({
+      name,
+      email,
+      password,
+      emailVerified: true
+    });
+    
+    await user.save();
+    User.removeEmailVerification(email);
     
     // Generate authentication token
-    const token = user.generateAuthToken();
+    const token = Buffer.from(JSON.stringify({
+      id: user._id,
+      email: user.email,
+      name: user.name
+    })).toString('base64');
     
     console.log(`✅ New user registered: ${email}`);
-    console.log(`👥 Total users: ${User.getUserCount()}`);
+    console.log(`👥 User ID: ${user._id}`);
     
     // Log audit event
     logger.audit('USER_REGISTERED', {
-      userId: user.id,
+      userId: user._id,
       email: user.email,
       name: user.name,
       emailVerified: user.emailVerified,
@@ -347,7 +389,7 @@ app.post('/api/register', authLimiter, validateRegistration, asyncHandler(async 
     // Send welcome email (non-blocking)
     emailService.sendWelcomeEmail(email, name).catch(error => {
       logger.error('Welcome email failed', { 
-        userId: user.id,
+        userId: user._id,
         email, 
         error: error.message 
       });
@@ -369,12 +411,12 @@ app.post('/api/register', authLimiter, validateRegistration, asyncHandler(async 
     });
 
     // Handle specific error types
-    if (error.message.includes('already exists')) {
+    if (error.message.includes('already exists') || error.code === 11000) {
       return res.status(409).json({
         success: false,
         error: {
           code: 'USER_EXISTS',
-          message: 'An account with this email already exists'
+          message: 'User already registered! Please login instead.'
         }
       });
     }
@@ -415,17 +457,21 @@ app.post('/api/login', authLimiter, validateLogin, asyncHandler(async (req, res)
   const { email, password } = req.body;
   
   try {
-    // Authenticate user using User model
-    const user = await User.authenticate(email, password);
+    // Authenticate user using MongoDB model
+    const user = await UserMongoDB.authenticate(email, password);
     
     // Generate authentication token
-    const token = user.generateAuthToken();
+    const token = Buffer.from(JSON.stringify({
+      id: user._id,
+      email: user.email,
+      name: user.name
+    })).toString('base64');
 
     console.log(`✅ User logged in: ${email}`);
     
     // Log audit event
     logger.audit('USER_LOGIN', {
-      userId: user.id,
+      userId: user._id,
       email: user.email,
       ip: req.ip,
       userAgent: req.get('User-Agent')
@@ -478,14 +524,25 @@ app.post('/api/login', authLimiter, validateLogin, asyncHandler(async (req, res)
   }
 }));
 
-// Get all users endpoint (for debugging)
+// Hackathon routes
+app.use('/api/hackathons', hackathonRoutes);
+
+// Debug routes (SECURITY: development + localhost only)
+if (process.env.NODE_ENV === 'development') {
+  const debugRoutes = require('./routes/debug');
+  app.use('/api/debug', debugRoutes);
+  console.log('⚠️  Debug endpoints enabled (localhost only): /api/debug/*');
+}
+
+// Legacy users endpoint (in-memory only)
 app.get('/api/users', (req, res) => {
   const users = User.getAllUsers();
   
   res.json({ 
     success: true, 
     users,
-    count: User.getUserCount()
+    count: User.getUserCount(),
+    note: 'This shows in-memory users only. Use /api/debug/users for MongoDB users.'
   });
 });
 

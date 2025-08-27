@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import './HackathonForm.css';
 
-const HackathonForm = ({ onAddHackathon, onUpdateHackathon, hackathons = [] }) => {
+const HackathonForm = ({ onAddHackathon, onUpdateHackathon, onReload, hackathons = [] }) => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = !!id;
@@ -23,7 +23,7 @@ const HackathonForm = ({ onAddHackathon, onUpdateHackathon, hackathons = [] }) =
   // Load hackathon data if in edit mode
   useEffect(() => {
     if (isEditMode && hackathons.length > 0) {
-      const hackathonToEdit = hackathons.find(h => h.id === parseInt(id));
+      const hackathonToEdit = hackathons.find(h => h._id === id || h.id === parseInt(id));
       if (hackathonToEdit) {
         setFormData({
           name: hackathonToEdit.name || '',
@@ -110,7 +110,7 @@ const HackathonForm = ({ onAddHackathon, onUpdateHackathon, hackathons = [] }) =
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Basic validation
@@ -125,18 +125,28 @@ const HackathonForm = ({ onAddHackathon, onUpdateHackathon, hackathons = [] }) =
       notifications: selectedNotifications.map(trigger => ({ trigger }))
     };
 
-    if (isEditMode) {
-      // Update existing hackathon
-      onUpdateHackathon(parseInt(id), hackathonData);
-      toast.success('Hackathon updated successfully!');
-    } else {
-      // Add new hackathon
-      onAddHackathon(hackathonData);
-      toast.success('Hackathon added successfully!');
+    try {
+      if (isEditMode) {
+        // Update existing hackathon
+        await onUpdateHackathon(id, hackathonData);
+        toast.success('Hackathon updated successfully!');
+      } else {
+        // Add new hackathon
+        await onAddHackathon(hackathonData);
+        toast.success('Hackathon added successfully!');
+      }
+      
+      // Reload data if callback provided
+      if (onReload) {
+        await onReload();
+      }
+      
+      // Navigate back to dashboard
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error saving hackathon:', error);
+      toast.error('Failed to save hackathon. Please try again.');
     }
-    
-    // Navigate back to dashboard
-    navigate('/dashboard');
   };
 
   const removeRoundRemark = (roundKey) => {
