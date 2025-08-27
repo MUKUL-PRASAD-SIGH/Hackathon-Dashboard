@@ -1,0 +1,494 @@
+/* Auth Container */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding: 20px;
+}
+
+/* Auth Card */
+.auth-card {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 420px;
+  box-sizing: border-box;
+}
+
+/* Form Elements */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* Buttons */
+.auth-button {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.auth-button.primary {
+  background-color: #4f46e5;
+  color: white;
+}
+
+.auth-button.primary:hover {
+  background-color: #4338ca;
+}
+
+.auth-button.google {
+  background-color: white;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+.auth-button.google:hover {
+  background-color: #f9fafb;
+}
+
+.auth-button:disabled {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.auth-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.text-button {
+  background: none;
+  border: none;
+  color: #4f46e5;
+  cursor: pointer;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.text-button:hover {
+  background-color: rgba(79, 70, 229, 0.1);
+  text-decoration: underline;
+}
+
+/* Divider */
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #6b7280;
+  margin: 1.5rem 0;
+  font-size: 0.875rem;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.divider:not(:empty)::before {
+  margin-right: 1rem;
+}
+
+.divider:not(:empty)::after {
+  margin-left: 1rem;
+}
+
+/* Footer */
+.auth-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* OTP Specific */
+.otp-note {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.otp-input {
+  letter-spacing: 0.5rem;
+  font-size: 1.5rem;
+  text-align: center;
+  font-family: monospace;
+  padding: 0.75rem 0;
+}
+
+/* Loading State */
+.button-loader {
+  display: inline-block;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 1.5rem;
+    margin: 1rem;
+    width: auto;
+  }
+  
+  .form-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .auth-button {
+    padding: 0.75rem 1rem;
+  }
+}
+/* Enhanced OTP Input Styles */
+.otp-input-container {
+  margin: 20px 0;
+}
+
+.otp-input-group {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+}
+
+.otp-input-digit {
+  width: 50px;
+  height: 50px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1f2937;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.otp-input-digit:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.otp-input-digit.filled {
+  border-color: #10b981;
+  background: #f0fdf4;
+}
+
+.otp-input-group.error .otp-input-digit {
+  border-color: #ef4444;
+}
+
+.otp-input-group.error .otp-input-digit:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.otp-input-group.disabled .otp-input-digit {
+  background: #f9fafb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Error message styles */
+.error-message {
+  color: #ef4444;
+  font-size: 14px;
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* Resend section styles */
+.resend-section {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.resend-section p {
+  margin: 0 0 8px 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.text-button {
+  background: none;
+  border: none;
+  color: #4f46e5;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.text-button:hover:not(:disabled) {
+  color: #3730a3;
+  background: rgba(79, 70, 229, 0.05);
+}
+
+.text-button:disabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+/* Attempts info */
+.attempts-info {
+  text-align: center;
+  margin-top: 12px;
+}
+
+.attempts-info small {
+  color: #f59e0b;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Auth header improvements */
+.auth-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.auth-header h2 {
+  margin: 0 0 12px 0;
+  color: #1f2937;
+}
+
+.auth-subtitle {
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Countdown timer styles */
+.countdown-timer {
+  font-weight: 500;
+  color: #f59e0b;
+}
+
+/* Loading states */
+.auth-button:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .otp-input-digit {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+  
+  .otp-input-group {
+    gap: 8px;
+  }
+}
+/* F
+ield error styles */
+.field-error {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.form-input.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.password-hint {
+  color: #6b7280;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Error Boundary Styles */
+.error-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  background: #f8fafc;
+}
+
+.error-boundary-content {
+  text-align: center;
+  max-width: 500px;
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.error-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.error-boundary h2 {
+  color: #1f2937;
+  margin: 0 0 12px 0;
+}
+
+.error-boundary p {
+  color: #6b7280;
+  margin: 0 0 30px 0;
+}
+
+.error-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.auth-button.secondary {
+  background: #6b7280;
+}
+
+.auth-button.secondary:hover {
+  background: #4b5563;
+}
+
+.error-details {
+  margin-top: 30px;
+  text-align: left;
+}
+
+.error-details summary {
+  cursor: pointer;
+  color: #6b7280;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.error-stack {
+  background: #f3f4f6;
+  padding: 15px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #374151;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Loading states */
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Success states */
+.success-message {
+  color: #10b981;
+  font-size: 14px;
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* Progress indicator */
+.progress-steps {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.progress-step {
+  display: flex;
+  align-items: center;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.progress-step.active {
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+.progress-step.completed {
+  color: #10b981;
+}
+
+.progress-step:not(:last-child)::after {
+  content: '→';
+  margin: 0 12px;
+  color: #d1d5db;
+}

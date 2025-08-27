@@ -1,0 +1,388 @@
+/* Google Calendar Sync Component Styles */
+.google-calendar-sync {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 20px 0;
+}
+
+.sync-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.sync-header h3 {
+  color: #333;
+  margin: 0 0 8px 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.sync-header p {
+  color: #666;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* Status Display */
+.sync-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.status-icon {
+  font-size: 1.2rem;
+}
+
+.status-text {
+  font-size: 0.95rem;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+/* Sync Messages */
+.sync-message {
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 4px solid;
+}
+
+.sync-message.success {
+  background: #d4edda;
+  border-color: #28a745;
+  color: #155724;
+}
+
+.sync-message.error {
+  background: #f8d7da;
+  border-color: #dc3545;
+  color: #721c24;
+}
+
+.sync-message.warning {
+  background: #fff3cd;
+  border-color: #ffc107;
+  color: #856404;
+}
+
+.sync-message.info {
+  background: #d1ecf1;
+  border-color: #17a2b8;
+  color: #0c5460;
+}
+
+.message-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.message-icon {
+  font-size: 1.1rem;
+}
+
+.message-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.message-details {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+/* Hackathon Selection */
+.hackathon-selection {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.selection-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.selection-header h4 {
+  margin: 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.selection-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.hackathon-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+}
+
+.hackathon-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+
+.hackathon-item:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hackathon-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.hackathon-checkbox input[type="checkbox"] {
+  display: none;
+}
+
+.checkbox-custom {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.hackathon-checkbox input[type="checkbox"]:checked + .checkbox-custom {
+  background: #007bff;
+  border-color: #007bff;
+}
+
+.hackathon-checkbox input[type="checkbox"]:checked + .checkbox-custom::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.hackathon-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hackathon-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.hackathon-date {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.hackathon-status {
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-planning {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.status-participating {
+  background: #e8f5e8;
+  color: #388e3c;
+}
+
+.status-won {
+  background: #fff8e1;
+  color: #f57c00;
+}
+
+.status-didnt-qualify {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.sync-actions {
+  text-align: center;
+}
+
+/* No Hackathons */
+.no-hackathons {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.no-hackathons p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+/* Not Initialized */
+.not-initialized {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.not-initialized p {
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+}
+
+/* Buttons */
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #007bff;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #545b62;
+}
+
+.btn-success {
+  background: #28a745;
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #1e7e34;
+}
+
+.btn-outline-primary {
+  background: transparent;
+  color: #007bff;
+  border: 1px solid #007bff;
+}
+
+.btn-outline-primary:hover {
+  background: #007bff;
+  color: white;
+}
+
+.btn-outline-secondary {
+  background: transparent;
+  color: #6c757d;
+  border: 1px solid #6c757d;
+}
+
+.btn-outline-secondary:hover {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .google-calendar-sync {
+    padding: 16px;
+    margin: 16px 0;
+  }
+
+  .sync-status {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .selection-header {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .hackathon-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .hackathon-info {
+    width: 100%;
+  }
+}
+
+/* Scrollbar Styling */
+.hackathon-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.hackathon-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.hackathon-list::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.hackathon-list::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

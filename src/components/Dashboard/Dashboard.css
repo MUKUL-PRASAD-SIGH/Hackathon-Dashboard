@@ -1,0 +1,325 @@
+.dashboard {
+  min-height: 100vh;
+}
+
+.dashboard-controls {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid var(--border-color);
+}
+
+.search-section {
+  margin-bottom: 1.5rem;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+}
+
+.filters-section {
+  gap: 1.5rem;
+}
+
+.sort-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.sort-btn {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sort-btn:hover {
+  background: var(--bg-secondary);
+  border-color: var(--primary-color);
+}
+
+.sort-btn.asc {
+  color: var(--primary-color);
+}
+
+.sort-btn.desc {
+  color: var(--secondary-color);
+}
+
+/* Statistics Section */
+.stats-section {
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: var(--bg-primary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-card h3 {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-number {
+  color: var(--primary-color);
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Hackathons List */
+.hackathons-list {
+  background: var(--bg-primary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.no-results {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+}
+
+.hackathon-item {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border-color);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+}
+
+.action-buttons {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.edit-button,
+.delete-hackathon {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  padding: 0;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.edit-button:hover,
+.edit-button:focus {
+  color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.1);
+  transform: scale(1.1);
+  outline: none;
+}
+
+.delete-hackathon {
+  position: static;
+}
+
+.delete-hackathon:hover,
+.delete-hackathon:focus {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
+  transform: scale(1.1);
+  outline: none;
+}
+
+.delete-hackathon:focus {
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3);
+}
+
+.hackathon-item:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.hackathon-item:last-child {
+  margin-bottom: 0;
+}
+
+.hackathon-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.hackathon-info {
+  flex: 1;
+}
+
+.hackathon-info h4 {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+}
+
+.hackathon-meta {
+  margin-bottom: 0.5rem;
+}
+
+.hackathon-meta span {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.hackathon-meta strong {
+  color: var(--text-primary);
+}
+
+.hackathon-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-end;
+  min-width: 200px;
+}
+
+.status-badge {
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.status-update {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+.status-update label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.status-update .form-select {
+  min-width: 150px;
+  font-size: 0.875rem;
+  padding: 0.5rem;
+}
+
+.hackathon-remarks,
+.hackathon-notifications {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.hackathon-remarks strong,
+.hackathon-notifications strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.hackathon-remarks ul,
+.hackathon-notifications ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.hackathon-remarks li,
+.hackathon-notifications li {
+  margin-bottom: 0.25rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-controls {
+    padding: 1rem;
+  }
+  
+  .filters-section {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .stats-section {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .hackathon-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .hackathon-actions {
+    align-items: flex-start;
+    min-width: auto;
+    width: 100%;
+  }
+  
+  .status-update {
+    align-items: flex-start;
+    width: 100%;
+  }
+  
+  .status-update .form-select {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-section {
+    grid-template-columns: 1fr;
+  }
+}

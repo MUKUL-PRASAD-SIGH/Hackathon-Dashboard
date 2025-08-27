@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend-Backend Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        #results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Frontend-Backend Connection Test</h1>
+    <p>This will test if the frontend can connect to the backend API.</p>
+    
+    <button onclick="testHealthCheck()">Test Health Check</button>
+    <button onclick="testSendOTP()">Test Send OTP</button>
+    <button onclick="testAllEndpoints()">Test All Endpoints</button>
+    <button onclick="clearResults()">Clear Results</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:5001';
+        
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            results.appendChild(div);
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        async function testHealthCheck() {
+            addResult('🔍 Testing health check endpoint...', 'info');
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult(`✅ Health check successful: ${data.status}`, 'success');
+                    addResult(`📊 Server uptime: ${Math.floor(data.uptime)} seconds`, 'info');
+                } else {
+                    addResult(`❌ Health check failed: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Health check error: ${error.message}`, 'error');
+                if (error.message.includes('fetch')) {
+                    addResult('💡 This usually means the backend server is not running or not accessible', 'info');
+                }
+            }
+        }
+        
+        async function testSendOTP() {
+            addResult('📧 Testing send OTP endpoint...', 'info');
+            try {
+                const response = await fetch(`${API_BASE}/api/send-otp`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: 'test@example.com' })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult(`✅ Send OTP successful: ${data.message}`, 'success');
+                } else {
+                    addResult(`❌ Send OTP failed: ${data.error?.message || 'Unknown error'}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Send OTP error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function testAllEndpoints() {
+            addResult('🚀 Starting comprehensive API test...', 'info');
+            
+            // Test 1: Health Check
+            await testHealthCheck();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test 2: Send OTP
+            await testSendOTP();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test 3: Metrics
+            addResult('📊 Testing metrics endpoint...', 'info');
+            try {
+                const response = await fetch(`${API_BASE}/metrics`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    addResult(`✅ Metrics successful - Total requests: ${data.requests?.total || 0}`, 'success');
+                } else {
+                    addResult(`❌ Metrics failed: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                addResult(`❌ Metrics error: ${error.message}`, 'error');
+            }
+            
+            addResult('🎉 Comprehensive test completed!', 'success');
+        }
+        
+        // Auto-run health check on page load
+        window.onload = function() {
+            addResult('🌟 Frontend-Backend Connection Tester Loaded', 'info');
+            addResult('📍 Backend URL: ' + API_BASE, 'info');
+            setTimeout(testHealthCheck, 1000);
+        };
+    </script>
+</body>
+</html>

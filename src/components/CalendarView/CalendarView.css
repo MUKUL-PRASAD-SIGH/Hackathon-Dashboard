@@ -1,0 +1,225 @@
+.calendar-view {
+  min-height: 100vh;
+}
+
+.section-description {
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.calendar-container {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: var(--shadow-md);
+}
+
+/* FullCalendar Customization */
+.fc {
+  font-family: inherit;
+}
+
+.fc-toolbar-title {
+  font-size: 1.5rem !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+}
+
+.fc-button {
+  background: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  padding: 0.5rem 1rem !important;
+}
+
+.fc-button:hover {
+  background: var(--secondary-color) !important;
+  border-color: var(--secondary-color) !important;
+}
+
+.fc-button-active {
+  background: var(--secondary-color) !important;
+  border-color: var(--secondary-color) !important;
+}
+
+.fc-daygrid-event {
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+  padding: 2px 6px !important;
+}
+
+.fc-daygrid-day {
+  cursor: pointer !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.fc-daygrid-day:hover {
+  background-color: var(--bg-secondary) !important;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+/* Hackathon Card Styles */
+.hackathon-card {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--border-color);
+}
+
+.hackathon-card:last-child {
+  margin-bottom: 0;
+}
+
+.hackathon-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.hackathon-header h4 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.status-badge {
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.hackathon-details {
+  margin-bottom: 1rem;
+}
+
+.hackathon-details > div {
+  padding: 0.5rem 0;
+  color: var(--text-secondary);
+}
+
+.hackathon-details strong {
+  color: var(--text-primary);
+}
+
+.hackathon-remarks,
+.hackathon-notifications {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.hackathon-remarks strong,
+.hackathon-notifications strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.hackathon-remarks ul,
+.hackathon-notifications ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: var(--text-secondary);
+}
+
+.hackathon-remarks li,
+.hackathon-notifications li {
+  margin-bottom: 0.25rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .calendar-container {
+    padding: 0.5rem;
+  }
+  
+  .fc-toolbar {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .fc-toolbar-chunk {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .modal-content {
+    margin: 1rem;
+    max-height: 90vh;
+  }
+  
+  .hackathon-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
