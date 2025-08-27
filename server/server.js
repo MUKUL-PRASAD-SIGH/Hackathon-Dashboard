@@ -101,15 +101,16 @@ const authLimiter = rateLimit({
 // Apply rate limiting
 app.use('/api/', generalLimiter);
 
-// CORS configuration
+// CORS configuration - Allow all origins for development
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://yourdomain.com'] 
-    : ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001'],
+  origin: true,
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 // Body parsing middleware with size limits
 app.use(bodyParser.json({ limit: '10mb' }));
