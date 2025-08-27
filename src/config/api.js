@@ -1,6 +1,6 @@
 // API configuration
 const isDevelopment = process.env.NODE_ENV === 'development';
-const API_HOST = isDevelopment ? 'localhost' : 'hackathon-dashboard-backend.onrender.com';
+const API_HOST = isDevelopment ? 'localhost' : 'hackathon-dashboard-backend-md49.onrender.com';
 const API_PORT = isDevelopment ? 5000 : 443;
 const API_PROTOCOL = isDevelopment ? 'http' : 'https';
 const API_BASE_URL = isDevelopment 
@@ -37,7 +37,7 @@ export const getApiBaseUrl = async () => {
   if (!isConnected) {
     const errorMsg = isDevelopment 
       ? `Backend server not responding on port ${API_PORT}. Please start the server with: cd server && npm start`
-      : `Backend server not responding at ${API_HOST}. Please check if the server is deployed.`;
+      : `Backend server not responding at ${API_HOST}. Please check if the server is deployed and MongoDB is connected.`;
     throw new Error(errorMsg);
   }
   

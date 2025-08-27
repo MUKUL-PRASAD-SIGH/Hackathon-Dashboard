@@ -11,7 +11,12 @@ connectDB();
 
 // CORS
 app.use(cors({
-  origin: '*',
+  origin: [
+    'https://hackathon-dashboard-mukul.netlify.app',
+    'http://localhost:3000',
+    'http://localhost:3001'
+  ],
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
