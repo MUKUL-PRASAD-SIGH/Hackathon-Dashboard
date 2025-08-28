@@ -1,0 +1,27 @@
+[33ma289f72[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Add Google Calendar integration with OAuth and sync features
+[33m5d404f3[m Fix: Use authService in Login component
+[33mdde808a[m Fix: Force page reload after login to update AuthContext
+[33m52bb4e3[m FINAL FIX: Eliminate ALL localhost references
+[33m640e03a[m Fix debugUtils: Use correct backend URL
+[33m8f10439[m Fix apiUtils: Use direct URL detection
+[33m54230e6[m Fix: Direct production URL without env vars
+[33m1eff8b5[m Debug: Add logging to see API URL in production
+[33m32f3217[m Fix CORS: Add specific Netlify domain
+[33mee883da[m Force fix: Add production env var for API URL
+[33mdebea08[m Fix: Direct API URL detection for production
+[33m6fccef3[m Fix production API: skip connection test to avoid CORS
+[33m65553b2[m Fix registration: correct authService method names
+[33mf01a267[m Update README: MongoDB Atlas fully working, production ready v1.2.0
+[33m65f4d9f[m Add CORS debug tools
+[33m394db31[m Fix CORS configuration for all origins
+[33m6b0247e[m 🔧 Fix: Update CORS for Netlify domain and correct backend URL
+[33mcc7f27e[m 🔧 Fix: Create clean API-only server without static file references
+[33md525f7e[m 🔧 Fix: Remove static file serving from API server
+[33m0618bb0[m 🔧 Fix: Add public folder with index.html for Netlify deployment
+[33m5c2a6ca[m 🔧 Fix: Add jsonwebtoken and body-parser dependencies
+[33mbea9830[m 🔧 Fix: Add missing bcrypt dependency for deployment
+[33m36b6e84[m 🚀 Production Deployment Ready
+[33mccef3f5[m ✅ Phase 1 Complete: MongoDB Integration & User Authentication
+[33m0963f5c[m Add comprehensive 3-phase development plan for personalized tracker
+[33m42abe4d[m Update README: v1.1.0 complete with auth, clarify data not personalized yet
+[33m3036700[m Initial commit: Hackathon Dashboard v1.1.0 with OTP authentication

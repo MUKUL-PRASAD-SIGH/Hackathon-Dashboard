@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import GoogleCalendarSync from '../GoogleCalendarSync/GoogleCalendarSync';
 import './Dashboard.css';
 import './UserInfo.css';
 
@@ -278,12 +277,6 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
             <p className="stat-number">{stats.planning}</p>
           </div>
         </div>
-
-        {/* Google Calendar Sync */}
-        <GoogleCalendarSync 
-          hackathons={hackathons} 
-          onHackathonUpdate={onUpdateHackathon}
-        />
 
         {/* Hackathons List */}
         <div className="hackathons-list">
