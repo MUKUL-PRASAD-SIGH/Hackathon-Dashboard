@@ -1,0 +1,76 @@
+/* Congratulations Popup */
+.congrats-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  animation: congratsSlideIn 0.5s ease-out;
+}
+
+.congrats-content {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2.5rem;
+  border-radius: 25px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  min-width: 350px;
+}
+
+.congrats-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: bounce 1s infinite;
+}
+
+.congrats-content h3 {
+  font-size: 1.8rem;
+  margin: 0 0 1rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.congrats-content p {
+  font-size: 1.1rem;
+  margin: 0 0 1.5rem 0;
+  opacity: 0.9;
+}
+
+.celebration-emojis {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.celebration-emojis span {
+  font-size: 2rem;
+  animation: sparkle 1.5s infinite;
+  animation-delay: calc(var(--i) * 0.2s);
+}
+
+.celebration-emojis span:nth-child(1) { --i: 0; }
+.celebration-emojis span:nth-child(2) { --i: 1; }
+.celebration-emojis span:nth-child(3) { --i: 2; }
+.celebration-emojis span:nth-child(4) { --i: 3; }
+
+@keyframes congratsSlideIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-20px); }
+  60% { transform: translateY(-10px); }
+}
+
+@keyframes sparkle {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.3) rotate(180deg); }
+}

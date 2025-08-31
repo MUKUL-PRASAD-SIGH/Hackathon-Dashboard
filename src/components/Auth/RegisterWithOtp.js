@@ -189,6 +189,11 @@ const RegisterWithOtp = () => {
     });
 
     try {
+      // Validate form data before registration
+      if (!formData.name || !formData.email || !formData.password) {
+        throw new Error('Missing required registration data');
+      }
+      
       componentLogger.info('Completing user registration', {
         name: formData.name,
         email: formData.email,
@@ -196,8 +201,8 @@ const RegisterWithOtp = () => {
       });
       
       const registerData = await registerUser({
-        name: formData.name,
-        email: formData.email,
+        name: formData.name.trim(),
+        email: formData.email.toLowerCase().trim(),
         password: formData.password
       });
       
@@ -211,6 +216,7 @@ const RegisterWithOtp = () => {
       
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(registerData.user));
+      localStorage.setItem('isNewUser', 'true');
       
       componentLogger.info('User session saved, navigating to dashboard');
       toast.success('Registration completed successfully!');

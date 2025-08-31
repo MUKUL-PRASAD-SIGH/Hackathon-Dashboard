@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Storage & Fix Auth</title>
+</head>
+<body>
+    <h2>🧹 Clear All Storage</h2>
+    <button onclick="clearAll()">Clear Everything</button>
+    <div id="result"></div>
+
+    <script>
+        function clearAll() {
+            // Clear localStorage
+            localStorage.clear();
+            
+            // Clear sessionStorage
+            sessionStorage.clear();
+            
+            // Clear cookies
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
+            document.getElementById('result').innerHTML = `
+                <p>✅ localStorage cleared</p>
+                <p>✅ sessionStorage cleared</p>
+                <p>✅ cookies cleared</p>
+                <p><strong>Now refresh and register again!</strong></p>
+            `;
+            
+            // Redirect to register after 2 seconds
+            setTimeout(() => {
+                window.location.href = 'http://localhost:3001/register';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+@echo off
+echo Starting server with MongoDB debug...
+cd server
+echo Checking .env file...
+type ..\.env
+echo.
+echo Starting server...
+node server.js
+pause

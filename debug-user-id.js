@@ -1,58 +1,38 @@
-// Debug User ID Mismatch - Run in browser console after login
+const mongoose = require('mongoose');
+require('dotenv').config();
 
-console.log('🔍 Debugging User ID Mismatch...');
-
-// Get current user data
-const token = localStorage.getItem('token');
-const userStr = localStorage.getItem('user');
-
-console.log('📋 Current Authentication State:');
-console.log('Token exists:', !!token);
-console.log('User exists:', !!userStr);
-
-if (token) {
-    try {
-        // Decode token to see user ID
-        const tokenData = JSON.parse(atob(token));
-        console.log('🎫 Token Data:', tokenData);
-        console.log('🆔 User ID from token:', tokenData.id);
-    } catch (e) {
-        console.log('❌ Failed to decode token:', e);
+const connectAndCheck = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('✅ Connected to MongoDB');
+    
+    // Find the user by email
+    const UserMongoDB = require('./server/models/UserMongoDB');
+    const user = await UserMongoDB.findOne({ email: 'mukulpra48@gmail.com' });
+    
+    if (user) {
+      console.log('✅ Found user:', {
+        id: user._id,
+        email: user.email,
+        name: user.name
+      });
+      
+      // Generate correct token
+      const correctToken = Buffer.from(JSON.stringify({
+        id: user._id.toString(),
+        email: user.email,
+        name: user.name
+      })).toString('base64');
+      
+      console.log('🔑 Correct token:', correctToken);
+    } else {
+      console.log('❌ User not found');
     }
-}
+    
+    await mongoose.disconnect();
+  } catch (error) {
+    console.error('❌ Error:', error.message);
+  }
+};
 
-if (userStr) {
-    try {
-        const userData = JSON.parse(userStr);
-        console.log('👤 User Data:', userData);
-        console.log('🆔 User ID from user data:', userData._id || userData.id);
-    } catch (e) {
-        console.log('❌ Failed to parse user data:', e);
-    }
-}
-
-// Test API call to get hackathons
-async function testHackathonAPI() {
-    try {
-        console.log('🚀 Testing hackathon API...');
-        const response = await fetch('/api/hackathons', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        const data = await response.json();
-        console.log('📊 API Response:', data);
-        
-        if (data.debug) {
-            console.log('🔍 Debug Info:', data.debug);
-        }
-        
-    } catch (error) {
-        console.log('❌ API Error:', error);
-    }
-}
-
-if (token) {
-    testHackathonAPI();
-}
+connectAndCheck();

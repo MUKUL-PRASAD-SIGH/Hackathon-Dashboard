@@ -7,7 +7,7 @@ const apiLogger = new DebugLogger('ApiUtils');
 const getApiUrl = () => {
   const isLocalhost = window.location.hostname === 'localhost';
   const apiUrl = isLocalhost 
-    ? 'http://localhost:5000/api'
+    ? 'http://localhost:10000/api'
     : 'https://hackathon-dashboard-backend-md49.onrender.com/api';
     
   console.log('🔧 API URL:', apiUrl);
@@ -67,7 +67,7 @@ export const apiCall = async (endpoint, options = {}) => {
       
       // Handle specific fetch errors
       if (fetchError.name === 'TypeError') {
-        throw new Error(`Network error: Cannot connect to ${url}. Is the backend server running on port 5000?`);
+        throw new Error(`Network error: Cannot connect to ${url}. Is the backend server running on port 10000?`);
       }
       if (fetchError.name === 'AbortError') {
         throw new Error('Request timeout: Server took too long to respond.');
@@ -109,7 +109,7 @@ export const apiCall = async (endpoint, options = {}) => {
       
       if (text.includes('<!DOCTYPE') || text.includes('<html>')) {
         throw new Error(`Server returned HTML instead of JSON. This usually means:
-1. Backend server is not running on port 5000
+1. Backend server is not running on port 10000
 2. Wrong API endpoint: ${url}
 3. CORS or routing issue
 
@@ -171,6 +171,7 @@ export const resendOtp = (email) => {
 };
 
 export const registerUser = (userData) => {
+  console.log('🔍 Sending registration data:', userData);
   return apiCall('/register', {
     method: 'POST',
     body: JSON.stringify(userData),
@@ -199,7 +200,7 @@ export const testConnection = async () => {
     return { 
       connected: false, 
       message: error.message,
-      suggestion: 'Make sure the backend server is running on port 5000'
+      suggestion: 'Make sure the backend server is running on port 10000'
     };
   }
 };

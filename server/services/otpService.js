@@ -120,11 +120,11 @@ class OtpService {
       this.processingStore.add(email);
       console.log(`🔧 Starting OTP generation for ${email} (${operationId})`);
       
-      // Check rate limiting
-      const rateLimitCheck = this.isRateLimited(email);
-      if (rateLimitCheck) {
-        throw new Error(`Rate limit exceeded. Try again in ${rateLimitCheck.remainingTime} seconds`);
-      }
+      // Rate limiting temporarily disabled
+      // const rateLimitCheck = this.isRateLimited(email);
+      // if (rateLimitCheck) {
+      //   throw new Error(`Rate limit exceeded. Try again in ${rateLimitCheck.remainingTime} seconds`);
+      // }
       
       // Generate new OTP
       const otp = this.generateSecureOtp();
@@ -146,7 +146,7 @@ class OtpService {
       };
       
       this.otpStore.set(email, otpData);
-      this.updateRateLimit(email);
+      // this.updateRateLimit(email); // Temporarily disabled
       
       console.log(`✅ OTP generated successfully for ${email}`);
       console.log(`🔐 OTP: ${otp} (expires in ${Math.ceil(this.config.expirationTime / 60000)} minutes)`);
@@ -335,6 +335,22 @@ class OtpService {
   }
 
   /**
+   * Clear all rate limits and OTP data
+   */
+  clearAllLimits() {
+    const otpCount = this.otpStore.size;
+    const rateLimitCount = this.rateLimitStore.size;
+    const processingCount = this.processingStore.size;
+    
+    this.otpStore.clear();
+    this.rateLimitStore.clear();
+    this.processingStore.clear();
+    
+    console.log(`🧹 Cleared all limits: ${otpCount} OTPs, ${rateLimitCount} rate limits, ${processingCount} processing`);
+    return { otpCount, rateLimitCount, processingCount };
+  }
+
+  /**
    * Get service statistics
    */
   getStats() {
@@ -353,4 +369,7 @@ class OtpService {
   }
 }
 
-module.exports = OtpService;
+// Export singleton instance for easy clearing
+const otpServiceInstance = new OtpService();
+module.exports = otpServiceInstance;
+module.exports.OtpService = OtpService;

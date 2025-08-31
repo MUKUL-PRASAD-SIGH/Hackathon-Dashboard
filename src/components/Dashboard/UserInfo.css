@@ -20,9 +20,34 @@
 }
 
 .user-email {
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  font-style: italic;
+  font-size: 1.8rem;
+  color: #00ff88;
+  font-weight: 900;
+  font-family: 'Arial Black', Arial, sans-serif;
+  text-shadow: 0 0 15px #00ff88, 0 0 30px #00ff88, 0 0 45px #00ff88;
+  background: rgba(0, 0, 0, 0.9);
+  padding: 0.6rem 1.2rem;
+  border-radius: 30px;
+  border: 3px solid #00ff88;
+  letter-spacing: 1px;
+}
+
+.logout-btn {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+}
+
+.logout-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
 }
 
 @media (max-width: 768px) {

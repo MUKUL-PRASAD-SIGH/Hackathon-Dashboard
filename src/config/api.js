@@ -1,8 +1,8 @@
-// Direct API URL detection - NO MORE LOCALHOST ISSUES!
+// Direct API URL detection - FIXED PORT ISSUE!
 const getApiUrl = () => {
   const isLocalhost = window.location.hostname === 'localhost';
   const apiUrl = isLocalhost 
-    ? 'http://localhost:5000/api'
+    ? 'http://localhost:10000/api'
     : 'https://hackathon-dashboard-backend-md49.onrender.com/api';
     
   console.log('🔧 API URL:', apiUrl);

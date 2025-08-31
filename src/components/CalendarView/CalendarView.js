@@ -30,29 +30,39 @@ const CalendarView = ({ hackathons = [] }) => {
     setSelectedHackathons([]);
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Won': return 'var(--success-color)';
-      case 'Participating': return 'var(--primary-color)';
-      case 'Didn\'t qualify': return 'var(--error-color)';
-      case 'Planning': return 'var(--warning-color)';
-      default: return 'var(--text-secondary)';
-    }
+  const getHackathonColor = (hackathonId) => {
+    const colors = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#34495e', '#e67e22'];
+    const index = hackathons.findIndex(h => (h._id || h.id) === hackathonId);
+    return colors[index % colors.length];
   };
 
-  const calendarEvents = hackathons.map(hackathon => ({
-    id: hackathon.id,
-    title: hackathon.name,
-    date: hackathon.date,
-    backgroundColor: getStatusColor(hackathon.status),
-    borderColor: getStatusColor(hackathon.status),
-    extendedProps: {
-      platform: hackathon.platform,
-      team: hackathon.team,
-      rounds: hackathon.rounds,
-      status: hackathon.status
+  const calendarEvents = hackathons.flatMap(hackathon => {
+    const hackathonId = hackathon._id || hackathon.id;
+    const color = getHackathonColor(hackathonId);
+    const events = [];
+    
+    // Create events for each round
+    for (let round = 1; round <= hackathon.rounds; round++) {
+      events.push({
+        id: `${hackathonId}-r${round}`,
+        title: `${hackathon.name} - R${round}`,
+        date: hackathon.date,
+        backgroundColor: color,
+        borderColor: color,
+        extendedProps: {
+          hackathonId,
+          platform: hackathon.platform,
+          team: hackathon.team,
+          rounds: hackathon.rounds,
+          status: hackathon.status,
+          round: round,
+          originalHackathon: hackathon
+        }
+      });
     }
-  }));
+    
+    return events;
+  });
 
   return (
     <div className="calendar-view">
@@ -78,7 +88,7 @@ const CalendarView = ({ hackathons = [] }) => {
             dayMaxEvents={true}
             moreLinkClick="popover"
             eventClick={(info) => {
-              const hackathon = hackathons.find(h => h.id === parseInt(info.event.id));
+              const hackathon = info.event.extendedProps.originalHackathon;
               if (hackathon) {
                 setSelectedHackathons([hackathon]);
                 setSelectedDate(hackathon.date);

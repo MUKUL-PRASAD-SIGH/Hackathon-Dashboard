@@ -2,22 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import './HackathonForm.css';
+import './EmailField.css';
+import './RoundDates.css';
+import './RemarksStyles.css';
+import './ValidationStyles.css';
 
 const HackathonForm = ({ onAddHackathon, onUpdateHackathon, onReload, hackathons = [] }) => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = !!id;
   
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  
   const [formData, setFormData] = useState({
     name: '',
     platform: '',
-    email: '',
-    team: 'Solo',
+    email: user.email || '',
     date: '',
     rounds: 1,
+    roundDates: { 1: '' },
     status: 'Planning',
     remarks: {},
-    notifications: []
+    notifications: [],
+    maxParticipants: 4
   });
 
   // Load hackathon data if in edit mode
@@ -52,9 +59,9 @@ const HackathonForm = ({ onAddHackathon, onUpdateHackathon, onReload, hackathons
   const [currentRound, setCurrentRound] = useState(1);
   const [roundRemark, setRoundRemark] = useState('');
   const [selectedNotifications, setSelectedNotifications] = useState([]);
+  const [errors, setErrors] = useState({});
 
   const platforms = ['Devpost', 'HackerEarth', 'Topcoder', 'CodeChef', 'HackerRank', 'Other'];
-  const teamOptions = ['Solo', 'Team'];
   const statusOptions = ['Planning', 'Participating', 'Won', 'Didn\'t qualify'];
   const notificationOptions = [
     '2 days before',
@@ -70,10 +77,69 @@ const HackathonForm = ({ onAddHackathon, onUpdateHackathon, onReload, hackathons
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    
+    if (name === 'rounds') {
+      const numRounds = parseInt(value) || 1;
+      const newRoundDates = {};
+      for (let i = 1; i <= numRounds; i++) {
+        newRoundDates[i] = formData.roundDates?.[i] || '';
+      }
+      
+      // Auto-adjust currentRound if it exceeds new rounds count
+      if (currentRound > numRounds) {
+        setCurrentRound(numRounds);
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        [name]: numRounds,
+        roundDates: newRoundDates
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+  
+  const handleRoundDateChange = (roundNumber, date) => {
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      roundDates: {
+        ...prev.roundDates,
+        [roundNumber]: date
+      }
     }));
+    
+    // Validate date sequence immediately
+    validateRoundDateSequence(roundNumber, date);
+  };
+  
+  const validateRoundDateSequence = (changedRound, newDate) => {
+    const newErrors = { ...errors };
+    delete newErrors.dateSequence;
+    
+    if (!newDate) {
+      setErrors(newErrors);
+      return;
+    }
+    
+    const currentDates = { ...formData.roundDates, [changedRound]: newDate };
+    
+    for (let i = 1; i < formData.rounds; i++) {
+      const currentRoundDate = currentDates[i];
+      const nextRoundDate = currentDates[i + 1];
+      
+      if (currentRoundDate && nextRoundDate) {
+        if (new Date(currentRoundDate) >= new Date(nextRoundDate)) {
+          newErrors.dateSequence = `Round ${i + 1} date must be after Round ${i} date`;
+          break;
+        }
+      }
+    }
+    
+    setErrors(newErrors);
   };
 
   const handleRoundRemark = () => {
@@ -110,19 +176,61 @@ const HackathonForm = ({ onAddHackathon, onUpdateHackathon, onReload, hackathons
     }
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.name?.trim()) {
+      newErrors.name = 'Hackathon name is required';
+    }
+    
+    if (!formData.platform) {
+      newErrors.platform = 'Platform is required';
+    }
+    
+    // Check if all round dates are filled
+    const missingRoundDates = [];
+    for (let i = 1; i <= formData.rounds; i++) {
+      if (!formData.roundDates?.[i]) {
+        missingRoundDates.push(i);
+      }
+    }
+    
+    if (missingRoundDates.length > 0) {
+      newErrors.roundDates = `Round ${missingRoundDates.join(', ')} date(s) required`;
+    }
+    
+    // Check round date sequence
+    for (let i = 1; i < formData.rounds; i++) {
+      const currentRoundDate = formData.roundDates[i];
+      const nextRoundDate = formData.roundDates[i + 1];
+      
+      if (currentRoundDate && nextRoundDate) {
+        if (new Date(currentRoundDate) >= new Date(nextRoundDate)) {
+          newErrors.dateSequence = `Round ${i + 1} date must be after Round ${i} date`;
+          break;
+        }
+      }
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!formData.name || !formData.platform || !formData.date) {
-      toast.error('Please fill in all required fields');
+    if (!validateForm()) {
+      toast.error('Please fill in all required fields (marked in red)');
       return;
     }
 
     const hackathonData = {
       ...formData,
-      date: new Date(formData.date).toISOString().split('T')[0], // Format date as YYYY-MM-DD
-      notifications: selectedNotifications.map(trigger => ({ trigger }))
+      email: user.email, // Always use profile email
+      date: formData.roundDates[1] || new Date().toISOString().split('T')[0], // Use first round date
+      notifications: selectedNotifications.map(trigger => ({ trigger })),
+      remarks: formData.remarks, // Include round remarks
+      roundDates: formData.roundDates // Include all round dates
     };
 
     try {
@@ -132,7 +240,26 @@ const HackathonForm = ({ onAddHackathon, onUpdateHackathon, onReload, hackathons
         toast.success('Hackathon updated successfully!');
       } else {
         // Add new hackathon
-        await onAddHackathon(hackathonData);
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:10000/api/hackathons', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(hackathonData)
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Server error: ${response.status} - ${errorText}`);
+        }
+        
+        const data = await response.json();
+        if (!data.success) {
+          throw new Error(data.error?.message || 'Failed to create hackathon');
+        }
+        
         toast.success('Hackathon added successfully!');
       }
       
@@ -145,7 +272,9 @@ const HackathonForm = ({ onAddHackathon, onUpdateHackathon, onReload, hackathons
       navigate('/dashboard');
     } catch (error) {
       console.error('Error saving hackathon:', error);
-      toast.error('Failed to save hackathon. Please try again.');
+      console.error('Hackathon data being sent:', hackathonData);
+      console.error('Error details:', error.message);
+      toast.error(`Failed to save hackathon: ${error.message || 'Please try again'}`);
     }
   };
 
@@ -176,10 +305,11 @@ const HackathonForm = ({ onAddHackathon, onUpdateHackathon, onReload, hackathons
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="form-input"
+                  className={`form-input ${errors.name ? 'error' : ''}`}
                   placeholder="e.g., HackTheMountains"
                   required
                 />
+                {errors.name && <span className="error-message">{errors.name}</span>}
               </div>
               
               <div className="form-group">
@@ -188,7 +318,7 @@ const HackathonForm = ({ onAddHackathon, onUpdateHackathon, onReload, hackathons
                   name="platform"
                   value={formData.platform}
                   onChange={handleInputChange}
-                  className="form-select"
+                  className={`form-select ${errors.platform ? 'error' : ''}`}
                   required
                 >
                   <option value="">Select Platform</option>
@@ -196,50 +326,102 @@ const HackathonForm = ({ onAddHackathon, onUpdateHackathon, onReload, hackathons
                     <option key={platform} value={platform}>{platform}</option>
                   ))}
                 </select>
+                {errors.platform && <span className="error-message">{errors.platform}</span>}
               </div>
             </div>
             
             <div className="grid grid-2">
               <div className="form-group">
-                <label className="form-label">Email *</label>
+                <label className="form-label">Team Leader Email</label>
                 <input
                   type="email"
                   name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="form-input"
+                  value={user.email || ''}
+                  className="form-input readonly"
                   placeholder="your@email.com"
-                  required
+                  readOnly
+                  title="This is your profile email and cannot be changed"
                 />
+                <small className="form-hint">This email is from your profile and will be used as team leader contact</small>
               </div>
               
-              <div className="form-group">
-                <label className="form-label">Team Size</label>
-                <select
-                  name="team"
-                  value={formData.team}
-                  onChange={handleInputChange}
-                  className="form-select"
-                >
-                  {teamOptions.map(option => (
-                    <option key={option} value={option}>{option}</option>
-                  ))}
-                </select>
-              </div>
+
             </div>
             
             <div className="grid grid-2">
               <div className="form-group">
-                <label className="form-label">Date *</label>
+                <label className="form-label">Max Team Members</label>
+                <select
+                  name="maxParticipants"
+                  value={formData.maxParticipants || 4}
+                  onChange={handleInputChange}
+                  className="form-select"
+                >
+                  <option value="1">1 (Solo)</option>
+                  <option value="2">2 members</option>
+                  <option value="3">3 members</option>
+                  <option value="4">4 members</option>
+                  <option value="5">5 members</option>
+                  <option value="6">6 members</option>
+                  <option value="8">8 members</option>
+                  <option value="10">10 members</option>
+                  <option value="custom">Custom</option>
+                </select>
+                {formData.maxParticipants === 'custom' && (
+                  <input
+                    type="number"
+                    name="customMaxParticipants"
+                    placeholder="Enter custom number"
+                    min="1"
+                    max="50"
+                    className="form-input custom-input"
+                    onChange={(e) => setFormData(prev => ({ ...prev, maxParticipants: parseInt(e.target.value) || 1 }))}
+                  />
+                )}
+              </div>
+              
+              <div className="form-group">
+                <label className="form-label">Number of Rounds</label>
                 <input
-                  type="date"
-                  name="date"
-                  value={formData.date}
+                  type="number"
+                  name="rounds"
+                  value={formData.rounds}
                   onChange={handleInputChange}
                   className="form-input"
-                  required
+                  min="1"
+                  max="10"
                 />
               </div>
+            </div>
+            
+            
+            <div className="rounds-dates-section">
+              <h4>Round Dates</h4>
+              {errors.dateSequence && (
+                <div className="sequence-error">
+                  ⚠️ {errors.dateSequence}
+                </div>
+              )}
+              <div className="rounds-grid">
+                {Array.from({ length: formData.rounds }, (_, i) => i + 1).map(roundNum => (
+                  <div key={roundNum} className="round-date-group">
+                    <label className="form-label">Round {roundNum} Date *</label>
+                    <input
+                      type="date"
+                      value={formData.roundDates[roundNum] || ''}
+                      onChange={(e) => handleRoundDateChange(roundNum, e.target.value)}
+                      className={`form-input ${errors.roundDates && !formData.roundDates?.[roundNum] ? 'error' : ''}`}
+                      required
+                    />
+                    {errors.roundDates && !formData.roundDates?.[roundNum] && (
+                      <span className="error-message">Date required</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="grid grid-2">
               
               <div className="form-group">
                 <label className="form-label">Status</label>
@@ -256,46 +438,38 @@ const HackathonForm = ({ onAddHackathon, onUpdateHackathon, onReload, hackathons
               </div>
             </div>
             
-            <div className="form-group">
-              <label className="form-label">Number of Rounds</label>
-              <input
-                type="number"
-                name="rounds"
-                value={formData.rounds}
-                onChange={handleInputChange}
-                className="form-input"
-                min="1"
-                max="10"
-              />
-            </div>
+
           </div>
 
-          <div className="form-section">
+          <div className="form-section remarks-section">
             <h3>Round Remarks</h3>
             <p className="section-description">
-              Add remarks for each round of the hackathon
+              Add detailed remarks for each round (max 500 characters per round)
             </p>
             
-            <div className="round-remarks">
+            <div className="round-remarks-container">
               {Object.entries(formData.remarks).map(([round, remark]) => (
-                <div key={round} className="round-remark-item">
-                  <strong>{round}:</strong> {remark}
-                  <button
-                    type="button"
-                    onClick={() => removeRoundRemark(round)}
-                    className="remove-btn"
-                  >
-                    ×
-                  </button>
+                <div key={round} className="round-remark-display">
+                  <div className="remark-header">
+                    <strong>{round}:</strong>
+                    <button
+                      type="button"
+                      onClick={() => removeRoundRemark(round)}
+                      className="remove-btn"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="remark-content">{remark}</div>
                 </div>
               ))}
               
-              <div className="add-round-remark">
-                <div className="round-input-group">
+              <div className="add-round-remark-section">
+                <div className="remark-input-row">
                   <select
-                    value={currentRound}
+                    value={currentRound <= formData.rounds ? currentRound : 1}
                     onChange={(e) => setCurrentRound(parseInt(e.target.value))}
-                    className="form-select"
+                    className="round-select"
                   >
                     {Array.from({ length: formData.rounds }, (_, i) => i + 1).map(round => (
                       <option key={round} value={round}>Round {round}</option>
@@ -304,17 +478,21 @@ const HackathonForm = ({ onAddHackathon, onUpdateHackathon, onReload, hackathons
                   <input
                     type="text"
                     value={roundRemark}
-                    onChange={(e) => setRoundRemark(e.target.value)}
-                    className="form-input"
-                    placeholder="Enter round remark..."
+                    onChange={(e) => setRoundRemark(e.target.value.slice(0, 500))}
+                    className="remark-input-large"
+                    placeholder="Enter detailed round remark (max 500 characters)..."
+                    maxLength={500}
                   />
                   <button
                     type="button"
                     onClick={handleRoundRemark}
-                    className="btn btn-secondary"
+                    className="add-remark-btn"
                   >
-                    Add
+                    Add Remark
                   </button>
+                </div>
+                <div className="char-counter">
+                  {roundRemark.length}/500 characters
                 </div>
               </div>
             </div>

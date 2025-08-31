@@ -8,6 +8,7 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [otpSent, setOtpSent] = useState(false);
   const navigate = useNavigate();
@@ -15,8 +16,10 @@ export const AuthProvider = ({ children }) => {
   // Check if user is logged in on initial load
   useEffect(() => {
     const userData = localStorage.getItem('user');
-    if (userData) {
+    const userToken = localStorage.getItem('token');
+    if (userData && userToken) {
       setUser(JSON.parse(userData));
+      setToken(userToken);
     }
     setLoading(false);
   }, []);
@@ -48,8 +51,9 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await authService.login(email, password);
-      if (response.user) {
+      if (response.user && response.token) {
         setUser(response.user);
+        setToken(response.token);
         return true;
       }
       return false;
@@ -63,8 +67,9 @@ export const AuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     try {
       const response = await authService.registerUser(email, password, name);
-      if (response.user) {
+      if (response.user && response.token) {
         setUser(response.user);
+        setToken(response.token);
         return true;
       }
       return false;
@@ -83,7 +88,9 @@ export const AuthProvider = ({ children }) => {
   // Logout
   const logout = () => {
     setUser(null);
+    setToken(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
     toast.success('Logged out successfully!');
     navigate('/login');
   };
@@ -92,6 +99,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
+        token,
         loading,
         otpSent,
         sendOtp,

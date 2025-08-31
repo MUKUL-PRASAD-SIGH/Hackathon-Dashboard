@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test API Direct</title>
+</head>
+<body>
+    <h2>Test Hackathons API</h2>
+    <button onclick="testAPI()">Test API Call</button>
+    <div id="results"></div>
+
+    <script>
+        async function testAPI() {
+            const results = document.getElementById('results');
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            results.innerHTML = '<h3>Testing...</h3>';
+            results.innerHTML += '<p>Token: ' + (token ? 'Found' : 'Missing') + '</p>';
+            results.innerHTML += '<p>User: ' + user + '</p>';
+            
+            if (!token) {
+                results.innerHTML += '<p style="color:red">No token found! Please login first.</p>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:5001/api/hackathons', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                results.innerHTML += '<h3>API Response:</h3>';
+                results.innerHTML += '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                
+            } catch (error) {
+                results.innerHTML += '<p style="color:red">Error: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>

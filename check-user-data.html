@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug User Data</title>
+</head>
+<body>
+    <h2>Debug User Data</h2>
+    <div id="results"></div>
+
+    <script>
+        async function checkUserData() {
+            const results = document.getElementById('results');
+            
+            // Check localStorage
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            results.innerHTML += '<h3>LocalStorage Data:</h3>';
+            results.innerHTML += '<p><strong>Token:</strong> ' + (token ? 'Found' : 'Not found') + '</p>';
+            results.innerHTML += '<p><strong>User:</strong> ' + (user || 'Not found') + '</p>';
+            
+            if (user) {
+                try {
+                    const userData = JSON.parse(user);
+                    results.innerHTML += '<p><strong>User ID:</strong> ' + userData.id + '</p>';
+                    results.innerHTML += '<p><strong>Email:</strong> ' + userData.email + '</p>';
+                    results.innerHTML += '<p><strong>Name:</strong> ' + userData.name + '</p>';
+                    
+                    // Check hackathons API
+                    results.innerHTML += '<h3>API Check:</h3>';
+                    
+                    try {
+                        const response = await fetch('http://localhost:5001/api/hackathons', {
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        
+                        const data = await response.json();
+                        results.innerHTML += '<p><strong>API Response:</strong> ' + JSON.stringify(data, null, 2) + '</p>';
+                        
+                    } catch (error) {
+                        results.innerHTML += '<p><strong>API Error:</strong> ' + error.message + '</p>';
+                    }
+                    
+                } catch (error) {
+                    results.innerHTML += '<p><strong>Parse Error:</strong> ' + error.message + '</p>';
+                }
+            }
+        }
+        
+        checkUserData();
+    </script>
+</body>
+</html>

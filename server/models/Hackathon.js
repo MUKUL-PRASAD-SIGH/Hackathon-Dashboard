@@ -9,7 +9,7 @@ const hackathonSchema = new mongoose.Schema({
   platform: {
     type: String,
     required: true,
-    enum: ['Devpost', 'HackerEarth', 'Unstop', 'HackerRank', 'Codeforces', 'Other']
+    enum: ['Devpost', 'HackerEarth', 'Topcoder', 'CodeChef', 'HackerRank', 'Other']
   },
   email: {
     type: String,
@@ -17,8 +17,8 @@ const hackathonSchema = new mongoose.Schema({
   },
   team: {
     type: String,
-    required: true,
-    enum: ['Solo', '2-4 members', '5+ members']
+    required: false,
+    enum: ['Solo', 'Team']
   },
   date: {
     type: Date,
@@ -33,7 +33,7 @@ const hackathonSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ['Planning', 'Participating', 'Won', 'Qualified', 'Didn\'t qualify'],
+    enum: ['Planning', 'Participating', 'Won', 'Qualified', "Didn't qualify"],
     default: 'Planning'
   },
   remarks: {
@@ -51,10 +51,83 @@ const hackathonSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
-  }
-}, {
+    required: false
+  },
+  
+  // Team management fields
+  maxParticipants: {
+    type: Number,
+    default: 4,
+    min: 1,
+    max: 10
+  },
+  
+  teamMembers: [{
+    name: String,
+    email: {
+      type: String,
+      required: true,
+      lowercase: true
+    },
+    role: {
+      type: String,
+      default: 'Team Member'
+    },
+    joinedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  
+  // World visibility
+  isPublicWorld: {
+    type: Boolean,
+    default: false
+  },
+  
+  worldId: String,
+  
+  // Join requests
+  joinRequests: [{
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    name: String,
+    email: String,
+    message: String,
+    requestedAt: {
+      type: Date,
+      default: Date.now
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending'
+    }
+  }]
+},
+{
   timestamps: true
+});
+
+// Add round dates and remarks fields
+hackathonSchema.add({
+  roundDates: {
+    type: Map,
+    of: String,
+    default: {}
+  },
+  roundRemarks: [{
+    round: Number,
+    content: String,
+    author: String,
+    authorEmail: String,
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }]
 });
 
 // Index for efficient user queries

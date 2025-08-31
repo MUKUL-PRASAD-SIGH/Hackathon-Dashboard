@@ -82,6 +82,91 @@
   background: rgba(239, 68, 68, 0.1);
 }
 
+/* Friend Requests Dropdown */
+.friend-requests-dropdown {
+  position: relative;
+}
+
+.friend-requests-btn {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-size: inherit;
+}
+
+.friend-requests-btn:hover {
+  background: var(--primary-hover);
+  color: white;
+}
+
+.friend-requests-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  min-width: 250px;
+  z-index: 1000;
+  margin-top: 0.5rem;
+}
+
+.friend-requests-menu h4 {
+  margin: 0;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.friend-request-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.friend-request-item:last-child {
+  border-bottom: none;
+}
+
+.friend-request-item span {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.request-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.accept-btn, .reject-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.accept-btn:hover {
+  background: #10b981;
+  color: white;
+}
+
+.reject-btn:hover {
+  background: #ef4444;
+  color: white;
+}
+
 @media (max-width: 768px) {
   .header-container {
     padding: 1rem;
@@ -91,9 +176,17 @@
   
   .header-nav {
     gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
   }
   
   .header-brand h1 {
     font-size: 1.25rem;
+  }
+  
+  .friend-requests-menu {
+    right: auto;
+    left: 0;
+    min-width: 200px;
   }
 }

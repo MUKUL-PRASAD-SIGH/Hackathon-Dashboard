@@ -7,12 +7,24 @@ export const getUserHackathons = async () => {
     throw new Error('No authentication token found');
   }
 
-  return await apiCall('/hackathons', {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`
+  try {
+    return await apiCall(`/hackathons?_t=${Date.now()}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  } catch (error) {
+    // Handle invalid token errors
+    if (error.status === 401 || error.message.includes('Invalid token') || error.message.includes('authentication')) {
+      // Clear invalid session
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+      throw new Error('Session expired. Please login again.');
     }
-  });
+    throw error;
+  }
 };
 
 // Create new hackathon

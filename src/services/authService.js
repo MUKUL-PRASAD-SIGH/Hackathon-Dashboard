@@ -1,15 +1,13 @@
 // Auth service for handling OTP and user authentication
 import { toast } from 'react-hot-toast';
 
-// API URL - Direct production URL
+// API URL - Support both local and production
 const getApiUrl = () => {
   const isLocalhost = window.location.hostname === 'localhost';
   const apiUrl = isLocalhost 
-    ? 'http://localhost:5000/api'
+    ? 'http://localhost:10000/api'
     : 'https://hackathon-dashboard-backend-md49.onrender.com/api';
-    
   console.log('🔧 API URL:', apiUrl);
-  console.log('🌐 Hostname:', window.location.hostname);
   return apiUrl;
 };
 
