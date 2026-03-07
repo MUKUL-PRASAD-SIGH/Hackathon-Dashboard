@@ -1,6 +1,8 @@
 // Load environment variables
 require('dotenv').config({ path: '../.env' });
 
+const { generateToken } = require('./middleware/security');
+
 // Full-featured server with Socket.IO
 const express = require('express');
 const cors = require('cors');
@@ -18,22 +20,18 @@ const PORT = 10000;
 
 // CORS configuration
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', '*'],
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://hackathon-dashboard-mukul.netlify.app'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
-// Additional CORS headers
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  next();
-});
+// Handle preflight requests
+app.options('*', cors());
 
 // Connect to MongoDB
 connectDB();
@@ -100,7 +98,7 @@ app.put('/api/users/profile', (req, res, next) => {
 }, auth, async (req, res) => {
   try {
     const { bio, skills, experience, linkedin, github, portfolio, location, avatar, isPublic, name } = req.body;
-    
+
     const updateData = {
       'profile.bio': bio || '',
       'profile.skills': skills || [],
@@ -112,15 +110,15 @@ app.put('/api/users/profile', (req, res, next) => {
       'profile.avatar': avatar || '',
       'profile.isPublic': isPublic !== undefined ? isPublic : false
     };
-    
+
     if (name) updateData.name = name;
-    
+
     const user = await UserMongoDB.findOneAndUpdate(
       { email: req.user.email },
       { $set: updateData },
       { new: true, runValidators: true }
     ).select('-password');
-    
+
     res.json({ success: true, user, message: 'Profile updated successfully' });
   } catch (e) {
     res.status(500).json({ success: false, error: { message: e.message } });
@@ -156,10 +154,10 @@ app.post('/api/send-otp', async (req, res) => {
         error: { code: 'USER_EXISTS', message: 'User already registered! Please login instead.' }
       });
     }
-    
+
     // Generate OTP directly without rate limiting
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     // Store in simple memory (bypass OTP service rate limiting)
     global.tempOtpStore = global.tempOtpStore || new Map();
     global.tempOtpStore.set(email, {
@@ -167,7 +165,7 @@ app.post('/api/send-otp', async (req, res) => {
       createdAt: Date.now(),
       expiresAt: Date.now() + 10 * 60 * 1000 // 10 minutes
     });
-    
+
     await emailService.sendOtpEmail(email, otp);
     res.json({ success: true, message: 'OTP sent successfully to your email' });
   } catch (error) {
@@ -179,20 +177,20 @@ app.post('/api/send-otp', async (req, res) => {
 app.post('/api/verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body;
-    
+
     console.log('🔍 OTP verification attempt:', { email, otp: otp ? '***' + otp.slice(-2) : 'undefined' });
-    
+
     // Check temporary store first
     global.tempOtpStore = global.tempOtpStore || new Map();
     const tempOtp = global.tempOtpStore.get(email);
-    
-    console.log('🔍 Temp OTP store check:', { 
-      email, 
-      hasTempOtp: !!tempOtp, 
+
+    console.log('🔍 Temp OTP store check:', {
+      email,
+      hasTempOtp: !!tempOtp,
       tempOtpValue: tempOtp ? '***' + tempOtp.otp.slice(-2) : 'none',
       isExpired: tempOtp ? tempOtp.expiresAt <= Date.now() : 'n/a'
     });
-    
+
     if (tempOtp && tempOtp.otp === otp && tempOtp.expiresAt > Date.now()) {
       console.log('✅ OTP verified via temp store');
       global.tempOtpStore.delete(email);
@@ -200,7 +198,7 @@ app.post('/api/verify-otp', async (req, res) => {
       console.log('✅ Email marked as verified:', email);
       return res.json({ success: true, message: 'OTP verified successfully' });
     }
-    
+
     console.log('🔄 Falling back to OTP service');
     // Fallback to OTP service
     const verifyResult = await otpService.verifyOtp(email, otp);
@@ -217,101 +215,102 @@ app.post('/api/verify-otp', async (req, res) => {
 app.post('/api/register', async (req, res) => {
   try {
     const { email, password, name } = req.body;
-    
+
     console.log('📝 Registration attempt:', { email, name, hasPassword: !!password });
-    
+
     // Detailed validation
     const errors = [];
-    
+
     if (!name || name.trim().length < 2) {
       errors.push('Name must be at least 2 characters long');
     }
-    
+
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       errors.push('Valid email address is required');
     }
-    
+
     if (!password || password.length < 6) {
       errors.push('Password must be at least 6 characters long');
     }
-    
+
     if (errors.length > 0) {
       console.log('❌ Validation errors:', errors);
       return res.status(400).json({
         success: false,
-        error: { 
-          code: 'VALIDATION_ERROR', 
+        error: {
+          code: 'VALIDATION_ERROR',
           message: 'Invalid input data',
           details: errors
         }
       });
     }
-    
-    // Temporarily bypass email verification check for debugging
-    const isEmailVerified = true; // User.isEmailVerified(email);
-    console.log('🔍 Email verification bypassed for debugging:', { email, isEmailVerified });
-    
+
+    // Check email verification
+    const isEmailVerified = User.isEmailVerified(email);
+    console.log('🔍 Email verification check:', { email, isEmailVerified });
+
     // Check if user already exists in MongoDB
     const existingUser = await UserMongoDB.findOne({ email: email.toLowerCase().trim() });
     if (existingUser) {
       console.log('❌ User already exists:', email);
-      return res.status(409).json({ 
-        success: false, 
-        error: { 
+      return res.status(409).json({
+        success: false,
+        error: {
           code: 'DUPLICATE_EMAIL',
           message: 'Email already registered. Please login instead.',
           details: ['This email is already associated with an account']
-        } 
+        }
       });
     }
-    
+
     console.log('✅ Creating new user in MongoDB');
-    const user = new UserMongoDB({ 
-      name: name.trim(), 
-      email: email.toLowerCase().trim(), 
-      password, 
-      emailVerified: true 
+    const user = new UserMongoDB({
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      password,
+      emailVerified: true
     });
-    
+
     await user.save();
     console.log('✅ User saved to MongoDB:', user._id);
-    
+
     // Clean up verification state
     User.removeEmailVerification(email);
-    
-    const token = Buffer.from(JSON.stringify({ 
-      email: user.email, 
-      name: user.name 
-    })).toString('base64');
-    
-    console.log('✅ Registration successful for:', email);
-    res.status(201).json({ 
-      success: true, 
-      message: 'User registered successfully', 
-      token, 
-      user: user.toJSON() 
+
+    const token = generateToken({
+      id: user._id.toString(),
+      email: user.email,
+      name: user.name
     });
-    
+
+    console.log('✅ Registration successful for:', email);
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      token,
+      user: user.toJSON()
+    });
+
   } catch (error) {
     console.error('❌ Registration error:', error);
-    
+
     if (error.code === 11000) {
-      return res.status(409).json({ 
-        success: false, 
-        error: { 
+      return res.status(409).json({
+        success: false,
+        error: {
           code: 'DUPLICATE_EMAIL',
           message: 'Email already registered. Please login instead.',
           details: ['This email is already associated with an account']
-        } 
+        }
       });
     }
-    
-    res.status(500).json({ 
-      success: false, 
-      error: { 
+
+    res.status(500).json({
+      success: false,
+      error: {
         message: 'Registration failed',
         details: [error.message]
-      } 
+      }
     });
   }
 });
@@ -321,7 +320,7 @@ app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await UserMongoDB.authenticate(email, password);
-    const token = Buffer.from(JSON.stringify({ email: user.email, name: user.name })).toString('base64');
+    const token = generateToken({ id: user._id.toString(), email: user.email, name: user.name });
     res.json({ success: true, message: 'Login successful', token, user: user.toJSON() });
   } catch (error) {
     res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password' } });
@@ -349,23 +348,23 @@ io.use(socketAuth);
 // Socket.IO connection handling
 io.on('connection', (socket) => {
   console.log(`🔌 User connected: ${socket.userName} (${socket.id})`);
-  
+
   // Join hackathon world
   socket.on('joinWorld', ({ hackathonWorldId }) => {
     socket.join(`world_${hackathonWorldId}`);
     console.log(`🌍 ${socket.userName} joined world: ${hackathonWorldId}`);
   });
-  
+
   // Leave hackathon world
   socket.on('leaveWorld', ({ hackathonWorldId }) => {
     socket.leave(`world_${hackathonWorldId}`);
     console.log(`🌍 ${socket.userName} left world: ${hackathonWorldId}`);
   });
-  
+
   // Handle chat messages
   socket.on('chatMessage', async ({ hackathonWorldId, teamId, message }) => {
     const Message = require('./models/Message');
-    
+
     try {
       const newMessage = new Message({
         content: message,
@@ -374,10 +373,10 @@ io.on('connection', (socket) => {
         teamId: teamId || null,
         messageType: 'text'
       });
-      
+
       await newMessage.save();
       await newMessage.populate('sender', 'name email');
-      
+
       const room = teamId ? `team_${teamId}` : `world_${hackathonWorldId}`;
       io.to(room).emit('newMessage', {
         id: newMessage._id,
@@ -386,13 +385,13 @@ io.on('connection', (socket) => {
         timestamp: newMessage.createdAt,
         messageType: newMessage.messageType
       });
-      
+
     } catch (error) {
       console.error('❌ Message save error:', error.message);
       socket.emit('messageError', { error: 'Failed to send message' });
     }
   });
-  
+
   // Handle typing indicators
   socket.on('typing', ({ hackathonWorldId, teamId, isTyping }) => {
     const room = teamId ? `team_${teamId}` : `world_${hackathonWorldId}`;
@@ -402,16 +401,16 @@ io.on('connection', (socket) => {
       isTyping
     });
   });
-  
+
   // Basic connection events
   socket.on('disconnect', (reason) => {
     console.log(`🔌 User disconnected: ${socket.userName} (${reason})`);
   });
-  
+
   socket.on('ping', () => {
     socket.emit('pong', { timestamp: Date.now() });
   });
-  
+
   socket.on('error', (error) => {
     console.error(`❌ Socket error for ${socket.userName}:`, error.message);
   });

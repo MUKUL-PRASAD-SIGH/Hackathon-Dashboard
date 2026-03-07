@@ -12,12 +12,14 @@ dist/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
+server/logs/
 
 # Runtime data
 pids
@@ -96,6 +98,56 @@ temp/
 ehthumbs.db
 Thumbs.db
 
-# Debug files
+# ============================================
+# Personal debug, test, and fix scripts
+# (contain credentials or are dev-only tools)
+# ============================================
+
+# Debug/test scripts (root level)
 test-*.js
+test-*.html
+debug-*.js
 debug-*.html
+check-*.js
+check-*.html
+clear-*.js
+clear-*.html
+fix-*.js
+fix-*.bat
+reset-*.js
+restore-*.js
+create-test-*.js
+
+# Batch files (Windows dev shortcuts)
+*.bat
+
+# HTML debug/test pages
+clear-localStorage.html
+clear-storage-fix.html
+test-frontend-backend.html
+test-frontend-connection.html
+test-api-direct.html
+test-https-issue.html
+debug-frontend.html
+debug-google-calendar.html
+debug-production-direct.html
+debug-user-token.html
+
+# Server debug/test/fix scripts
+server/debug-*.js
+server/check-*.js
+server/clear-*.js
+server/fix-*.js
+server/reset-*.js
+server/cleanup-*.js
+server/test-db.js
+
+# Backup server files
+server/app.js
+
+# Broken filename from git command typo
+et --hard a289f72^
+
+# Personal MD documentation (code dumps)
+**/code_dump*.md
+**/dump_code*.py

@@ -12,20 +12,26 @@ const Login = () => {
   const [showOtpField, setShowOtpField] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'otp'
-  
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showRegisterPrompt, setShowRegisterPrompt] = useState(false);
+
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    // Clear previous errors
+    setErrorMessage('');
+    setShowRegisterPrompt(false);
+
     // Basic validation
     if (!email) {
       toast.error('Please enter your email');
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     try {
       if (loginMethod === 'password') {
         // Handle password login
@@ -33,7 +39,7 @@ const Login = () => {
           toast.error('Please enter your password');
           return;
         }
-        
+
         const response = await authService.login(email, password);
         localStorage.setItem('token', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
@@ -41,10 +47,10 @@ const Login = () => {
         // Force page reload to update AuthContext
         window.location.href = '/dashboard';
       } else {
-        // Handle OTP login
+        // Handle OTP login for registered users
         if (!showOtpField) {
-          // Request OTP
-          await authService.sendOtp(email);
+          // Request Login OTP (checks if user is registered)
+          await authService.sendLoginOtp(email);
           setShowOtpField(true);
           toast.success('OTP sent to your email!');
         } else {
@@ -53,11 +59,11 @@ const Login = () => {
             toast.error('Please enter a valid 6-digit OTP');
             return;
           }
-          
-          const response = await authService.verifyOtp(email, otp);
+
+          const response = await authService.verifyLoginOtp(email, otp);
           if (response.success) {
-            localStorage.setItem('token', 'verified_' + Date.now());
-            localStorage.setItem('user', JSON.stringify({ email }));
+            localStorage.setItem('token', response.token);
+            localStorage.setItem('user', JSON.stringify(response.user));
             toast.success('Login successful!');
             // Force page reload to update AuthContext
             window.location.href = '/dashboard';
@@ -66,7 +72,16 @@ const Login = () => {
       }
     } catch (error) {
       console.error('Login error:', error);
-      toast.error(error.message || 'Login failed. Please try again.');
+
+      // Check if the error is about user not being registered
+      const errorMsg = error.message || 'Login failed. Please try again.';
+      if (errorMsg.includes('No account found') || errorMsg.includes('register first') || errorMsg.includes('USER_NOT_FOUND')) {
+        setShowRegisterPrompt(true);
+        setErrorMessage('No account found with this email. You must register before logging in.');
+      } else {
+        setErrorMessage(errorMsg);
+        toast.error(errorMsg);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -89,6 +104,8 @@ const Login = () => {
     setLoginMethod(loginMethod === 'password' ? 'otp' : 'password');
     setShowOtpField(false);
     setOtp('');
+    setErrorMessage('');
+    setShowRegisterPrompt(false);
   };
 
   return (
@@ -96,7 +113,64 @@ const Login = () => {
       <div className="auth-card">
         <h2>Welcome Back</h2>
         <p className="auth-subtitle">Sign in to your account to continue</p>
-        
+
+        {/* Registration Required Error Banner */}
+        {showRegisterPrompt && (
+          <div style={{
+            background: 'linear-gradient(135deg, #fff3cd, #ffeeba)',
+            border: '2px solid #ffc107',
+            borderRadius: '12px',
+            padding: '16px 20px',
+            marginBottom: '20px',
+            textAlign: 'center',
+            animation: 'fadeIn 0.3s ease-in'
+          }}>
+            <p style={{
+              color: '#856404',
+              fontWeight: '600',
+              fontSize: '15px',
+              margin: '0 0 10px 0'
+            }}>
+              ⚠️ {errorMessage}
+            </p>
+            <Link
+              to="/register"
+              style={{
+                display: 'inline-block',
+                background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                color: 'white',
+                padding: '10px 28px',
+                borderRadius: '8px',
+                textDecoration: 'none',
+                fontWeight: '600',
+                fontSize: '14px',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                boxShadow: '0 2px 8px rgba(102, 126, 234, 0.4)'
+              }}
+              onMouseOver={(e) => e.target.style.transform = 'translateY(-1px)'}
+              onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+            >
+              🚀 Register Now
+            </Link>
+          </div>
+        )}
+
+        {/* General Error Message */}
+        {errorMessage && !showRegisterPrompt && (
+          <div style={{
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            marginBottom: '16px',
+            color: '#dc2626',
+            fontSize: '14px',
+            textAlign: 'center'
+          }}>
+            ❌ {errorMessage}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="auth-form">
           {/* Email Field */}
           <div className="form-group">
@@ -106,7 +180,11 @@ const Login = () => {
               id="email"
               name="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value.trim())}
+              onChange={(e) => {
+                setEmail(e.target.value.trim());
+                setErrorMessage('');
+                setShowRegisterPrompt(false);
+              }}
               placeholder="Enter your email"
               className="form-input"
               required
@@ -160,7 +238,7 @@ const Login = () => {
             >
               {loginMethod === 'password' ? 'Use OTP instead' : 'Use password instead'}
             </button>
-            
+
             {loginMethod === 'password' && (
               <Link to="/forgot-password" className="text-button">
                 Forgot password?
@@ -169,8 +247,8 @@ const Login = () => {
           </div>
 
           {/* Submit Button */}
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="auth-button primary"
             disabled={isLoading}
           >

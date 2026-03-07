@@ -1,4 +1,4 @@
 @echo off
-echo Starting Hackathon Dashboard Backend Server...
-cd server
-npm run dev
+echo Starting Backend Server on port 10000...
+cd /d "%~dp0server"
+node server.js

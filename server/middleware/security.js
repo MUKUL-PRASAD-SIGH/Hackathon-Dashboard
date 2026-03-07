@@ -2,9 +2,13 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 
-// JWT secret (in production, use environment variable)
+// JWT secret - MUST be set via environment variable in production
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+
+if (!process.env.JWT_SECRET) {
+  console.warn('⚠️  WARNING: JWT_SECRET not set in environment variables. Using fallback key. Set JWT_SECRET in .env for production!');
+}
 
 // Password hashing
 const hashPassword = async (password) => {
@@ -69,19 +73,19 @@ const accountLockouts = new Map();
 
 const checkAccountLockout = (identifier) => {
   const lockoutData = accountLockouts.get(identifier);
-  
+
   if (!lockoutData) {
     return { locked: false };
   }
-  
+
   const now = Date.now();
-  
+
   // Check if lockout has expired
   if (lockoutData.lockedUntil < now) {
     accountLockouts.delete(identifier);
     return { locked: false };
   }
-  
+
   return {
     locked: true,
     lockedUntil: lockoutData.lockedUntil,
@@ -92,7 +96,7 @@ const checkAccountLockout = (identifier) => {
 const recordFailedAttempt = (identifier, maxAttempts = 5, lockoutDuration = 15 * 60 * 1000) => {
   const now = Date.now();
   let lockoutData = accountLockouts.get(identifier);
-  
+
   if (!lockoutData) {
     lockoutData = {
       attempts: 1,
@@ -102,15 +106,15 @@ const recordFailedAttempt = (identifier, maxAttempts = 5, lockoutDuration = 15 *
   } else {
     lockoutData.attempts++;
   }
-  
+
   // Lock account if max attempts exceeded
   if (lockoutData.attempts >= maxAttempts) {
     lockoutData.lockedUntil = now + lockoutDuration;
     console.log(`🔒 Account locked: ${identifier} for ${lockoutDuration / 1000} seconds`);
   }
-  
+
   accountLockouts.set(identifier, lockoutData);
-  
+
   return {
     attempts: lockoutData.attempts,
     maxAttempts,
@@ -129,7 +133,7 @@ const ipAttempts = new Map();
 const checkIpRateLimit = (ip, maxAttempts = 20, windowMs = 15 * 60 * 1000) => {
   const now = Date.now();
   let ipData = ipAttempts.get(ip);
-  
+
   if (!ipData || (now - ipData.windowStart) > windowMs) {
     ipData = {
       attempts: 1,
@@ -138,9 +142,9 @@ const checkIpRateLimit = (ip, maxAttempts = 20, windowMs = 15 * 60 * 1000) => {
   } else {
     ipData.attempts++;
   }
-  
+
   ipAttempts.set(ip, ipData);
-  
+
   return {
     attempts: ipData.attempts,
     maxAttempts,
@@ -153,14 +157,14 @@ const checkIpRateLimit = (ip, maxAttempts = 20, windowMs = 15 * 60 * 1000) => {
 setInterval(() => {
   const now = Date.now();
   const windowMs = 15 * 60 * 1000;
-  
+
   // Clean up account lockouts
   for (const [key, data] of accountLockouts.entries()) {
     if (data.lockedUntil < now) {
       accountLockouts.delete(key);
     }
   }
-  
+
   // Clean up IP attempts
   for (const [key, data] of ipAttempts.entries()) {
     if ((now - data.windowStart) > windowMs) {

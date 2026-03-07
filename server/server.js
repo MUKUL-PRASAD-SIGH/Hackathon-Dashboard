@@ -15,10 +15,10 @@ console.log('GMAIL_USER:', process.env.GMAIL_USER ? '✅ Found' : '❌ Missing')
 console.log('GMAIL_APP_PASSWORD:', process.env.GMAIL_APP_PASSWORD ? '✅ Found' : '❌ Missing');
 console.log('MONGODB_URI:', process.env.MONGODB_URI ? '✅ Found' : '❌ Missing');
 console.log('PORT:', process.env.PORT || 'Using default 5000');
-console.log('🔍 Full PORT debug:', { 
-  envPORT: process.env.PORT, 
+console.log('🔍 Full PORT debug:', {
+  envPORT: process.env.PORT,
   type: typeof process.env.PORT,
-  finalPORT: process.env.PORT || 5000 
+  finalPORT: process.env.PORT || 5000
 });
 
 const express = require('express');
@@ -35,6 +35,8 @@ const EmailService = require('./services/emailService');
 const User = require('./models/User');
 const UserMongoDB = require('./models/UserMongoDB');
 const hackathonRoutes = require('./routes/hackathons');
+const usersRoutes = require('./routes/users');
+const Hackathon = require('./models/Hackathon');
 
 // Import middleware
 const { errorHandler, asyncHandler } = require('./middleware/errorHandler');
@@ -79,14 +81,14 @@ io.use(socketAuth);
 io.on('connection', (socket) => {
   const userName = socket.userName || 'Anonymous';
   console.log(`🔌 User connected: ${userName} (${socket.id})`);
-  
+
   // Send connection confirmation
   socket.emit('connected', {
     socketId: socket.id,
     userName,
     timestamp: Date.now()
   });
-  
+
   // Join world room
   socket.on('joinWorld', ({ hackathonWorldId }) => {
     try {
@@ -103,7 +105,7 @@ io.on('connection', (socket) => {
       socket.emit('error', { message: 'Failed to join world' });
     }
   });
-  
+
   // Leave world room
   socket.on('leaveWorld', ({ hackathonWorldId }) => {
     try {
@@ -119,7 +121,7 @@ io.on('connection', (socket) => {
       console.error(`❌ Error leaving world ${hackathonWorldId}:`, error);
     }
   });
-  
+
   // Handle chat messages
   socket.on('chatMessage', ({ hackathonWorldId, teamId, message }) => {
     try {
@@ -130,7 +132,7 @@ io.on('connection', (socket) => {
         timestamp: Date.now(),
         teamId
       };
-      
+
       if (teamId) {
         // Private team chat
         socket.to(`team_${teamId}`).emit('newMessage', messageData);
@@ -140,14 +142,14 @@ io.on('connection', (socket) => {
         socket.to(`world_${hackathonWorldId}`).emit('newMessage', messageData);
         socket.emit('messageSent', messageData);
       }
-      
+
       console.log(`💬 Message from ${userName} in ${teamId ? 'team' : 'world'}: ${message.substring(0, 50)}...`);
     } catch (error) {
       console.error(`❌ Error sending message:`, error);
       socket.emit('error', { message: 'Failed to send message' });
     }
   });
-  
+
   // Handle typing indicators
   socket.on('typing', ({ hackathonWorldId, teamId, isTyping }) => {
     try {
@@ -161,7 +163,7 @@ io.on('connection', (socket) => {
       console.error(`❌ Error handling typing indicator:`, error);
     }
   });
-  
+
   // Join team room
   socket.on('joinTeam', ({ teamId }) => {
     try {
@@ -173,7 +175,7 @@ io.on('connection', (socket) => {
       socket.emit('error', { message: 'Failed to join team' });
     }
   });
-  
+
   // Leave team room
   socket.on('leaveTeam', ({ teamId }) => {
     try {
@@ -184,27 +186,27 @@ io.on('connection', (socket) => {
       console.error(`❌ Error leaving team ${teamId}:`, error);
     }
   });
-  
+
   // Ping-pong for connection health
   socket.on('ping', () => {
     socket.emit('pong', { timestamp: Date.now() });
   });
-  
+
   // Connection test
   socket.on('test', (data) => {
     console.log(`🧪 Test received from ${userName}:`, data);
-    socket.emit('testResponse', { 
-      received: data, 
+    socket.emit('testResponse', {
+      received: data,
       timestamp: Date.now(),
-      socketId: socket.id 
+      socketId: socket.id
     });
   });
-  
+
   // Disconnect handling
   socket.on('disconnect', (reason) => {
     console.log(`🔌 User disconnected: ${userName} (${reason})`);
   });
-  
+
   // Error handling
   socket.on('error', (error) => {
     console.error(`❌ Socket error for ${userName}:`, error.message);
@@ -306,11 +308,11 @@ app.use((req, res, next) => {
       }
     }
   };
-  
+
   if (req.body) {
     sanitizeObject(req.body);
   }
-  
+
   next();
 });
 
@@ -334,9 +336,9 @@ emailService.initialize().then(() => {
 // Send OTP endpoint with thread-safe operations
 app.post('/api/send-otp', otpLimiter, validateEmail, asyncHandler(async (req, res) => {
   const { email } = req.body;
-  
+
   console.log(`📧 SEND OTP REQUEST for ${email}`);
-  
+
   try {
     // Check if user already exists in MongoDB
     const existingUser = await UserMongoDB.findOne({ email: email.toLowerCase().trim() });
@@ -349,39 +351,39 @@ app.post('/api/send-otp', otpLimiter, validateEmail, asyncHandler(async (req, re
         }
       });
     }
-    
+
     // Use thread-safe OTP generation
     const otpResult = await otpService.generateOtp(email);
-    
+
     // Extract OTP from debug info or get from store
     const otp = otpResult.debug?.otp || otpService.otpStore.get(email)?.otp;
-    
+
     // Send OTP via email
     await emailService.sendOtpEmail(email, otp);
-    
+
     // Log successful OTP generation
     logger.audit('OTP_GENERATED', {
       email,
       ip: req.ip,
       userAgent: req.get('User-Agent')
     });
-    
+
     // Update metrics
     metricsCollector.recordOtpGenerated();
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       message: 'OTP sent successfully to your email',
       expiresIn: otpResult.expiresIn
     });
-    
+
   } catch (error) {
     console.error(`❌ OTP generation failed for ${email}:`, error.message);
-    
+
     // Handle specific error types
     let statusCode = 500;
     let errorCode = 'OTP_GENERATION_ERROR';
-    
+
     if (error.message.includes('Rate limit')) {
       statusCode = 429;
       errorCode = 'RATE_LIMIT_EXCEEDED';
@@ -389,9 +391,9 @@ app.post('/api/send-otp', otpLimiter, validateEmail, asyncHandler(async (req, re
       statusCode = 503;
       errorCode = 'EMAIL_SERVICE_ERROR';
     }
-    
-    res.status(statusCode).json({ 
-      success: false, 
+
+    res.status(statusCode).json({
+      success: false,
       error: {
         code: errorCode,
         message: error.message
@@ -403,42 +405,42 @@ app.post('/api/send-otp', otpLimiter, validateEmail, asyncHandler(async (req, re
 // Verify OTP endpoint with race condition protection
 app.post('/api/verify-otp', authLimiter, validateEmail, validateOtp, asyncHandler(async (req, res) => {
   const { email, otp } = req.body;
-  
+
   console.log(`🔍 VERIFY OTP REQUEST for ${email} with OTP: ${otp}`);
-  
+
   try {
     // Use thread-safe OTP verification
     const verifyResult = await otpService.verifyOtp(email, otp);
-    
+
     // Mark email as verified for registration
     User.markEmailAsVerified(email);
-    
+
     // Log successful verification
     logger.audit('OTP_VERIFIED', {
       email,
       ip: req.ip,
       userAgent: req.get('User-Agent')
     });
-    
+
     // Update metrics
     metricsCollector.recordOtpVerified(true);
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       message: verifyResult.message,
       verifiedAt: verifyResult.verifiedAt
     });
-    
+
   } catch (error) {
     console.error(`❌ OTP verification failed for ${email}:`, error.message);
-    
+
     // Update metrics
     metricsCollector.recordOtpVerified(false);
-    
+
     // Handle specific error types
     let statusCode = 400;
     let errorCode = 'VERIFICATION_ERROR';
-    
+
     if (error.message.includes('already in progress')) {
       statusCode = 409;
       errorCode = 'CONCURRENT_REQUEST';
@@ -452,9 +454,9 @@ app.post('/api/verify-otp', authLimiter, validateEmail, validateOtp, asyncHandle
     } else if (error.message.includes('No OTP found')) {
       errorCode = 'OTP_NOT_FOUND';
     }
-    
-    res.status(statusCode).json({ 
-      success: false, 
+
+    res.status(statusCode).json({
+      success: false,
       error: {
         code: errorCode,
         message: error.message
@@ -466,48 +468,48 @@ app.post('/api/verify-otp', authLimiter, validateEmail, validateOtp, asyncHandle
 // Resend OTP endpoint with rate limiting
 app.post('/api/resend-otp', otpLimiter, validateEmail, asyncHandler(async (req, res) => {
   const { email } = req.body;
-  
+
   console.log(`🔄 RESEND OTP REQUEST for ${email}`);
-  
+
   try {
     // Generate new OTP
     const otpResult = await otpService.generateOtp(email, true); // Force regenerate
-    
+
     // Extract OTP from debug info or get from store
     const otp = otpResult.debug?.otp || otpService.otpStore.get(email)?.otp;
-    
+
     // Send OTP via email
     await emailService.sendOtpEmail(email, otp);
-    
+
     // Log resend event
     logger.audit('OTP_RESENT', {
       email,
       ip: req.ip,
       userAgent: req.get('User-Agent')
     });
-    
+
     // Update metrics
     metricsCollector.recordOtpResent();
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       message: 'New OTP sent successfully to your email',
       expiresIn: otpResult.expiresIn
     });
-    
+
   } catch (error) {
     console.error(`❌ OTP resend failed for ${email}:`, error.message);
-    
+
     let statusCode = 500;
     let errorCode = 'RESEND_ERROR';
-    
+
     if (error.message.includes('Rate limit')) {
       statusCode = 429;
       errorCode = 'RATE_LIMIT_EXCEEDED';
     }
-    
-    res.status(statusCode).json({ 
-      success: false, 
+
+    res.status(statusCode).json({
+      success: false,
       error: {
         code: errorCode,
         message: error.message
@@ -519,7 +521,7 @@ app.post('/api/resend-otp', otpLimiter, validateEmail, asyncHandler(async (req, 
 // Register endpoint
 app.post('/api/register', authLimiter, validateRegistration, asyncHandler(async (req, res) => {
   const { email, password, name } = req.body;
-  
+
   try {
     // Check email verification
     if (!User.isEmailVerified(email)) {
@@ -531,7 +533,7 @@ app.post('/api/register', authLimiter, validateRegistration, asyncHandler(async 
         }
       });
     }
-    
+
     // Create user in MongoDB
     const user = new UserMongoDB({
       name,
@@ -539,20 +541,21 @@ app.post('/api/register', authLimiter, validateRegistration, asyncHandler(async 
       password,
       emailVerified: true
     });
-    
+
     await user.save();
     User.removeEmailVerification(email);
-    
-    // Generate authentication token
-    const token = Buffer.from(JSON.stringify({
-      id: user._id,
+
+    // Generate secure JWT authentication token
+    const { generateToken } = require('./middleware/security');
+    const token = generateToken({
+      id: user._id.toString(),
       email: user.email,
       name: user.name
-    })).toString('base64');
-    
+    });
+
     console.log(`✅ New user registered: ${email}`);
     console.log(`👥 User ID: ${user._id}`);
-    
+
     // Log audit event
     logger.audit('USER_REGISTERED', {
       userId: user._id,
@@ -563,23 +566,23 @@ app.post('/api/register', authLimiter, validateRegistration, asyncHandler(async 
       ip: req.ip,
       userAgent: req.get('User-Agent')
     });
-    
+
     // Send welcome email (non-blocking)
     emailService.sendWelcomeEmail(email, name).catch(error => {
-      logger.error('Welcome email failed', { 
+      logger.error('Welcome email failed', {
         userId: user._id,
-        email, 
-        error: error.message 
+        email,
+        error: error.message
       });
     });
 
-    res.status(201).json({ 
-      success: true, 
+    res.status(201).json({
+      success: true,
       message: 'User registered successfully',
       token,
       user: user.toJSON()
     });
-    
+
   } catch (error) {
     logger.error('Registration failed', {
       email,
@@ -633,20 +636,35 @@ app.post('/api/register', authLimiter, validateRegistration, asyncHandler(async 
 // Login endpoint
 app.post('/api/login', authLimiter, validateLogin, asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  
+
   try {
+    // First check if user exists in MongoDB (registration required)
+    const existingUser = await UserMongoDB.findOne({ email: email.toLowerCase().trim() });
+
+    if (!existingUser) {
+      console.log(`❌ Login attempt for unregistered email: ${email}`);
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'No account found with this email. Please register first!'
+        }
+      });
+    }
+
     // Authenticate user using MongoDB model
     const user = await UserMongoDB.authenticate(email, password);
-    
-    // Generate authentication token
-    const token = Buffer.from(JSON.stringify({
-      id: user._id,
+
+    // Generate secure JWT authentication token
+    const { generateToken } = require('./middleware/security');
+    const token = generateToken({
+      id: user._id.toString(),
       email: user.email,
       name: user.name
-    })).toString('base64');
+    });
 
     console.log(`✅ User logged in: ${email}`);
-    
+
     // Log audit event
     logger.audit('USER_LOGIN', {
       userId: user._id,
@@ -655,13 +673,13 @@ app.post('/api/login', authLimiter, validateLogin, asyncHandler(async (req, res)
       userAgent: req.get('User-Agent')
     });
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: 'Login successful',
       token,
       user: user.toJSON()
     });
-    
+
   } catch (error) {
     logger.error('Login failed', {
       email,
@@ -702,25 +720,176 @@ app.post('/api/login', authLimiter, validateLogin, asyncHandler(async (req, res)
   }
 }));
 
+// Send Login OTP - Only for REGISTERED users (separate from registration OTP)
+app.post('/api/send-login-otp', otpLimiter, validateEmail, asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  console.log(`📧 SEND LOGIN OTP REQUEST for ${email}`);
+
+  try {
+    // Check if user is registered - MUST be registered to use OTP login
+    const existingUser = await UserMongoDB.findOne({ email: email.toLowerCase().trim() });
+
+    if (!existingUser) {
+      console.log(`❌ Login OTP attempt for unregistered email: ${email}`);
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'No account found with this email. Please register first!'
+        }
+      });
+    }
+
+    // Generate OTP
+    const otpResult = await otpService.generateOtp(email);
+    const otp = otpResult.debug?.otp || otpService.otpStore.get(email)?.otp;
+
+    // Send OTP via email
+    const emailService = new EmailService();
+    await emailService.initialize();
+    await emailService.sendOtpEmail(email, otp);
+
+    logger.audit('LOGIN_OTP_GENERATED', {
+      email,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    metricsCollector.recordOtpGenerated();
+
+    res.json({
+      success: true,
+      message: 'OTP sent successfully to your email',
+      expiresIn: otpResult.expiresIn
+    });
+
+  } catch (error) {
+    console.error(`❌ Login OTP generation failed for ${email}:`, error.message);
+
+    let statusCode = 500;
+    let errorCode = 'OTP_GENERATION_ERROR';
+
+    if (error.message.includes('Rate limit')) {
+      statusCode = 429;
+      errorCode = 'RATE_LIMIT_EXCEEDED';
+    } else if (error.message.includes('Email service')) {
+      statusCode = 503;
+      errorCode = 'EMAIL_SERVICE_ERROR';
+    }
+
+    res.status(statusCode).json({
+      success: false,
+      error: {
+        code: errorCode,
+        message: error.message
+      }
+    });
+  }
+}));
+
+// Verify Login OTP - Verifies OTP and logs in the registered user
+app.post('/api/verify-login-otp', authLimiter, validateEmail, validateOtp, asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
+
+  console.log(`🔍 VERIFY LOGIN OTP REQUEST for ${email}`);
+
+  try {
+    // Verify OTP
+    const verifyResult = await otpService.verifyOtp(email, otp);
+
+    // Find the registered user
+    const user = await UserMongoDB.findOne({ email: email.toLowerCase().trim() });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'No account found with this email. Please register first!'
+        }
+      });
+    }
+
+    // Update last login
+    user.lastLogin = new Date();
+    user.loginAttempts = 0;
+    user.lockUntil = undefined;
+    await user.save();
+
+    // Generate authentication token
+    const token = Buffer.from(JSON.stringify({
+      id: user._id,
+      email: user.email,
+      name: user.name
+    })).toString('base64');
+
+    console.log(`✅ User logged in via OTP: ${email}`);
+
+    logger.audit('USER_LOGIN_OTP', {
+      userId: user._id,
+      email: user.email,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    metricsCollector.recordOtpVerified(true);
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      token,
+      user: user.toJSON()
+    });
+
+  } catch (error) {
+    console.error(`❌ Login OTP verification failed for ${email}:`, error.message);
+    metricsCollector.recordOtpVerified(false);
+
+    let statusCode = 400;
+    let errorCode = 'VERIFICATION_ERROR';
+
+    if (error.message.includes('expired')) {
+      errorCode = 'OTP_EXPIRED';
+    } else if (error.message.includes('Invalid OTP')) {
+      errorCode = 'INVALID_OTP';
+    } else if (error.message.includes('No OTP found')) {
+      errorCode = 'OTP_NOT_FOUND';
+    }
+
+    res.status(statusCode).json({
+      success: false,
+      error: {
+        code: errorCode,
+        message: error.message
+      }
+    });
+  }
+}));
+
 // Hackathon routes (existing personal hackathon tracking)
 console.log('📊 Loading hackathon routes at /api/hackathons/*');
 app.use('/api/hackathons', hackathonRoutes);
 console.log('✅ Hackathon routes loaded successfully');
 
+console.log('👤 Loading users routes at /api/users/*');
+app.use('/api/users', usersRoutes);
+console.log('✅ Users routes loaded successfully');
+
 // 🧪 DIRECT TEST ROUTE - Public hackathons
 app.get('/api/hackathons/public', asyncHandler(async (req, res) => {
   console.log('🧪 DIRECT ROUTE HIT: /api/hackathons/public');
-  
+
   try {
     const Hackathon = require('./models/Hackathon');
     const UserMongoDB = require('./models/UserMongoDB');
-    
-    const publicHackathons = await Hackathon.find({ 
-      isPublicWorld: true 
+
+    const publicHackathons = await Hackathon.find({
+      isPublicWorld: true
     }).populate('userId', 'name email').sort({ createdAt: -1 });
-    
+
     console.log(`🌍 Found ${publicHackathons.length} public hackathons`);
-    
+
     const processedHackathons = publicHackathons.map(h => ({
       _id: h._id,
       name: h.name,
@@ -739,19 +908,19 @@ app.get('/api/hackathons/public', asyncHandler(async (req, res) => {
       },
       createdAt: h.createdAt
     }));
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       hackathons: processedHackathons,
       count: processedHackathons.length,
       source: 'direct-route'
     });
-    
+
   } catch (error) {
     console.error('❌ Direct route error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: { message: 'Failed to fetch public hackathons' } 
+    res.status(500).json({
+      success: false,
+      error: { message: 'Failed to fetch public hackathons' }
     });
   }
 }));
@@ -776,15 +945,16 @@ app.get('/api/notifications', asyncHandler(async (req, res) => {
   if (!token) {
     return res.status(401).json({ success: false, error: { message: 'Authentication required' } });
   }
-  
+
   try {
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
+    const { verifyToken } = require('./middleware/security');
+    const decoded = verifyToken(token);
     const Notification = require('./models/Notification');
-    
+
     const notifications = await Notification.find({ userId: decoded.id })
       .sort({ createdAt: -1 })
       .limit(20);
-    
+
     res.json({
       success: true,
       notifications,
@@ -795,61 +965,52 @@ app.get('/api/notifications', asyncHandler(async (req, res) => {
   }
 }));
 
-// Legacy users endpoint (in-memory only)
-app.get('/api/users', (req, res) => {
-  const users = User.getAllUsers();
-  
-  res.json({ 
-    success: true, 
-    users,
-    count: User.getUserCount(),
-    note: 'This shows in-memory users only. Use /api/debug/users for MongoDB users.'
-  });
-});
+// Legacy users endpoint removed for security - use /api/debug/users in development only
 
 // Send join request to public hackathon
 app.post('/api/hackathons/:id/request-join', authLimiter, asyncHandler(async (req, res) => {
   const { message } = req.body;
   const hackathonId = req.params.id;
-  
+
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) {
       return res.status(401).json({ success: false, error: { message: 'Authentication required' } });
     }
-    
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
+
+    const { verifyToken } = require('./middleware/security');
+    const decoded = verifyToken(token);
     const user = await UserMongoDB.findById(decoded.id);
-    
+
     if (!user) {
       return res.status(404).json({ success: false, error: { message: 'User not found' } });
     }
-    
+
     const hackathon = await Hackathon.findById(hackathonId);
     if (!hackathon) {
       return res.status(404).json({ success: false, error: { message: 'Hackathon not found' } });
     }
-    
+
     if (!hackathon.isPublicWorld) {
       return res.status(400).json({ success: false, error: { message: 'This hackathon is private' } });
     }
-    
+
     // Check if team is full
     if ((hackathon.teamMembers?.length || 0) >= (hackathon.maxParticipants - 1)) {
       return res.status(400).json({ success: false, error: { message: 'Team is full' } });
     }
-    
+
     // Check if already requested or member
     const existingRequest = hackathon.joinRequests?.find(r => r.email === user.email && r.status === 'pending');
     if (existingRequest) {
       return res.status(409).json({ success: false, error: { message: 'Join request already sent' } });
     }
-    
+
     const isMember = hackathon.teamMembers?.find(m => m.email === user.email);
     if (isMember) {
       return res.status(409).json({ success: false, error: { message: 'Already a team member' } });
     }
-    
+
     // Add join request
     hackathon.joinRequests = hackathon.joinRequests || [];
     hackathon.joinRequests.push({
@@ -859,9 +1020,9 @@ app.post('/api/hackathons/:id/request-join', authLimiter, asyncHandler(async (re
       message: message || '',
       status: 'pending'
     });
-    
+
     await hackathon.save();
-    
+
     // Create notification for team leader
     const Notification = require('./models/Notification');
     await Notification.create({
@@ -877,9 +1038,9 @@ app.post('/api/hackathons/:id/request-join', authLimiter, asyncHandler(async (re
         message: message
       }
     });
-    
+
     res.json({ success: true, message: 'Join request sent successfully' });
-    
+
   } catch (error) {
     console.error('Join request error:', error);
     res.status(500).json({ success: false, error: { message: 'Failed to send join request' } });
@@ -890,38 +1051,42 @@ app.post('/api/hackathons/:id/request-join', authLimiter, asyncHandler(async (re
 app.post('/api/hackathons/:id/handle-request/:requestId', authLimiter, asyncHandler(async (req, res) => {
   const { action } = req.body; // 'accept' or 'reject'
   const { id: hackathonId, requestId } = req.params;
-  
+
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
-    
+    if (!token) {
+      return res.status(401).json({ success: false, error: { message: 'Authentication required' } });
+    }
+    const { verifyToken } = require('./middleware/security');
+    const decoded = verifyToken(token);
+
     const hackathon = await Hackathon.findById(hackathonId);
     if (!hackathon) {
       return res.status(404).json({ success: false, error: { message: 'Hackathon not found' } });
     }
-    
+
     // Check if user is team leader
     if (hackathon.userId.toString() !== decoded.id) {
       return res.status(403).json({ success: false, error: { message: 'Only team leader can handle requests' } });
     }
-    
+
     const request = hackathon.joinRequests?.find(r => r._id.toString() === requestId);
     if (!request) {
       return res.status(404).json({ success: false, error: { message: 'Join request not found' } });
     }
-    
+
     if (request.status !== 'pending') {
       return res.status(400).json({ success: false, error: { message: 'Request already handled' } });
     }
-    
+
     const requester = await UserMongoDB.findById(request.userId);
-    
+
     if (action === 'accept') {
       // Check if team still has space
       if ((hackathon.teamMembers?.length || 0) >= (hackathon.maxParticipants - 1)) {
         return res.status(400).json({ success: false, error: { message: 'Team is now full' } });
       }
-      
+
       // Add to team
       hackathon.teamMembers = hackathon.teamMembers || [];
       hackathon.teamMembers.push({
@@ -930,9 +1095,9 @@ app.post('/api/hackathons/:id/handle-request/:requestId', authLimiter, asyncHand
         role: 'Team Member',
         joinedAt: new Date()
       });
-      
+
       request.status = 'approved';
-      
+
       // Notify requester of acceptance
       const Notification = require('./models/Notification');
       await Notification.create({
@@ -942,7 +1107,7 @@ app.post('/api/hackathons/:id/handle-request/:requestId', authLimiter, asyncHand
         message: `You've been accepted to join "${hackathon.name}"!`,
         data: { hackathonId: hackathon._id }
       });
-      
+
       // Notify team leader
       await Notification.create({
         userId: hackathon.userId,
@@ -951,10 +1116,10 @@ app.post('/api/hackathons/:id/handle-request/:requestId', authLimiter, asyncHand
         message: `${request.name} joined your hackathon "${hackathon.name}"`,
         data: { hackathonId: hackathon._id, memberName: request.name }
       });
-      
+
     } else {
       request.status = 'rejected';
-      
+
       // Notify requester of rejection
       const Notification = require('./models/Notification');
       await Notification.create({
@@ -965,55 +1130,58 @@ app.post('/api/hackathons/:id/handle-request/:requestId', authLimiter, asyncHand
         data: { hackathonId: hackathon._id }
       });
     }
-    
+
     await hackathon.save();
-    
-    res.json({ 
-      success: true, 
+
+    res.json({
+      success: true,
       message: `Join request ${action}ed successfully`,
       teamSize: (hackathon.teamMembers?.length || 0) + 1
     });
-    
+
   } catch (error) {
     console.error('Handle request error:', error);
     res.status(500).json({ success: false, error: { message: 'Failed to handle request' } });
   }
 }));
 
-// Recovery endpoint to find hackathons by email
-app.get('/api/recover-hackathons/:email', asyncHandler(async (req, res) => {
-  const email = req.params.email;
-  const Hackathon = require('./models/Hackathon');
-  
+// Recovery endpoint to find hackathons by email (requires authentication)
+app.get('/api/recover-hackathons', asyncHandler(async (req, res) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) {
+    return res.status(401).json({ success: false, error: { message: 'Authentication required' } });
+  }
+
   try {
+    const { verifyToken } = require('./middleware/security');
+    const decoded = verifyToken(token);
+    const email = decoded.email;
+    const Hackathon = require('./models/Hackathon');
+
     // Search by email field
-    const hackathonsByEmail = await Hackathon.find({ 
-      email: { $regex: email, $options: 'i' } 
+    const hackathonsByEmail = await Hackathon.find({
+      email: { $regex: new RegExp('^' + email.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&') + '$', 'i') }
     });
-    
-    // Search by user email in User collection
-    const user = await UserMongoDB.findOne({ 
-      email: { $regex: email, $options: 'i' } 
-    });
-    
+
+    // Search by user ID
+    const user = await UserMongoDB.findOne({ email: email.toLowerCase().trim() });
     let hackathonsByUserId = [];
     if (user) {
       hackathonsByUserId = await Hackathon.find({ userId: user._id });
     }
-    
+
     res.json({
       success: true,
       email: email,
-      user: user ? { id: user._id, email: user.email, name: user.name } : null,
       hackathonsByEmail: hackathonsByEmail.length,
       hackathonsByUserId: hackathonsByUserId.length,
       hackathons: [...hackathonsByEmail, ...hackathonsByUserId]
     });
-    
+
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: { message: 'Failed to recover hackathons' }
     });
   }
 }));
@@ -1037,8 +1205,8 @@ if (process.env.NODE_ENV !== 'production') {
       }
     });
   });
-  
-    // Root endpoint for development
+
+  // Root endpoint for development
   app.get('/', (req, res) => {
     res.json({
       success: true,
@@ -1052,7 +1220,7 @@ if (process.env.NODE_ENV !== 'production') {
       }
     });
   });
-  
+
   // For non-API routes in development, return a helpful message
   app.use('*', (req, res) => {
     // Only show this message for non-API routes
@@ -1088,7 +1256,7 @@ if (process.env.NODE_ENV !== 'production') {
       }
     });
   });
-  
+
   // API 404 handler
   app.use('/api/*', (req, res) => {
     res.status(404).json({
@@ -1099,7 +1267,7 @@ if (process.env.NODE_ENV !== 'production') {
       }
     });
   });
-  
+
   // Catch all other routes
   app.use('*', (req, res) => {
     res.status(404).json({
