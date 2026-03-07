@@ -103,7 +103,10 @@ Thumbs.db
 # (contain credentials or are dev-only tools)
 # ============================================
 
-# Debug/test scripts (root level)
+# Batch files (Windows dev shortcuts)
+*.bat
+
+# All test, debug, fix, and related scripts (root and subdirectories)
 test-*.js
 test-*.html
 debug-*.js
@@ -116,10 +119,15 @@ fix-*.js
 fix-*.bat
 reset-*.js
 restore-*.js
+cleanup-*.js
 create-test-*.js
 
-# Batch files (Windows dev shortcuts)
-*.bat
+# Test directories and files
+server/tests/
+*.test.js
+*.spec.js
+tests/
+__tests__/
 
 # HTML debug/test pages
 clear-localStorage.html
@@ -133,7 +141,7 @@ debug-google-calendar.html
 debug-production-direct.html
 debug-user-token.html
 
-# Server debug/test/fix scripts
+# Server specific debug/test/fix scripts
 server/debug-*.js
 server/check-*.js
 server/clear-*.js
@@ -141,9 +149,15 @@ server/fix-*.js
 server/reset-*.js
 server/cleanup-*.js
 server/test-db.js
+server/test-*.js
 
 # Backup server files
 server/app.js
+
+# Extra documentation notes and dumps
+*.md
+!README.md
+!deploy-instructions.md
 
 # Broken filename from git command typo
 et --hard a289f72^
