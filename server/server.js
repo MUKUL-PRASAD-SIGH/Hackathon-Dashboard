@@ -817,12 +817,13 @@ app.post('/api/verify-login-otp', authLimiter, validateEmail, validateOtp, async
     user.lockUntil = undefined;
     await user.save();
 
-    // Generate authentication token
-    const token = Buffer.from(JSON.stringify({
-      id: user._id,
+    // Generate secure JWT authentication token
+    const { generateToken } = require('./middleware/security');
+    const token = generateToken({
+      id: user._id.toString(),
       email: user.email,
       name: user.name
-    })).toString('base64');
+    });
 
     console.log(`✅ User logged in via OTP: ${email}`);
 
