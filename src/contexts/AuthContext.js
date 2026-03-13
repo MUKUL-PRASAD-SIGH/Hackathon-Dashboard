@@ -79,10 +79,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Login with Gmail (placeholder)
-  const loginWithGmail = async () => {
-    toast.error('Gmail login not implemented yet');
-    return false;
+  // Login with Google OAuth (redirects to Google consent screen)
+  const loginWithGmail = () => {
+    authService.loginWithGoogle();
+    // This causes a full page redirect, so no return value needed
+    return true;
   };
 
   // Logout

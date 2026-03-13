@@ -45,6 +45,7 @@
     "concurrently": "^8.2.2",
     "storybook": "^7.6.0"
   },
+  "proxy": "http://localhost:10000",
   "browserslist": {
     "production": [
       ">0.2%",

@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { getApiBaseUrl } from '../../config/api';
 import AuthContext from '../../contexts/AuthContext';
 import './HackathonWorlds.css';
 import './SearchStyles.css';
 import './TeamCards.css';
+
+// Always use absolute backend URL to avoid proxy timing issues
+const BACKEND = window.location.hostname === 'localhost'
+  ? 'http://localhost:10000'
+  : 'https://hackathon-dashboard-backend-md49.onrender.com';
+const API = `${BACKEND}/api`;
 
 const HackathonWorldsList = ({ onSelectWorld, refreshTrigger }) => {
   const [worlds, setWorlds] = useState([]);
@@ -52,18 +57,23 @@ const HackathonWorldsList = ({ onSelectWorld, refreshTrigger }) => {
     });
   };
 
-
-
   const fetchWorlds = async () => {
     try {
       setLoading(true);
-      // Fetch public hackathons instead of worlds
-      const response = await fetch(`${getApiBaseUrl()}/hackathons/public`, {
+      const response = await fetch(`${API}/hackathons/public`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
+
+      if (!response.ok) {
+        const text = await response.text();
+        if (text.includes('<!DOCTYPE')) {
+          throw new Error('Backend server not reachable. Please ensure the backend is running on port 10000.');
+        }
+        throw new Error(`Server error: ${response.status}`);
+      }
 
       const data = await response.json();
       
@@ -74,7 +84,7 @@ const HackathonWorldsList = ({ onSelectWorld, refreshTrigger }) => {
         setError(data.error?.message || 'Failed to fetch public hackathons');
       }
     } catch (err) {
-      setError('Backend server not running. Please start: cd server && npm run dev');
+      setError(err.message || 'Backend server not running. Please start: cd server && npm run dev');
       console.error('Fetch worlds error:', err);
     } finally {
       setLoading(false);
@@ -108,7 +118,7 @@ const HackathonWorldsList = ({ onSelectWorld, refreshTrigger }) => {
   
   const sendJoinRequest = async () => {
     try {
-      const response = await fetch(`${getApiBaseUrl()}/hackathons/${joinRequestModal}/request-join`, {
+      const response = await fetch(`${API}/hackathons/${joinRequestModal}/request-join`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -123,7 +133,7 @@ const HackathonWorldsList = ({ onSelectWorld, refreshTrigger }) => {
         alert('✅ Join request sent successfully!');
         setJoinRequestModal(null);
         setRequestMessage('');
-        fetchWorlds(); // Refresh to show updated status
+        fetchWorlds();
       } else {
         alert('❌ ' + (data.error?.message || 'Failed to send request'));
       }
@@ -133,12 +143,12 @@ const HackathonWorldsList = ({ onSelectWorld, refreshTrigger }) => {
   };
   
   const handleWithdrawRequest = async (hackathonId) => {
-    if (!confirm('Are you sure you want to withdraw your join request?')) {
+    if (!window.confirm('Are you sure you want to withdraw your join request?')) {
       return;
     }
     
     try {
-      const response = await fetch(`${getApiBaseUrl()}/hackathons/${hackathonId}/withdraw-request`, {
+      const response = await fetch(`${API}/hackathons/${hackathonId}/withdraw-request`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -150,7 +160,7 @@ const HackathonWorldsList = ({ onSelectWorld, refreshTrigger }) => {
       
       if (data.success) {
         alert('✅ Join request withdrawn successfully!');
-        fetchWorlds(); // Refresh to show updated status
+        fetchWorlds();
       } else {
         alert('❌ ' + (data.error?.message || 'Failed to withdraw request'));
       }
@@ -187,7 +197,7 @@ const HackathonWorldsList = ({ onSelectWorld, refreshTrigger }) => {
             const teamSize = (hackathon.teamMembers?.length || 0) + 1;
             const isTeamFull = teamSize >= hackathon.maxParticipants;
             const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-            const isOwnHackathon = hackathon.email.toLowerCase() === currentUser.email.toLowerCase();
+            const isOwnHackathon = hackathon.email.toLowerCase() === currentUser.email?.toLowerCase();
             const hasPendingRequest = hackathon.joinRequests?.some(r => r.email === currentUser.email && r.status === 'pending');
             const isMember = hackathon.teamMembers?.some(m => m.email === currentUser.email);
             

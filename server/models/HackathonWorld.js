@@ -21,8 +21,8 @@ const hackathonWorldSchema = new mongoose.Schema({
   },
   platform: {
     type: String,
-    enum: ['Devpost', 'HackerEarth', 'Unstop', 'HackerRank', 'Codeforces', 'Other'],
-    default: 'Other'
+    default: 'Other',
+    trim: true
   },
   maxTeamSize: {
     type: Number,

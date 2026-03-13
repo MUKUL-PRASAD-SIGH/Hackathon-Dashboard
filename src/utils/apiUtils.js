@@ -3,16 +3,13 @@ import { DebugLogger, debugApiCall } from './debugUtils.js';
 
 const apiLogger = new DebugLogger('ApiUtils');
 
-// Direct API URL detection
+// Direct API URL detection - uses CRA proxy in dev
 const getApiUrl = () => {
+  if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
   const isLocalhost = window.location.hostname === 'localhost';
-  const apiUrl = isLocalhost 
-    ? 'http://localhost:10000/api'
+  return isLocalhost
+    ? '/api'
     : 'https://hackathon-dashboard-backend-md49.onrender.com/api';
-    
-  console.log('🔧 API URL:', apiUrl);
-  console.log('🌐 Hostname:', window.location.hostname);
-  return apiUrl;
 };
 
 // Enhanced fetch with error handling and debugging

@@ -1,14 +1,13 @@
 // Auth service for handling OTP and user authentication
 import { toast } from 'react-hot-toast';
 
-// API URL - Support both local and production
+// API URL - relative in dev (proxy), absolute in prod
 const getApiUrl = () => {
+  if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
   const isLocalhost = window.location.hostname === 'localhost';
-  const apiUrl = isLocalhost 
-    ? 'http://localhost:10000/api'
+  return isLocalhost
+    ? '/api'
     : 'https://hackathon-dashboard-backend-md49.onrender.com/api';
-  console.log('🔧 API URL:', apiUrl);
-  return apiUrl;
 };
 
 const authService = {
@@ -23,13 +22,13 @@ const authService = {
         },
         body: JSON.stringify({ email }),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.message || 'Failed to send OTP');
       }
-      
+
       return data;
     } catch (error) {
       console.error('Error sending OTP:', error);
@@ -49,13 +48,13 @@ const authService = {
         },
         body: JSON.stringify({ email, otp }),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.message || 'Failed to verify OTP');
       }
-      
+
       return data;
     } catch (error) {
       console.error('Error verifying OTP:', error);
@@ -77,16 +76,16 @@ const authService = {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.message || 'Login failed');
       }
-      
+
       // Save user session
       if (data.token && data.user) {
         authService.setUserSession(data.token, data.user);
       }
-      
+
       return data;
     } catch (error) {
       console.error('Login error:', error);
@@ -108,11 +107,11 @@ const authService = {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.message || 'Registration failed');
       }
-      
+
       return data;
     } catch (error) {
       console.error('Registration error:', error);
@@ -142,6 +141,15 @@ const authService = {
   // Check if user is authenticated
   isAuthenticated: () => {
     return !!localStorage.getItem('token');
+  },
+
+  // Login with Google OAuth (redirect to backend OAuth endpoint)
+  loginWithGoogle: () => {
+    // In dev, proxy handles routing; in prod use full URL
+    const base = window.location.hostname === 'localhost'
+      ? ''
+      : 'https://hackathon-dashboard-backend-md49.onrender.com';
+    window.location.href = `${base}/api/auth/google`;
   },
 
   // Logout user

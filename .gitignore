@@ -99,3 +99,7 @@ Thumbs.db
 # Debug files
 test-*.js
 debug-*.html
+
+# Code dump (auto-generated)
+dump_code.py
+PROJECT_CODE_DUMP.md
