@@ -5,8 +5,13 @@ import { toast } from 'react-hot-toast';
 const getApiUrl = () => {
   if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
   const isLocalhost = window.location.hostname === 'localhost';
+<<<<<<< HEAD
   return isLocalhost
     ? '/api'
+=======
+  const apiUrl = isLocalhost
+    ? 'http://localhost:10000/api'
+>>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
     : 'https://hackathon-dashboard-backend-md49.onrender.com/api';
 };
 
@@ -78,7 +83,9 @@ const authService = {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        // Extract error message from nested error object or top-level message
+        const errorMessage = data.error?.message || data.message || 'Login failed';
+        throw new Error(errorMessage);
       }
 
       // Save user session
@@ -89,7 +96,6 @@ const authService = {
       return data;
     } catch (error) {
       console.error('Login error:', error);
-      toast.error(error.message || 'Login failed');
       throw error;
     }
   },
@@ -120,6 +126,63 @@ const authService = {
     }
   },
 
+  // Send Login OTP (only for registered users)
+  sendLoginOtp: async (email) => {
+    try {
+      const apiUrl = getApiUrl();
+      const response = await fetch(`${apiUrl}/send-login-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const errorMessage = data.error?.message || data.message || 'Failed to send OTP';
+        throw new Error(errorMessage);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Send login OTP error:', error);
+      throw error;
+    }
+  },
+
+  // Verify Login OTP and get auth token
+  verifyLoginOtp: async (email, otp) => {
+    try {
+      const apiUrl = getApiUrl();
+      const response = await fetch(`${apiUrl}/verify-login-otp`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, otp }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const errorMessage = data.error?.message || data.message || 'Failed to verify OTP';
+        throw new Error(errorMessage);
+      }
+
+      // Save user session
+      if (data.token && data.user) {
+        authService.setUserSession(data.token, data.user);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Verify login OTP error:', error);
+      throw error;
+    }
+  },
+
   // Set user session
   setUserSession: (token, user) => {
     localStorage.setItem('token', token);
@@ -138,9 +201,39 @@ const authService = {
     return user ? JSON.parse(user) : null;
   },
 
-  // Check if user is authenticated
+  // Check if user is authenticated with valid JWT token
   isAuthenticated: () => {
-    return !!localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+
+    if (!token || !user) {
+      return false;
+    }
+
+    // Validate JWT structure (header.payload.signature)
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      // Invalid token format, clear session
+      authService.clearSession();
+      return false;
+    }
+
+    try {
+      // Check if token payload is valid and not expired
+      const payload = JSON.parse(atob(parts[1]));
+      if (payload.exp && payload.exp * 1000 < Date.now()) {
+        // Token expired, clear session
+        authService.clearSession();
+        return false;
+      }
+
+      // Validate user data
+      JSON.parse(user);
+      return true;
+    } catch {
+      authService.clearSession();
+      return false;
+    }
   },
 
   // Login with Google OAuth (redirect to backend OAuth endpoint)

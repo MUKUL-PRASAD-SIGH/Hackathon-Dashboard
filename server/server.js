@@ -35,6 +35,8 @@ const EmailService = require('./services/emailService');
 const User = require('./models/User');
 const UserMongoDB = require('./models/UserMongoDB');
 const hackathonRoutes = require('./routes/hackathons');
+const usersRoutes = require('./routes/users');
+const Hackathon = require('./models/Hackathon');
 
 // Import middleware
 const { errorHandler, asyncHandler } = require('./middleware/errorHandler');
@@ -544,12 +546,22 @@ app.post('/api/register', authLimiter, validateRegistration, asyncHandler(async 
     await user.save();
     User.removeEmailVerification(email);
 
+<<<<<<< HEAD
     // Generate authentication token
     const token = Buffer.from(JSON.stringify({
       id: user._id,
       email: user.email,
       name: user.name
     })).toString('base64');
+=======
+    // Generate secure JWT authentication token
+    const { generateToken } = require('./middleware/security');
+    const token = generateToken({
+      id: user._id.toString(),
+      email: user.email,
+      name: user.name
+    });
+>>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
 
     console.log(`✅ New user registered: ${email}`);
     console.log(`👥 User ID: ${user._id}`);
@@ -636,15 +648,36 @@ app.post('/api/login', authLimiter, validateLogin, asyncHandler(async (req, res)
   const { email, password } = req.body;
 
   try {
+    // First check if user exists in MongoDB (registration required)
+    const existingUser = await UserMongoDB.findOne({ email: email.toLowerCase().trim() });
+
+    if (!existingUser) {
+      console.log(`❌ Login attempt for unregistered email: ${email}`);
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'No account found with this email. Please register first!'
+        }
+      });
+    }
+
     // Authenticate user using MongoDB model
     const user = await UserMongoDB.authenticate(email, password);
 
+<<<<<<< HEAD
     // Generate authentication token
     const token = Buffer.from(JSON.stringify({
       id: user._id,
+=======
+    // Generate secure JWT authentication token
+    const { generateToken } = require('./middleware/security');
+    const token = generateToken({
+      id: user._id.toString(),
+>>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
       email: user.email,
       name: user.name
-    })).toString('base64');
+    });
 
     console.log(`✅ User logged in: ${email}`);
 
@@ -703,15 +736,169 @@ app.post('/api/login', authLimiter, validateLogin, asyncHandler(async (req, res)
   }
 }));
 
+<<<<<<< HEAD
 // Google OAuth routes
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
 console.log('🔐 Google OAuth routes loaded at /api/auth/*');
+=======
+// Send Login OTP - Only for REGISTERED users (separate from registration OTP)
+app.post('/api/send-login-otp', otpLimiter, validateEmail, asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  console.log(`📧 SEND LOGIN OTP REQUEST for ${email}`);
+
+  try {
+    // Check if user is registered - MUST be registered to use OTP login
+    const existingUser = await UserMongoDB.findOne({ email: email.toLowerCase().trim() });
+
+    if (!existingUser) {
+      console.log(`❌ Login OTP attempt for unregistered email: ${email}`);
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'No account found with this email. Please register first!'
+        }
+      });
+    }
+
+    // Generate OTP
+    const otpResult = await otpService.generateOtp(email);
+    const otp = otpResult.debug?.otp || otpService.otpStore.get(email)?.otp;
+
+    // Send OTP via email
+    const emailService = new EmailService();
+    await emailService.initialize();
+    await emailService.sendOtpEmail(email, otp);
+
+    logger.audit('LOGIN_OTP_GENERATED', {
+      email,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    metricsCollector.recordOtpGenerated();
+
+    res.json({
+      success: true,
+      message: 'OTP sent successfully to your email',
+      expiresIn: otpResult.expiresIn
+    });
+
+  } catch (error) {
+    console.error(`❌ Login OTP generation failed for ${email}:`, error.message);
+
+    let statusCode = 500;
+    let errorCode = 'OTP_GENERATION_ERROR';
+
+    if (error.message.includes('Rate limit')) {
+      statusCode = 429;
+      errorCode = 'RATE_LIMIT_EXCEEDED';
+    } else if (error.message.includes('Email service')) {
+      statusCode = 503;
+      errorCode = 'EMAIL_SERVICE_ERROR';
+    }
+
+    res.status(statusCode).json({
+      success: false,
+      error: {
+        code: errorCode,
+        message: error.message
+      }
+    });
+  }
+}));
+
+// Verify Login OTP - Verifies OTP and logs in the registered user
+app.post('/api/verify-login-otp', authLimiter, validateEmail, validateOtp, asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
+
+  console.log(`🔍 VERIFY LOGIN OTP REQUEST for ${email}`);
+
+  try {
+    // Verify OTP
+    const verifyResult = await otpService.verifyOtp(email, otp);
+
+    // Find the registered user
+    const user = await UserMongoDB.findOne({ email: email.toLowerCase().trim() });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'No account found with this email. Please register first!'
+        }
+      });
+    }
+
+    // Update last login
+    user.lastLogin = new Date();
+    user.loginAttempts = 0;
+    user.lockUntil = undefined;
+    await user.save();
+
+    // Generate secure JWT authentication token
+    const { generateToken } = require('./middleware/security');
+    const token = generateToken({
+      id: user._id.toString(),
+      email: user.email,
+      name: user.name
+    });
+
+    console.log(`✅ User logged in via OTP: ${email}`);
+
+    logger.audit('USER_LOGIN_OTP', {
+      userId: user._id,
+      email: user.email,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+
+    metricsCollector.recordOtpVerified(true);
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      token,
+      user: user.toJSON()
+    });
+
+  } catch (error) {
+    console.error(`❌ Login OTP verification failed for ${email}:`, error.message);
+    metricsCollector.recordOtpVerified(false);
+
+    let statusCode = 400;
+    let errorCode = 'VERIFICATION_ERROR';
+
+    if (error.message.includes('expired')) {
+      errorCode = 'OTP_EXPIRED';
+    } else if (error.message.includes('Invalid OTP')) {
+      errorCode = 'INVALID_OTP';
+    } else if (error.message.includes('No OTP found')) {
+      errorCode = 'OTP_NOT_FOUND';
+    }
+
+    res.status(statusCode).json({
+      success: false,
+      error: {
+        code: errorCode,
+        message: error.message
+      }
+    });
+  }
+}));
+>>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
 
 // Hackathon routes (existing personal hackathon tracking)
 console.log('📊 Loading hackathon routes at /api/hackathons/*');
 app.use('/api/hackathons', hackathonRoutes);
 console.log('✅ Hackathon routes loaded successfully');
+
+console.log('👤 Loading users routes at /api/users/*');
+app.use('/api/users', usersRoutes);
+console.log('✅ Users routes loaded successfully');
 
 // 🧪 DIRECT TEST ROUTE - Public hackathons
 app.get('/api/hackathons/public', asyncHandler(async (req, res) => {
@@ -784,7 +971,8 @@ app.get('/api/notifications', asyncHandler(async (req, res) => {
   }
 
   try {
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
+    const { verifyToken } = require('./middleware/security');
+    const decoded = verifyToken(token);
     const Notification = require('./models/Notification');
 
     const notifications = await Notification.find({ userId: decoded.id })
@@ -801,6 +989,7 @@ app.get('/api/notifications', asyncHandler(async (req, res) => {
   }
 }));
 
+<<<<<<< HEAD
 // Legacy users endpoint (in-memory only)
 app.get('/api/users', (req, res) => {
   const users = User.getAllUsers();
@@ -812,6 +1001,9 @@ app.get('/api/users', (req, res) => {
     note: 'This shows in-memory users only. Use /api/debug/users for MongoDB users.'
   });
 });
+=======
+// Legacy users endpoint removed for security - use /api/debug/users in development only
+>>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
 
 // Send join request to public hackathon
 app.post('/api/hackathons/:id/request-join', authLimiter, asyncHandler(async (req, res) => {
@@ -824,7 +1016,12 @@ app.post('/api/hackathons/:id/request-join', authLimiter, asyncHandler(async (re
       return res.status(401).json({ success: false, error: { message: 'Authentication required' } });
     }
 
+<<<<<<< HEAD
     const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
+=======
+    const { verifyToken } = require('./middleware/security');
+    const decoded = verifyToken(token);
+>>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
     const user = await UserMongoDB.findById(decoded.id);
 
     if (!user) {
@@ -899,7 +1096,15 @@ app.post('/api/hackathons/:id/handle-request/:requestId', authLimiter, asyncHand
 
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
+<<<<<<< HEAD
     const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
+=======
+    if (!token) {
+      return res.status(401).json({ success: false, error: { message: 'Authentication required' } });
+    }
+    const { verifyToken } = require('./middleware/security');
+    const decoded = verifyToken(token);
+>>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
 
     const hackathon = await Hackathon.findById(hackathonId);
     if (!hackathon) {
@@ -986,14 +1191,29 @@ app.post('/api/hackathons/:id/handle-request/:requestId', authLimiter, asyncHand
   }
 }));
 
+<<<<<<< HEAD
 // Recovery endpoint to find hackathons by email
 app.get('/api/recover-hackathons/:email', asyncHandler(async (req, res) => {
   const email = req.params.email;
   const Hackathon = require('./models/Hackathon');
+=======
+// Recovery endpoint to find hackathons by email (requires authentication)
+app.get('/api/recover-hackathons', asyncHandler(async (req, res) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) {
+    return res.status(401).json({ success: false, error: { message: 'Authentication required' } });
+  }
+>>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
 
   try {
+    const { verifyToken } = require('./middleware/security');
+    const decoded = verifyToken(token);
+    const email = decoded.email;
+    const Hackathon = require('./models/Hackathon');
+
     // Search by email field
     const hackathonsByEmail = await Hackathon.find({
+<<<<<<< HEAD
       email: { $regex: email, $options: 'i' }
     });
 
@@ -1002,6 +1222,13 @@ app.get('/api/recover-hackathons/:email', asyncHandler(async (req, res) => {
       email: { $regex: email, $options: 'i' }
     });
 
+=======
+      email: { $regex: new RegExp('^' + email.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&') + '$', 'i') }
+    });
+
+    // Search by user ID
+    const user = await UserMongoDB.findOne({ email: email.toLowerCase().trim() });
+>>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
     let hackathonsByUserId = [];
     if (user) {
       hackathonsByUserId = await Hackathon.find({ userId: user._id });
@@ -1010,7 +1237,6 @@ app.get('/api/recover-hackathons/:email', asyncHandler(async (req, res) => {
     res.json({
       success: true,
       email: email,
-      user: user ? { id: user._id, email: user.email, name: user.name } : null,
       hackathonsByEmail: hackathonsByEmail.length,
       hackathonsByUserId: hackathonsByUserId.length,
       hackathons: [...hackathonsByEmail, ...hackathonsByUserId]
@@ -1019,7 +1245,7 @@ app.get('/api/recover-hackathons/:email', asyncHandler(async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: error.message
+      error: { message: 'Failed to recover hackathons' }
     });
   }
 }));

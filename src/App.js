@@ -26,24 +26,42 @@ import TeamPage from './components/TeamPage/TeamPage';
 import ChatPage from './components/ChatPage/ChatPage';
 import OAuthCallback from './components/Auth/OAuthCallback';
 // Proper auth helper with validation
+// Proper auth helper with JWT validation
 const isAuthenticated = () => {
   const token = localStorage.getItem('token');
   const user = localStorage.getItem('user');
 
+
   // Both token and user must exist
   if (!token || !user) {
-    // Clear invalid state
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     return false;
   }
 
+  // Validate JWT structure (header.payload.signature)
+  const parts = token.split('.');
+  if (parts.length !== 3) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    return false;
+  }
+
+
   try {
+    // Validate token payload and expiry
+    const payload = JSON.parse(atob(parts[1]));
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      // Token expired
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      return false;
+    }
+
     // Validate user data
     JSON.parse(user);
     return true;
   } catch {
-    // Invalid user data
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     return false;
@@ -60,17 +78,20 @@ function App() {
   const [selectedWorld, setSelectedWorld] = useState(null);
   const [worldsRefreshTrigger, setWorldsRefreshTrigger] = useState(0);
 
+
   // Authentication state management
   useEffect(() => {
     // Check if user is properly authenticated
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
 
+
     if (token && !user) {
       // Invalid state - clear token
       localStorage.removeItem('token');
     }
   }, []);
+
 
   // Load user's hackathons from database
   const loadUserHackathons = async () => {
@@ -81,6 +102,7 @@ function App() {
       return;
     }
 
+
     try {
       setLoading(true);
       console.log('📡 Loading hackathons from API...');
@@ -88,6 +110,7 @@ function App() {
       console.log('📊 API Response:', response);
       console.log('📋 Hackathons array:', response.hackathons);
       console.log('📊 Setting hackathons count:', response.hackathons?.length || 0);
+
 
       // Combine owned and joined hackathons for calendar view
       const allHackathons = [
@@ -102,6 +125,7 @@ function App() {
       setLoading(false);
     }
   };
+
 
   // Load hackathons when component mounts or auth changes
   useEffect(() => {
@@ -172,6 +196,7 @@ function App() {
         })
       });
 
+
       const data = await response.json();
       if (data.success) {
         // Auto-join the created world
@@ -188,6 +213,7 @@ function App() {
             experience: 'Expert'
           })
         });
+
 
         if (joinResponse.ok) {
           // Navigate to worlds page
@@ -223,6 +249,138 @@ function App() {
               <RegisterWithOtp />
           } />
           <Route path="/oauth/callback" element={<OAuthCallback />} />
+
+          {/* Protected Routes */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Navigate to="/dashboard" />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard
+                hackathons={hackathons}
+                loading={loading}
+                onUpdateHackathon={updateHackathonById}
+                onDeleteHackathon={deleteHackathonById}
+                onReload={loadUserHackathons}
+                onCreateWorld={createWorldFromHackathon}
+              />
+            </ProtectedRoute>
+          } />
+          <Route path="/calendar" element={
+            <ProtectedRoute>
+              <CalendarView
+                hackathons={hackathons}
+                onUpdateHackathon={updateHackathonById}
+              />
+            </ProtectedRoute>
+          } />
+          <Route path="/add-hackathon" element={
+            <ProtectedRoute>
+              <HackathonForm
+                onAddHackathon={addHackathon}
+                onReload={loadUserHackathons}
+              />
+            </ProtectedRoute>
+          } />
+          <Route path="/edit-hackathon/:id" element={
+            <ProtectedRoute>
+              <HackathonForm
+                hackathons={hackathons}
+                onUpdateHackathon={updateHackathonById}
+                onReload={loadUserHackathons}
+              />
+            </ProtectedRoute>
+          } />
+          <Route path="/google-sync" element={
+            <ProtectedRoute>
+              <GoogleCalendarSync hackathons={hackathons} />
+            </ProtectedRoute>
+          } />
+          <Route path="/worlds" element={
+            <ProtectedRoute>
+              {selectedWorld ? (
+                <WorldDetail
+                  worldId={selectedWorld.id}
+                  onBack={() => {
+                    setSelectedWorld(null);
+                    setWorldsRefreshTrigger(prev => prev + 1);
+                  }}
+                />
+              ) : (
+                <HackathonWorldsList
+                  onSelectWorld={setSelectedWorld}
+                  refreshTrigger={worldsRefreshTrigger}
+                />
+              )}
+            </ProtectedRoute>
+          } />
+          <Route path="/join-hackathon" element={
+            <ProtectedRoute>
+              <JoinHackathon />
+            </ProtectedRoute>
+          } />
+          <Route path="/accept-invite/:notificationId" element={
+            <ProtectedRoute>
+              <AcceptInvite />
+            </ProtectedRoute>
+          } />
+          <Route path="/notifications" element={
+            <ProtectedRoute>
+              <Notifications />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile/:userId?" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
+          <Route path="/hackathon/:id" element={
+            <ProtectedRoute>
+              <HackathonDetail />
+            </ProtectedRoute>
+          } />
+          <Route path="/team/:id" element={
+            <ProtectedRoute>
+              <TeamPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/chat/:id" element={
+            <ProtectedRoute>
+              <ChatPage />
+            </ProtectedRoute>
+          } />
+
+          {/* Debug Routes */}
+          <Route path="/env-debug" element={<EnvDebugPage />} />
+          <Route path="/connection-test" element={<ConnectionTest />} />
+          <Route path="/socket-test" element={<SocketTest />} />
+          <Route path="/logout" element={
+            <div style={{ padding: '20px', textAlign: 'center' }}>
+              <h2>Logged Out</h2>
+              <p>You have been logged out successfully.</p>
+              <button onClick={() => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/register';
+              }}>Go to Register</button>
+            </div>
+          } />
+
+          {/* Redirect all other routes to home */}
+          <Route path="*" element={<Navigate to="/" />} />
+          {/* Public Routes */}
+          <Route path="/login" element={
+            isAuthenticated() ?
+              <Navigate to="/dashboard" /> :
+              <Login />
+          } />
+          <Route path="/register" element={
+            isAuthenticated() ?
+              <Navigate to="/dashboard" /> :
+              <RegisterWithOtp />
+          } />
 
           {/* Protected Routes */}
           <Route path="/" element={

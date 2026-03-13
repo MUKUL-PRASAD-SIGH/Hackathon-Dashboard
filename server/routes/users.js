@@ -3,6 +3,7 @@ const router = express.Router();
 const UserMongoDB = require('../models/UserMongoDB');
 const Hackathon = require('../models/Hackathon');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { verifyToken } = require('../middleware/security');
 
 // Test endpoint
 router.get('/test', (req, res) => {
@@ -19,18 +20,17 @@ router.get('/debug', (req, res) => {
 console.log('🔍 Users routes file loaded successfully');
 
 const authMiddleware = (req, res, next) => {
-  // Skip rate limiting for profile routes
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) {
     return res.status(401).json({ success: false, error: { message: 'No token provided' } });
   }
-  
+
   try {
-    const userData = JSON.parse(Buffer.from(token, 'base64').toString());
-    req.user = userData;
+    const decoded = verifyToken(token);
+    req.user = decoded;
     next();
   } catch (error) {
-    return res.status(401).json({ success: false, error: { message: 'Invalid token' } });
+    return res.status(401).json({ success: false, error: { message: 'Invalid or expired token' } });
   }
 };
 
@@ -39,14 +39,14 @@ router.get('/profile/:userId?', authMiddleware, asyncHandler(async (req, res) =>
   const targetEmail = req.params.userId || req.user.email;
   const currentEmail = req.user.email;
   const isOwnProfile = targetEmail === currentEmail;
-  
-  console.log('Profile request - targetUserId:', targetUserId, 'currentUserId:', currentUserId);
-  
+
+  console.log('Profile request - targetEmail:', targetEmail, 'currentEmail:', currentEmail);
+
   const user = await UserMongoDB.findOne({ email: targetEmail })
     .select('-password');
-    
+
   console.log('Found user:', user ? { name: user.name, email: user.email } : 'null');
-    
+
   if (!user) {
     return res.status(404).json({
       success: false,
@@ -58,7 +58,7 @@ router.get('/profile/:userId?', authMiddleware, asyncHandler(async (req, res) =>
   const currentUser = await UserMongoDB.findOne({ email: currentEmail });
   const isFriend = currentUser.isFriendWith(targetEmail);
   const canViewProfile = isOwnProfile || user.profile.isPublic || isFriend;
-  
+
   if (!canViewProfile) {
     return res.status(403).json({
       success: false,
@@ -77,15 +77,15 @@ router.get('/profile/:userId?', authMiddleware, asyncHandler(async (req, res) =>
     .select('name platform date status teamName')
     .sort({ createdAt: -1 });
 
-  const memberHackathons = await Hackathon.find({ 
-    'teamMembers.email': user.email 
+  const memberHackathons = await Hackathon.find({
+    'teamMembers.email': user.email
   })
     .select('name platform date status teamName')
     .sort({ createdAt: -1 });
 
   const allHackathons = [...leaderHackathons, ...memberHackathons];
   const wonCount = allHackathons.filter(h => h.status === 'Won').length;
-  
+
   // Get current team info for friends
   let currentTeamInfo = null;
   if (isFriend && user.currentTeam?.hackathonEmail) {
@@ -122,18 +122,18 @@ router.get('/profile/:userId?', authMiddleware, asyncHandler(async (req, res) =>
     friendshipStatus,
     isOwnProfile
   };
-  
+
   console.log('Sending profile response:', { name: responseData.user.name, email: responseData.user.email });
-  
+
   res.json(responseData);
 }));
 
 // Update user profile
 router.put('/profile', authMiddleware, asyncHandler(async (req, res) => {
   const { bio, skills, experience, linkedin, github, portfolio, location, avatar, isPublic, name, email } = req.body;
-  
+
   console.log('Profile update request:', req.body);
-  
+
   const updateData = {
     'profile.bio': bio || '',
     'profile.skills': skills || [],
@@ -145,11 +145,11 @@ router.put('/profile', authMiddleware, asyncHandler(async (req, res) => {
     'profile.avatar': avatar || '',
     'profile.isPublic': isPublic !== undefined ? isPublic : false
   };
-  
+
   // Update name and email if provided
   if (name) updateData.name = name;
   if (email) updateData.email = email.toLowerCase();
-  
+
   const user = await UserMongoDB.findOneAndUpdate(
     { email: req.user.email },
     { $set: updateData },
@@ -167,9 +167,9 @@ router.put('/profile', authMiddleware, asyncHandler(async (req, res) => {
   const memberHackathons = await Hackathon.find({ 'teamMembers.email': user.email });
   const allHackathons = [...leaderHackathons, ...memberHackathons];
   const wonCount = allHackathons.filter(h => h.status === 'Won').length;
-  
+
   console.log('Profile updated:', user.name, user.email);
-  
+
   res.json({
     success: true,
     user: {
@@ -184,14 +184,14 @@ router.put('/profile', authMiddleware, asyncHandler(async (req, res) => {
 // Send friend request
 router.post('/friend-request', authMiddleware, asyncHandler(async (req, res) => {
   const { email } = req.body;
-  
+
   if (!email) {
     return res.status(400).json({
       success: false,
       error: { message: 'Email is required' }
     });
   }
-  
+
   const targetUser = await UserMongoDB.findOne({ email: email.toLowerCase().trim() });
   if (!targetUser) {
     return res.status(404).json({
@@ -199,9 +199,9 @@ router.post('/friend-request', authMiddleware, asyncHandler(async (req, res) => 
       error: { message: 'User not found' }
     });
   }
-  
+
   const currentUser = await UserMongoDB.findOne({ email: req.user.email });
-  
+
   try {
     await currentUser.sendFriendRequest(targetUser.email);
     res.json({
@@ -219,9 +219,9 @@ router.post('/friend-request', authMiddleware, asyncHandler(async (req, res) => 
 // Accept friend request
 router.post('/friend-request/accept', authMiddleware, asyncHandler(async (req, res) => {
   const { email } = req.body;
-  
+
   const currentUser = await UserMongoDB.findOne({ email: req.user.email });
-  
+
   try {
     await currentUser.acceptFriendRequest(email);
     res.json({
@@ -239,9 +239,9 @@ router.post('/friend-request/accept', authMiddleware, asyncHandler(async (req, r
 // Reject friend request
 router.post('/friend-request/reject', authMiddleware, asyncHandler(async (req, res) => {
   const { email } = req.body;
-  
+
   const currentUser = await UserMongoDB.findOne({ email: req.user.email });
-  
+
   try {
     await currentUser.rejectFriendRequest(email);
     res.json({
@@ -259,9 +259,9 @@ router.post('/friend-request/reject', authMiddleware, asyncHandler(async (req, r
 // Remove friend
 router.delete('/friend/:userId', authMiddleware, asyncHandler(async (req, res) => {
   const { email } = req.params;
-  
+
   const currentUser = await UserMongoDB.findOne({ email: req.user.email });
-  
+
   try {
     await currentUser.removeFriend(email);
     res.json({
@@ -280,7 +280,7 @@ router.delete('/friend/:userId', authMiddleware, asyncHandler(async (req, res) =
 router.get('/friends', authMiddleware, asyncHandler(async (req, res) => {
   const user = await UserMongoDB.findOne({ email: req.user.email })
     .select('friends friendRequests');
-    
+
   res.json({
     success: true,
     friends: user.friends,
@@ -292,26 +292,26 @@ router.get('/friends', authMiddleware, asyncHandler(async (req, res) => {
 // Search users by email
 router.get('/search', authMiddleware, asyncHandler(async (req, res) => {
   const { email } = req.query;
-  
+
   if (!email) {
     return res.status(400).json({
       success: false,
       error: { message: 'Email parameter is required' }
     });
   }
-  
-  const user = await UserMongoDB.findOne({ 
+
+  const user = await UserMongoDB.findOne({
     email: email.toLowerCase().trim(),
     email: { $ne: req.user.email } // Exclude current user
   }).select('name email profile.avatar');
-  
+
   if (!user) {
     return res.status(404).json({
       success: false,
       error: { message: 'User not found' }
     });
   }
-  
+
   res.json({
     success: true,
     user

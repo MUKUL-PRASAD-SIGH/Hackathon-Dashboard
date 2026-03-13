@@ -4,6 +4,66 @@ A comprehensive web application for managing and tracking hackathons with advanc
 
 **Note**: Using only localhost 3000 or 3001 because of OAuth Config
 
+---
+
+## ⚡ **QUICK START - RUN COMMANDS**
+
+### Option 1: Run Everything (Recommended)
+```bash
+# Double-click this file from File Explorer:
+start-all.bat
+```
+
+### Option 2: Run Separately (Two Terminals)
+
+**Terminal 1 — Backend Server (Port 10000):**
+```bash
+cd server
+node server.js
+```
+
+**Terminal 2 — Frontend React App (Port 3001):**
+```bash
+npm start
+```
+
+### Option 3: Using Batch Files
+```bash
+start-backend.bat     # Starts backend on port 10000
+start-frontend.bat    # Starts frontend on port 3001
+```
+
+### 🔗 URLs
+| Service     | URL                          |
+|-------------|------------------------------|
+| Frontend    | http://localhost:3001         |
+| Backend API | http://localhost:10000/api    |
+| Health Check| http://localhost:10000/health |
+
+### 📋 Prerequisites
+- **Node.js** v18+ installed
+- **MongoDB** running locally (`mongodb://127.0.0.1:27017/storybook`) OR MongoDB Atlas URI in `.env`
+- Run `npm install` in both root and `server/` directories (first time only)
+
+### 🔧 First Time Setup
+```bash
+# 1. Install frontend dependencies
+npm install
+
+# 2. Install backend dependencies
+cd server
+npm install
+cd ..
+
+# 3. Configure .env (copy from env.example and update values)
+# Required: MONGODB_URI, GMAIL_USER, GMAIL_APP_PASSWORD
+
+# 4. Start everything
+start-all.bat
+```
+
+---
+
 ## ⚠️ **VALIDATION REQUIREMENTS**
 - **Username**: Letters, numbers, spaces, dots, underscores, hyphens only (2-50 chars)
 - **Password**: Minimum 6 characters
