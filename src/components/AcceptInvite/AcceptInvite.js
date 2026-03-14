@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './AcceptInvite.css';
+import { getApiUrl } from '../../utils/apiBase';
+
+const API = getApiUrl();
 
 const AcceptInvite = () => {
   const { notificationId } = useParams();
@@ -22,7 +25,7 @@ const AcceptInvite = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:10000/api/hackathons/notifications`, {
+      const response = await fetch(`${API}/hackathons/notifications`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -48,7 +51,7 @@ const AcceptInvite = () => {
     setProcessing(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:10000/api/hackathons/accept-invite/${notificationId}`, {
+      const response = await fetch(`${API}/hackathons/accept-invite/${notificationId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -73,7 +76,7 @@ const AcceptInvite = () => {
     setProcessing(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:10000/api/hackathons/decline-invite/${notificationId}`, {
+      const response = await fetch(`${API}/hackathons/decline-invite/${notificationId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

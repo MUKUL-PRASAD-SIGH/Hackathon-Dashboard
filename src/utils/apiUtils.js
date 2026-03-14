@@ -1,16 +1,8 @@
 // API utility functions for consistent error handling
 import { DebugLogger, debugApiCall } from './debugUtils.js';
+import { getApiUrl } from './apiBase.js';
 
 const apiLogger = new DebugLogger('ApiUtils');
-
-// Direct API URL detection - uses CRA proxy in dev
-const getApiUrl = () => {
-  if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
-  const isLocalhost = window.location.hostname === 'localhost';
-  return isLocalhost
-    ? '/api'
-    : 'https://hackathon-dashboard-backend-md49.onrender.com/api';
-};
 
 // Enhanced fetch with error handling and debugging
 export const apiCall = async (endpoint, options = {}) => {

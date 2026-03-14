@@ -6,6 +6,9 @@ import './EmailField.css';
 import './RoundDates.css';
 import './RemarksStyles.css';
 import './ValidationStyles.css';
+import { getApiUrl } from '../../utils/apiBase';
+
+const API = getApiUrl();
 
 const HackathonForm = ({ onAddHackathon, onUpdateHackathon, onReload, hackathons = [] }) => {
   const navigate = useNavigate();
@@ -241,7 +244,7 @@ const HackathonForm = ({ onAddHackathon, onUpdateHackathon, onReload, hackathons
       } else {
         // Add new hackathon
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:10000/api/hackathons', {
+        const response = await fetch(API + '/hackathons', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

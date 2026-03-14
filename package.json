@@ -30,7 +30,8 @@
     "react-scripts": "5.0.1",
     "react-select": "^5.8.0",
     "socket.io-client": "^4.7.5",
-    "styled-components": "^6.1.0"
+    "styled-components": "^6.1.0",
+    "three": "^0.160.0"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^7.6.0",

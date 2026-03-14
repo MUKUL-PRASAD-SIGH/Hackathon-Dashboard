@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './PrivateChat.css';
+import { getApiUrl } from '../../utils/apiBase';
+
+const API = getApiUrl();
 
 const PrivateChat = ({ hackathonId }) => {
   const [messages, setMessages] = useState([]);
@@ -33,7 +36,7 @@ const PrivateChat = ({ hackathonId }) => {
       
       console.log(`💬 Fetching messages for hackathon: ${hackathonId}`);
       
-      const response = await fetch(`http://localhost:10000/api/hackathons/${hackathonId}/messages`, {
+      const response = await fetch(`${API}/hackathons/${hackathonId}/messages`, {
         headers: { 
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -90,7 +93,7 @@ const PrivateChat = ({ hackathonId }) => {
         return;
       }
       
-      const response = await fetch(`http://localhost:10000/api/hackathons/${hackathonId}/messages`, {
+      const response = await fetch(`${API}/hackathons/${hackathonId}/messages`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

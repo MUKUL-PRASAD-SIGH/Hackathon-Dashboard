@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './ChatPage.css';
+import { getApiUrl } from '../../utils/apiBase';
+
+const API = getApiUrl();
 
 const ChatPage = () => {
   const { id } = useParams();
@@ -31,7 +34,7 @@ const ChatPage = () => {
   const fetchHackathonDetails = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:10000/api/hackathons`, {
+      const response = await fetch(`${API}/hackathons`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -48,7 +51,7 @@ const ChatPage = () => {
   const fetchMessages = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:10000/api/hackathons/${id}/messages`, {
+      const response = await fetch(`${API}/hackathons/${id}/messages`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -76,7 +79,7 @@ const ChatPage = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:10000/api/hackathons/${id}/messages`, {
+      const response = await fetch(`${API}/hackathons/${id}/messages`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

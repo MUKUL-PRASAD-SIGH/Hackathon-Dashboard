@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import RoundRemarks from './RoundRemarks';
 import './TeamPage.css';
+import { getApiUrl } from '../../utils/apiBase';
+
+const API = getApiUrl();
 
 const TeamPage = () => {
   const { id } = useParams();
@@ -17,7 +20,7 @@ const TeamPage = () => {
   const fetchHackathonDetails = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:10000/api/hackathons`, {
+      const response = await fetch(`${API}/hackathons`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -37,7 +40,7 @@ const TeamPage = () => {
     if (window.confirm(`Remove ${memberName} from the team?`)) {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:10000/api/hackathons/${id}/member/${encodeURIComponent(memberEmail)}`, {
+        const response = await fetch(`${API}/hackathons/${id}/member/${encodeURIComponent(memberEmail)}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         });

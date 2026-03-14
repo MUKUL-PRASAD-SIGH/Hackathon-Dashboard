@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Notifications.css';
 import './CongratsPopup.css';
+import { getApiUrl } from '../../utils/apiBase';
+
+const API = getApiUrl();
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -21,7 +24,7 @@ const Notifications = () => {
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:10000/api/hackathons/notifications', {
+    const response = await fetch(API + '/hackathons/notifications', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -48,7 +51,7 @@ const Notifications = () => {
         return;
       }
       
-      const response = await fetch(`http://localhost:10000/api/hackathons/accept-invite/${notificationId}`, {
+    const response = await fetch(API + `/hackathons/accept-invite/${notificationId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -83,7 +86,7 @@ const Notifications = () => {
   const handleDecline = async (notificationId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:10000/api/hackathons/decline-invite/${notificationId}`, {
+    const response = await fetch(API + `/hackathons/decline-invite/${notificationId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -105,7 +108,7 @@ const Notifications = () => {
   const handleApproveRequest = async (notificationId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:10000/api/hackathons/approve-request/${notificationId}`, {
+    const response = await fetch(API + `/hackathons/approve-request/${notificationId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -127,7 +130,7 @@ const Notifications = () => {
   const handleRejectRequest = async (notificationId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:10000/api/hackathons/reject-request/${notificationId}`, {
+    const response = await fetch(API + `/hackathons/reject-request/${notificationId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

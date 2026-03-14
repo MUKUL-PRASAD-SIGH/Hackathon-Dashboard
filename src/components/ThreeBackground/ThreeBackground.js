@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import * as THREE from 'three';
 import './ThreeBackground.css';
 
 const ThreeBackground = () => {
@@ -6,8 +7,7 @@ const ThreeBackground = () => {
   const animationRef = useRef(null);
 
   useEffect(() => {
-    const THREE = window.THREE;
-    if (!THREE || !mountRef.current) return;
+    if (!mountRef.current) return;
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const scene = new THREE.Scene();

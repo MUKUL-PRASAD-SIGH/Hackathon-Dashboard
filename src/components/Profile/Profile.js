@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import './Profile.css';
+import { getApiUrl } from '../../utils/apiBase';
+
+const API = getApiUrl();
 
 const Profile = () => {
   const { userId } = useParams();
@@ -47,8 +50,8 @@ const Profile = () => {
       console.log('🔍 UserId from params:', userId);
       
       const url = userId 
-        ? `http://localhost:10000/api/users/profile/${userId}` 
-        : 'http://localhost:10000/api/users/profile';
+        ? `${API}/users/profile/${userId}` 
+        : `${API}/users/profile`;
       console.log('🔍 API URL:', url);
       
       const response = await fetch(url, {
@@ -122,7 +125,7 @@ const Profile = () => {
   const fetchFriends = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:10000/api/users/friends', {
+      const response = await fetch(API + '/users/friends', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await response.json();
@@ -138,7 +141,7 @@ const Profile = () => {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:10000/api/users/profile', {
+      const response = await fetch(API + '/users/profile', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -170,7 +173,7 @@ const Profile = () => {
   const sendFriendRequest = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:10000/api/users/friend-request', {
+      const response = await fetch(API + '/users/friend-request', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -197,7 +200,7 @@ const Profile = () => {
   const handleFriendRequest = async (userId, action) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:10000/api/users/friend-request/${action}`, {
+      const response = await fetch(API + `/users/friend-request/${action}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -221,7 +224,7 @@ const Profile = () => {
   const sendFriendRequestToProfile = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:10000/api/users/friend-request', {
+      const response = await fetch(API + '/users/friend-request', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -3,12 +3,9 @@ import AuthContext from '../../contexts/AuthContext';
 import './HackathonWorlds.css';
 import './SearchStyles.css';
 import './TeamCards.css';
+import { getApiUrl } from '../../utils/apiBase';
 
-// Always use absolute backend URL to avoid proxy timing issues
-const BACKEND = window.location.hostname === 'localhost'
-  ? 'http://localhost:10000'
-  : 'https://hackathon-dashboard-backend-md49.onrender.com';
-const API = `${BACKEND}/api`;
+const API = getApiUrl();
 
 const HackathonWorldsList = ({ onSelectWorld, refreshTrigger }) => {
   const [worlds, setWorlds] = useState([]);

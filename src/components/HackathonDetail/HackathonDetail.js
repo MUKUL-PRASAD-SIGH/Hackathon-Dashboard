@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './HackathonDetail.css';
+import { getApiUrl } from '../../utils/apiBase';
+
+const API = getApiUrl();
 
 const HackathonDetail = () => {
   const { id } = useParams();
@@ -17,7 +20,7 @@ const HackathonDetail = () => {
   const fetchHackathonDetail = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:10000/api/hackathons/${id}`, {
+      const response = await fetch(`${API}/hackathons/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       

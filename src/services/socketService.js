@@ -1,4 +1,5 @@
 import { io } from 'socket.io-client';
+import { getApiBase } from '../utils/apiBase';
 
 class SocketService {
   constructor() {
@@ -19,10 +20,7 @@ class SocketService {
     return new Promise((resolve, reject) => {
       try {
         // Use same URL detection as API
-        const isLocalhost = window.location.hostname === 'localhost';
-        const serverUrl = isLocalhost 
-          ? 'http://localhost:10000'
-          : 'https://hackathon-dashboard-backend-md49.onrender.com';
+        const serverUrl = getApiBase() || '';
         
         console.log('🔌 Connecting to Socket.IO server:', serverUrl);
         

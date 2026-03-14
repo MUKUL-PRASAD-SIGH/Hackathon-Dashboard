@@ -1,3 +1,5 @@
+import { getApiBase } from './apiBase';
+
 // Comprehensive debugging utility for detailed error tracking
 export class DebugLogger {
   constructor(component = 'Unknown') {
@@ -157,12 +159,7 @@ export const debugApiCall = async (debugLogger, endpoint, options, apiCallFn) =>
 };
 
 // Get correct backend URL
-const getBackendUrl = () => {
-  const isLocalhost = window.location.hostname === 'localhost';
-  return isLocalhost 
-    ? 'http://localhost:10000'
-    : 'https://hackathon-dashboard-backend-md49.onrender.com';
-};
+const getBackendUrl = () => getApiBase();
 
 // Network diagnostics
 export const runNetworkDiagnostics = async () => {

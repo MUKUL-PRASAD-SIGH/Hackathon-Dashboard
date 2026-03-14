@@ -5,6 +5,9 @@ import PrivateChat from '../PrivateChat/PrivateChat';
 import './Dashboard.css';
 import './UserInfo.css';
 import './VibrantCards.css';
+import { getApiUrl } from '../../utils/apiBase';
+
+const API = getApiUrl();
 
 const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackathon, onReload, onCreateWorld }) => {
   const navigate = useNavigate();
@@ -123,7 +126,7 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
         return;
       }
       
-      const response = await fetch('http://localhost:10000/api/hackathons/joined', {
+      const response = await fetch(API + '/hackathons/joined', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -271,7 +274,7 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
       
       if (!hackathon.isPublicWorld) {
         // Make public using new route
-        const response = await fetch(`http://localhost:10000/api/hackathons/${hackathon._id || hackathon.id}/make-public`, {
+        const response = await fetch(API + `/hackathons/${hackathon._id || hackathon.id}/make-public`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -296,7 +299,7 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
         }
       } else {
         // Make private using new route
-        const response = await fetch(`http://localhost:10000/api/hackathons/${hackathon._id || hackathon.id}/make-private`, {
+        const response = await fetch(API + `/hackathons/${hackathon._id || hackathon.id}/make-private`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -341,7 +344,7 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
       }
       
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:10000/api/hackathons/accept-invite/${notificationId}`, {
+      const response = await fetch(API + `/hackathons/accept-invite/${notificationId}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -371,7 +374,7 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:10000/api/hackathons/${invitingHackathon}/invite`, {
+      const response = await fetch(API + `/hackathons/${invitingHackathon}/invite`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -970,7 +973,7 @@ const HackathonDetailsModal = ({ hackathon, onClose, onReload }) => {
     if (window.confirm(`Remove ${memberName} from the team?`)) {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:10000/api/hackathons/${hackathon._id}/member/${encodeURIComponent(memberEmail)}`, {
+        const response = await fetch(API + `/hackathons/${hackathon._id}/member/${encodeURIComponent(memberEmail)}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`

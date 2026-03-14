@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import './Header.css';
+import { getApiUrl } from '../../utils/apiBase';
+
+const API = getApiUrl();
 
 const Header = () => {
   const location = useLocation();
@@ -41,7 +44,7 @@ const Header = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
       
-      const response = await fetch('http://localhost:10000/api/users/friends', {
+      const response = await fetch(API + '/users/friends', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       
@@ -59,7 +62,7 @@ const Header = () => {
   const handleFriendRequest = async (email, action) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:10000/api/users/friend-request/${action}`, {
+      const response = await fetch(API + `/users/friend-request/${action}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

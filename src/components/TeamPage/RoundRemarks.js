@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './RoundRemarks.css';
+import { getApiUrl } from '../../utils/apiBase';
+
+const API = getApiUrl();
 
 const RoundRemarks = ({ hackathonId, hackathon }) => {
   const [remarks, setRemarks] = useState([]);
@@ -17,7 +20,7 @@ const RoundRemarks = ({ hackathonId, hackathon }) => {
       const token = localStorage.getItem('token');
       console.log('🔍 Fetching remarks for hackathon:', hackathonId);
       
-      const response = await fetch(`http://localhost:10000/api/hackathons/${hackathonId}/remarks`, {
+      const response = await fetch(`${API}/hackathons/${hackathonId}/remarks`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -43,7 +46,7 @@ const RoundRemarks = ({ hackathonId, hackathon }) => {
       const token = localStorage.getItem('token');
       console.log('🔍 Adding remark:', { round: selectedRound, content: newRemark.trim() });
       
-      const response = await fetch(`http://localhost:10000/api/hackathons/${hackathonId}/remarks`, {
+      const response = await fetch(`${API}/hackathons/${hackathonId}/remarks`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
