@@ -18,8 +18,10 @@ const PORT = process.env.PORT || 10000;
 
 // Dynamic CORS: allow any localhost port + production Netlify
 const allowedOrigins = new Set([
+  process.env.FRONTEND_URL,
   'https://hackathon-dashboard-mukul.netlify.app',
-]);
+  'https://hackdashboard.netlify.app',
+].filter(Boolean));
 
 const allowedOrigin = (origin, callback) => {
   if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin) || allowedOrigins.has(origin)) {
