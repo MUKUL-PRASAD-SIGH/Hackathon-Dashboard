@@ -10,7 +10,7 @@ export const getApiUrl = () => {
   const isLocalhost = window.location.hostname === 'localhost';
   return isLocalhost
     ? '/api'
-    : 'https://hackathon-dashboard-backend-md49.onrender.com/api';
+    : 'https://hackathon-dashboard-c5sq.onrender.com/api';
 };
 
 export const getApiBase = () => {
