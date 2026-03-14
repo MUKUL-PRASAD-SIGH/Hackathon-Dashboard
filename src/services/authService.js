@@ -5,13 +5,8 @@ import { toast } from 'react-hot-toast';
 const getApiUrl = () => {
   if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
   const isLocalhost = window.location.hostname === 'localhost';
-<<<<<<< HEAD
   return isLocalhost
     ? '/api'
-=======
-  const apiUrl = isLocalhost
-    ? 'http://localhost:10000/api'
->>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
     : 'https://hackathon-dashboard-backend-md49.onrender.com/api';
 };
 

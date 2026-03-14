@@ -108,13 +108,6 @@ Thumbs.db
 
 # All test, debug, fix, and related scripts (root and subdirectories)
 test-*.js
-<<<<<<< HEAD
-debug-*.html
-
-# Code dump (auto-generated)
-dump_code.py
-PROJECT_CODE_DUMP.md
-=======
 test-*.html
 debug-*.js
 debug-*.html
@@ -166,10 +159,8 @@ server/app.js
 !README.md
 !deploy-instructions.md
 
-# Broken filename from git command typo
-et --hard a289f72^
-
-# Personal MD documentation (code dumps)
+# Code dump (auto-generated)
+dump_code.py
+PROJECT_CODE_DUMP.md
 **/code_dump*.md
 **/dump_code*.py
->>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de

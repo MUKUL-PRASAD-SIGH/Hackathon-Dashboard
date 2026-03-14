@@ -1,137 +1,131 @@
-.notifications-container {
-  min-height: 100vh;
-  padding: 2rem 0;
-}
+.notifications-container { min-height: 100vh; padding: 1rem 0; }
 
-.notifications-list {
-  max-width: 800px;
-  margin: 0 auto;
-}
+.notifications-list { max-width: 820px; margin: 0 auto; }
 
 .notification-item {
-  background: var(--bg-primary);
-  border-radius: 12px;
+  background: rgba(10,10,30,0.85);
+  border: 1px solid rgba(0,255,255,0.08);
+  border-left: 3px solid rgba(0,255,255,0.4);
+  border-radius: 10px;
   padding: 1.5rem;
   margin-bottom: 1rem;
-  border-left: 4px solid var(--primary-color);
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
+  backdrop-filter: blur(12px);
+  transition: all 0.25s ease;
 }
-
 .notification-item:hover {
-  box-shadow: var(--shadow-md);
+  border-color: rgba(0,255,255,0.25);
+  border-left-color: #00ffff;
+  box-shadow: 0 4px 20px rgba(0,255,255,0.06);
   transform: translateY(-2px);
 }
-
 .notification-item.unread {
-  border-left-color: #10b981;
-  background: linear-gradient(135deg, #f0fdf4, var(--bg-primary));
+  border-left-color: #00ff88;
+  background: rgba(0,255,136,0.03);
 }
-
 .notification-item.read {
-  border-left-color: var(--text-secondary);
-  opacity: 0.8;
+  border-left-color: rgba(122,138,176,0.3);
+  opacity: 0.75;
 }
 
 .notification-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
-
 .notification-header h3 {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
   margin: 0;
-  color: var(--text-primary);
-  font-size: 1.2rem;
+  letter-spacing: 0.04em;
 }
-
 .notification-time {
-  color: var(--text-secondary);
-  font-size: 0.875rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: rgba(122,138,176,0.5);
+  font-size: 0.75rem;
 }
 
 .notification-message {
-  color: var(--text-secondary);
+  color: rgba(224,232,255,0.6);
+  font-size: 0.88rem;
+  line-height: 1.6;
   margin-bottom: 1rem;
-  line-height: 1.5;
 }
 
-.notification-actions {
-  display: flex;
-  gap: 1rem;
-}
-
-.btn-accept, .btn-decline {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
+.notification-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 
 .btn-accept {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.55rem 1.1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #00ff88, #00aa55);
+  color: #000;
+  box-shadow: 0 0 15px rgba(0,255,136,0.25);
+  transition: all 0.2s;
 }
-
-.btn-accept:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
+.btn-accept:hover { box-shadow: 0 0 25px rgba(0,255,136,0.5); transform: translateY(-2px); }
 
 .btn-decline {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.55rem 1.1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #ff3366, #aa0022);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(255,51,102,0.25);
+  transition: all 0.2s;
 }
-
-.btn-decline:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
+.btn-decline:hover { box-shadow: 0 0 25px rgba(255,51,102,0.5); transform: translateY(-2px); }
 
 .notification-status {
-  color: var(--success-color);
-  font-weight: 500;
-  font-size: 0.875rem;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #00ff88;
 }
 
 .no-notifications {
   text-align: center;
-  padding: 3rem;
-  color: var(--text-secondary);
+  padding: 4rem;
+  color: rgba(122,138,176,0.4);
+  font-family: 'Orbitron', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
 }
 
 .loading {
   text-align: center;
   padding: 3rem;
-  color: var(--text-secondary);
+  color: rgba(122,138,176,0.5);
 }
 
 .request-details {
-  background: var(--bg-secondary);
+  background: rgba(0,255,255,0.03);
+  border: 1px solid rgba(0,255,255,0.1);
+  border-left: 3px solid rgba(0,255,255,0.4);
   padding: 1rem;
   border-radius: 8px;
   margin-bottom: 1rem;
-  border-left: 3px solid var(--primary-color);
 }
-
 .request-details p {
-  margin: 0.5rem 0;
-  color: var(--text-primary);
+  margin: 0.4rem 0;
+  color: rgba(224,232,255,0.7);
+  font-size: 0.85rem;
 }
 
-.action-buttons {
-  display: flex;
-  gap: 1rem;
-}
-
-.notification-actions {
-  margin-top: 1rem;
-}
-
-.notification-actions .action-buttons {
-  margin-top: 1rem;
-}
+.action-buttons { display: flex; gap: 0.75rem; }

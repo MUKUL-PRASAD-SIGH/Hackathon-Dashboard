@@ -326,10 +326,82 @@ app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await UserMongoDB.authenticate(email, password);
-    const token = Buffer.from(JSON.stringify({ email: user.email, name: user.name })).toString('base64');
+    const { generateToken } = require('./middleware/security');
+    const token = generateToken({
+      id: user._id.toString(),
+      email: user.email,
+      name: user.name
+    });
     res.json({ success: true, message: 'Login successful', token, user: user.toJSON() });
   } catch (error) {
     res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password' } });
+  }
+});
+
+// Send Login OTP (registered users only)
+app.post('/api/send-login-otp', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const existingUser = await UserMongoDB.findOne({ email: email.toLowerCase().trim() });
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'USER_NOT_FOUND', message: 'No account found with this email. Please register first!' }
+      });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    global.loginOtpStore = global.loginOtpStore || new Map();
+    global.loginOtpStore.set(email, {
+      otp,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 10 * 60 * 1000
+    });
+
+    await emailService.sendOtpEmail(email, otp);
+    res.json({ success: true, message: 'OTP sent successfully to your email' });
+  } catch (error) {
+    res.status(500).json({ success: false, error: { message: error.message } });
+  }
+});
+
+// Verify Login OTP (registered users only)
+app.post('/api/verify-login-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    global.loginOtpStore = global.loginOtpStore || new Map();
+    const stored = global.loginOtpStore.get(email);
+    if (!stored || stored.otp !== otp || stored.expiresAt <= Date.now()) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_OTP', message: 'Invalid or expired OTP' }
+      });
+    }
+
+    global.loginOtpStore.delete(email);
+    const user = await UserMongoDB.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'USER_NOT_FOUND', message: 'No account found with this email. Please register first!' }
+      });
+    }
+
+    user.lastLogin = new Date();
+    user.loginAttempts = 0;
+    user.lockUntil = undefined;
+    await user.save();
+
+    const { generateToken } = require('./middleware/security');
+    const token = generateToken({
+      id: user._id.toString(),
+      email: user.email,
+      name: user.name
+    });
+    res.json({ success: true, message: 'Login successful', token, user: user.toJSON() });
+  } catch (error) {
+    res.status(500).json({ success: false, error: { message: error.message } });
   }
 });
 

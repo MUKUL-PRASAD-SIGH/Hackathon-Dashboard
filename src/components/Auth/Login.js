@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { FcGoogle } from 'react-icons/fc';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
@@ -13,14 +13,10 @@ const Login = () => {
   const [showOtpField, setShowOtpField] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'otp'
-<<<<<<< HEAD
   const [showPassword, setShowPassword] = useState(false);
-=======
   const [errorMessage, setErrorMessage] = useState('');
   const [showRegisterPrompt, setShowRegisterPrompt] = useState(false);
->>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
 
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   // Handle OAuth error redirects
@@ -41,13 +37,10 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-<<<<<<< HEAD
-=======
     // Clear previous errors
     setErrorMessage('');
     setShowRegisterPrompt(false);
 
->>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
     // Basic validation
     if (!email) {
       toast.error('Please enter your email');
@@ -84,11 +77,7 @@ const Login = () => {
             return;
           }
 
-<<<<<<< HEAD
-          const response = await authService.verifyOtp(email, otp);
-=======
           const response = await authService.verifyLoginOtp(email, otp);
->>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
           if (response.success) {
             localStorage.setItem('token', response.token);
             localStorage.setItem('user', JSON.stringify(response.user));
@@ -100,28 +89,6 @@ const Login = () => {
       }
     } catch (error) {
       console.error('Login error:', error);
-<<<<<<< HEAD
-      if (error.message && error.message.toLowerCase().includes('invalid')) {
-        toast((t) => (
-          <div style={{ textAlign: 'center' }}>
-            <p style={{ margin: '0 0 10px', fontWeight: '500' }}>{error.message || 'Account not found'}</p>
-            <button 
-              onClick={() => { 
-                toast.dismiss(t.id); 
-                navigate('/register'); 
-              }} 
-              style={{
-                padding: '6px 12px', background: '#4f46e5', color: '#fff', 
-                border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px'
-              }}
-            >
-              Go to Sign Up
-            </button>
-          </div>
-        ), { duration: 6000, position: 'top-center' });
-      } else {
-        toast.error(error.message || 'Login failed. Please try again.');
-=======
 
       // Check if the error is about user not being registered
       const errorMsg = error.message || 'Login failed. Please try again.';
@@ -131,7 +98,6 @@ const Login = () => {
       } else {
         setErrorMessage(errorMsg);
         toast.error(errorMsg);
->>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
       }
     } finally {
       setIsLoading(false);
@@ -164,8 +130,6 @@ const Login = () => {
         <h2>Welcome Back</h2>
         <p className="auth-subtitle">Sign in to your account to continue</p>
 
-<<<<<<< HEAD
-=======
         {/* Registration Required Error Banner */}
         {showRegisterPrompt && (
           <div style={{
@@ -223,7 +187,6 @@ const Login = () => {
           </div>
         )}
 
->>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
         <form onSubmit={handleSubmit} className="auth-form">
           {/* Email Field */}
           <div className="form-group">

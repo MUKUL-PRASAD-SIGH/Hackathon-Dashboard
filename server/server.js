@@ -55,7 +55,6 @@ const server = createServer(app);
 // Initialize Socket.IO with proper configuration
 const { Server } = require('socket.io');
 
-// Dynamic CORS origin: allow any localhost port + production
 const allowedOrigin = (origin, callback) => {
   if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin) || origin === 'https://hackathon-dashboard-mukul.netlify.app') {
     callback(null, true);
@@ -299,21 +298,17 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
 // Input sanitization middleware
 app.use((req, res, next) => {
-  // Sanitize string inputs
   const sanitizeObject = (obj) => {
     for (const key in obj) {
       if (typeof obj[key] === 'string') {
-        obj[key] = validator.escape(obj[key].trim());
+        // Only trim whitespace — do NOT escape, it corrupts emails/passwords
+        obj[key] = obj[key].trim();
       } else if (typeof obj[key] === 'object' && obj[key] !== null) {
         sanitizeObject(obj[key]);
       }
     }
   };
-
-  if (req.body) {
-    sanitizeObject(req.body);
-  }
-
+  if (req.body) sanitizeObject(req.body);
   next();
 });
 
@@ -546,14 +541,6 @@ app.post('/api/register', authLimiter, validateRegistration, asyncHandler(async 
     await user.save();
     User.removeEmailVerification(email);
 
-<<<<<<< HEAD
-    // Generate authentication token
-    const token = Buffer.from(JSON.stringify({
-      id: user._id,
-      email: user.email,
-      name: user.name
-    })).toString('base64');
-=======
     // Generate secure JWT authentication token
     const { generateToken } = require('./middleware/security');
     const token = generateToken({
@@ -561,7 +548,6 @@ app.post('/api/register', authLimiter, validateRegistration, asyncHandler(async 
       email: user.email,
       name: user.name
     });
->>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
 
     console.log(`✅ New user registered: ${email}`);
     console.log(`👥 User ID: ${user._id}`);
@@ -665,16 +651,10 @@ app.post('/api/login', authLimiter, validateLogin, asyncHandler(async (req, res)
     // Authenticate user using MongoDB model
     const user = await UserMongoDB.authenticate(email, password);
 
-<<<<<<< HEAD
-    // Generate authentication token
-    const token = Buffer.from(JSON.stringify({
-      id: user._id,
-=======
     // Generate secure JWT authentication token
     const { generateToken } = require('./middleware/security');
     const token = generateToken({
       id: user._id.toString(),
->>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
       email: user.email,
       name: user.name
     });
@@ -736,12 +716,10 @@ app.post('/api/login', authLimiter, validateLogin, asyncHandler(async (req, res)
   }
 }));
 
-<<<<<<< HEAD
 // Google OAuth routes
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
 console.log('🔐 Google OAuth routes loaded at /api/auth/*');
-=======
 // Send Login OTP - Only for REGISTERED users (separate from registration OTP)
 app.post('/api/send-login-otp', otpLimiter, validateEmail, asyncHandler(async (req, res) => {
   const { email } = req.body;
@@ -889,7 +867,6 @@ app.post('/api/verify-login-otp', authLimiter, validateEmail, validateOtp, async
     });
   }
 }));
->>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
 
 // Hackathon routes (existing personal hackathon tracking)
 console.log('📊 Loading hackathon routes at /api/hackathons/*');
@@ -989,21 +966,7 @@ app.get('/api/notifications', asyncHandler(async (req, res) => {
   }
 }));
 
-<<<<<<< HEAD
-// Legacy users endpoint (in-memory only)
-app.get('/api/users', (req, res) => {
-  const users = User.getAllUsers();
-
-  res.json({
-    success: true,
-    users,
-    count: User.getUserCount(),
-    note: 'This shows in-memory users only. Use /api/debug/users for MongoDB users.'
-  });
-});
-=======
 // Legacy users endpoint removed for security - use /api/debug/users in development only
->>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
 
 // Send join request to public hackathon
 app.post('/api/hackathons/:id/request-join', authLimiter, asyncHandler(async (req, res) => {
@@ -1016,12 +979,8 @@ app.post('/api/hackathons/:id/request-join', authLimiter, asyncHandler(async (re
       return res.status(401).json({ success: false, error: { message: 'Authentication required' } });
     }
 
-<<<<<<< HEAD
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
-=======
     const { verifyToken } = require('./middleware/security');
     const decoded = verifyToken(token);
->>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
     const user = await UserMongoDB.findById(decoded.id);
 
     if (!user) {
@@ -1096,15 +1055,11 @@ app.post('/api/hackathons/:id/handle-request/:requestId', authLimiter, asyncHand
 
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
-<<<<<<< HEAD
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
-=======
     if (!token) {
       return res.status(401).json({ success: false, error: { message: 'Authentication required' } });
     }
     const { verifyToken } = require('./middleware/security');
     const decoded = verifyToken(token);
->>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
 
     const hackathon = await Hackathon.findById(hackathonId);
     if (!hackathon) {
@@ -1191,19 +1146,12 @@ app.post('/api/hackathons/:id/handle-request/:requestId', authLimiter, asyncHand
   }
 }));
 
-<<<<<<< HEAD
-// Recovery endpoint to find hackathons by email
-app.get('/api/recover-hackathons/:email', asyncHandler(async (req, res) => {
-  const email = req.params.email;
-  const Hackathon = require('./models/Hackathon');
-=======
 // Recovery endpoint to find hackathons by email (requires authentication)
 app.get('/api/recover-hackathons', asyncHandler(async (req, res) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
   if (!token) {
     return res.status(401).json({ success: false, error: { message: 'Authentication required' } });
   }
->>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
 
   try {
     const { verifyToken } = require('./middleware/security');
@@ -1213,22 +1161,11 @@ app.get('/api/recover-hackathons', asyncHandler(async (req, res) => {
 
     // Search by email field
     const hackathonsByEmail = await Hackathon.find({
-<<<<<<< HEAD
-      email: { $regex: email, $options: 'i' }
-    });
-
-    // Search by user email in User collection
-    const user = await UserMongoDB.findOne({
-      email: { $regex: email, $options: 'i' }
-    });
-
-=======
       email: { $regex: new RegExp('^' + email.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&') + '$', 'i') }
     });
 
     // Search by user ID
     const user = await UserMongoDB.findOne({ email: email.toLowerCase().trim() });
->>>>>>> 8f89ad9d34fadbc0b5dd4a144a6a1297231b59de
     let hackathonsByUserId = [];
     if (user) {
       hackathonsByUserId = await Hackathon.find({ userId: user._id });
