@@ -23,7 +23,7 @@ const OtpVerification = ({
 
   // Countdown timer for resend functionality
   const resendTimer = useCountdown(resendCooldown, {
-    autoStart: false,
+    autoStart: true,
     onComplete: () => console.log('Resend available')
   });
 
