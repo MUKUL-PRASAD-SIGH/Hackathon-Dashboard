@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import UserGuide from '../UserGuide/UserGuide';
 import PrivateChat from '../PrivateChat/PrivateChat';
 import IdeaVotingCard from '../IdeaVoting/IdeaVotingCard';
+import IdeaVotingHistory from '../IdeaVoting/IdeaVotingHistory';
 import './Dashboard.css';
 import './UserInfo.css';
 import './VibrantCards.css';
@@ -740,6 +741,8 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
                     </ul>
                   </div>
                 )}
+
+                <IdeaVotingHistory hackathonId={hackathon._id || hackathon.id} />
               </div>
             ))
           )}
@@ -805,6 +808,7 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
                   </div>
 
                   <IdeaVotingCard hackathonId={hackathon._id} />
+                  <IdeaVotingHistory hackathonId={hackathon._id} />
                 </div>
               );
             })

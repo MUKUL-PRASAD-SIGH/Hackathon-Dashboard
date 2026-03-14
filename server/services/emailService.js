@@ -47,14 +47,19 @@ class EmailService {
       
       return { success: true, message: 'Email service connected' };
     } catch (error) {
-      console.error('⚠️ Gmail authentication failed:', error.message);
-      console.log('📧 Running in demo mode - OTPs will be logged to console');
-      console.log('💡 To fix: Generate new Gmail App Password at https://myaccount.google.com/apppasswords');
+      console.error('⚠️ Gmail SMTP initialization failed:', error.message);
+      if (error.code || error.responseCode) {
+        console.error('SMTP error details:', {
+          code: error.code,
+          responseCode: error.responseCode,
+          response: error.response
+        });
+      }
       
       this.transporter = null;
       this.isConnected = false;
       
-      return { success: false, error: error.message, demoMode: true };
+      return { success: false, error: error.message };
     }
   }
 
@@ -189,18 +194,12 @@ The HackTrack Team
     } = options;
 
     console.log(`📧 Sending ${isResend ? 'resend' : 'new'} OTP email to ${email}`);
-    console.log(`🔑 OTP for ${email}: ${otp} (Demo Mode - Check Console)`);
 
     // Check if service is available
     if (!this.transporter) {
-      console.log('📧 Email service not available, using demo mode');
-      console.log(`🔑 OTP for ${email}: ${otp}`);
-      return {
-        success: true,
-        demoMode: true,
-        message: 'OTP logged to console (Demo Mode)',
-        messageId: `demo_${Date.now()}`
-      };
+      const error = new Error('Email service not configured');
+      error.code = 'EMAIL_SERVICE_NOT_CONFIGURED';
+      throw error;
     }
 
     try {
@@ -236,14 +235,14 @@ The HackTrack Team
 
     } catch (error) {
       console.error('❌ Failed to send OTP email:', error.message);
-      // Fallback to console logging
-      console.log(`🔑 FALLBACK - OTP for ${email}: ${otp}`);
-      return {
-        success: true,
-        demoMode: true,
-        message: 'Email failed, OTP logged to console',
-        messageId: `fallback_${Date.now()}`
-      };
+      if (error.code || error.responseCode) {
+        console.error('SMTP error details:', {
+          code: error.code,
+          responseCode: error.responseCode,
+          response: error.response
+        });
+      }
+      throw error;
     }
   }
 

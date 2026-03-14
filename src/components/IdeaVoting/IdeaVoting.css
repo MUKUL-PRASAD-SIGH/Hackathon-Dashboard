@@ -170,6 +170,113 @@
   cursor: not-allowed;
 }
 
+.idea-results {
+  margin-top: 1rem;
+  border-top: 1px solid rgba(0, 255, 255, 0.08);
+  padding-top: 0.8rem;
+}
+
+.idea-results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.idea-results-header strong {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(122, 138, 176, 0.7);
+}
+
+.idea-results-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.idea-results-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+  color: rgba(224, 232, 255, 0.8);
+}
+
+.idea-winner {
+  margin-left: auto;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(255, 215, 0, 0.15);
+  color: #ffd54a;
+  padding: 0.15rem 0.4rem;
+  border-radius: 6px;
+}
+
+.idea-history {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 255, 255, 0.08);
+}
+
+.idea-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.idea-history-header strong {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(122, 138, 176, 0.7);
+}
+
+.idea-history-header button {
+  background: transparent;
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  color: #00ffff;
+  font-size: 0.7rem;
+  border-radius: 6px;
+  padding: 0.25rem 0.55rem;
+  cursor: pointer;
+}
+
+.idea-history-header button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.idea-history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.idea-history-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: rgba(224, 232, 255, 0.75);
+  border-bottom: 1px solid rgba(0, 255, 255, 0.05);
+  padding-bottom: 0.3rem;
+}
+
+.idea-history-list li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
 @media (max-width: 900px) {
   .idea-voting-grid {
     grid-template-columns: 1fr;

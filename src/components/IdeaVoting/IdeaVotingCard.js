@@ -17,6 +17,14 @@ const IdeaVotingCard = ({ hackathonId }) => {
     () => ideas.filter((idea) => idea.isOwner).length,
     [ideas]
   );
+  const totalVotes = useMemo(
+    () => ideas.reduce((sum, idea) => sum + (idea.voteCount || 0), 0),
+    [ideas]
+  );
+  const topIdeas = useMemo(() => {
+    const sorted = [...ideas].sort((a, b) => b.voteCount - a.voteCount);
+    return sorted.slice(0, 3);
+  }, [ideas]);
 
   const loadIdeas = async () => {
     setLoading(true);
@@ -152,6 +160,30 @@ const IdeaVotingCard = ({ hackathonId }) => {
                 })
               )}
             </div>
+          </div>
+
+          <div className="idea-results">
+            <div className="idea-results-header">
+              <strong>Results</strong>
+              <span className="idea-muted">Total votes: {totalVotes}</span>
+            </div>
+            {ideas.length === 0 ? (
+              <p className="idea-muted">No results yet.</p>
+            ) : (
+              <ol className="idea-results-list">
+                {topIdeas.map((idea, index) => (
+                  <li key={idea.id}>
+                    <span className="idea-title">{idea.title}</span>
+                    <span className="idea-votes">
+                      {idea.voteCount} vote{idea.voteCount === 1 ? '' : 's'}
+                    </span>
+                    {index === 0 && idea.voteCount > 0 && (
+                      <span className="idea-winner">Winner</span>
+                    )}
+                  </li>
+                ))}
+              </ol>
+            )}
           </div>
         </div>
       )}
