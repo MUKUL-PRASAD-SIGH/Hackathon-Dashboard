@@ -14,7 +14,7 @@ const EmailService = require('./services/emailService');
 
 const app = express();
 const server = createServer(app);
-const PORT = 10000;
+const PORT = process.env.PORT || 10000;
 
 // Dynamic CORS: allow any localhost port + production Netlify
 const allowedOrigins = new Set([

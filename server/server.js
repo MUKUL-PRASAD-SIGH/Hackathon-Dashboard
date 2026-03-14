@@ -46,7 +46,7 @@ const { metricsMiddleware, healthCheck, metricsEndpoint, metricsCollector } = re
 const { requestDeduplicationMiddleware, memoryMonitor } = require('./utils/cache');
 
 const app = express();
-const PORT = 10000; // Fixed port
+const PORT = process.env.PORT || 10000;
 
 // Create HTTP server for Socket.IO
 const { createServer } = require('http');
