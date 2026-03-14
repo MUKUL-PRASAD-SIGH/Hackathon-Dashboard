@@ -17,12 +17,12 @@ const server = createServer(app);
 const PORT = 10000;
 
 // Dynamic CORS: allow any localhost port + production Netlify
+const allowedOrigins = new Set([
+  'https://hackathon-dashboard-mukul.netlify.app',
+]);
+
 const allowedOrigin = (origin, callback) => {
-  if (
-    !origin ||
-    /^http:\/\/localhost(:\d+)?$/.test(origin) ||
-    origin === 'https://hackathon-dashboard-mukul.netlify.app'
-  ) {
+  if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin) || allowedOrigins.has(origin)) {
     callback(null, true);
   } else {
     callback(new Error('Not allowed by CORS: ' + origin));

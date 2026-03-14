@@ -55,8 +55,12 @@ const server = createServer(app);
 // Initialize Socket.IO with proper configuration
 const { Server } = require('socket.io');
 
+const allowedOrigins = new Set([
+  'https://hackathon-dashboard-mukul.netlify.app',
+]);
+
 const allowedOrigin = (origin, callback) => {
-  if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin) || origin === 'https://hackathon-dashboard-mukul.netlify.app') {
+  if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin) || allowedOrigins.has(origin)) {
     callback(null, true);
   } else {
     callback(new Error('Not allowed by CORS: ' + origin));
