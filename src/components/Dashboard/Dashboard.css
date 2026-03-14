@@ -595,3 +595,18 @@
   .modal-actions { flex-direction: column; }
   .btn-primary, .btn-secondary { width: 100%; }
 }
+
+/* ── Theme Overrides (2026 Cyber Revamp) ── */
+.dashboard-controls,
+.stat-card,
+.hackathons-list {
+  background: var(--cyber-panel-strong);
+  border-color: var(--cyber-border);
+}
+.search-input { color: var(--text-primary); }
+.stat-card h3 { color: var(--text-secondary); }
+.stat-number { color: var(--neon-cyan); }
+.hackathon-info h4 { color: var(--text-bright); }
+.hackathon-meta span { color: var(--text-secondary); }
+.hackathon-meta strong { color: var(--text-primary); }
+.no-results { color: var(--text-secondary); }

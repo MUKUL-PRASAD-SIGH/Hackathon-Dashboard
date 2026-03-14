@@ -190,3 +190,22 @@
   .header { top: 32px; }
   .header-nav { width: 100%; justify-content: flex-start; padding-bottom: 0.5rem; }
 }
+
+/* ── Theme Overrides (2026 Cyber Revamp) ── */
+.header {
+  background: rgba(12, 18, 30, 0.9);
+  border-bottom-color: var(--cyber-border);
+}
+.header-brand h1 { color: var(--neon-cyan); text-shadow: 0 0 16px rgba(35, 242, 255, 0.5); }
+.nav-link { color: var(--text-secondary); }
+.nav-link:hover,
+.nav-link.active {
+  color: var(--neon-cyan);
+  border-color: rgba(35, 242, 255, 0.35);
+}
+.nav-link.active::after { background: var(--neon-cyan); box-shadow: 0 0 10px rgba(35, 242, 255, 0.7); }
+.logout-btn { border-color: rgba(255, 75, 110, 0.4); color: rgba(255, 75, 110, 0.85); }
+.logout-btn:hover { color: var(--error); background: rgba(255, 75, 110, 0.15); }
+.friend-requests-btn { color: var(--neon-purple); border-color: rgba(122, 108, 255, 0.5); background: rgba(122, 108, 255, 0.12); }
+.friend-requests-menu { background: var(--cyber-panel-strong); border-color: rgba(122, 108, 255, 0.3); }
+.friend-requests-menu h4 { color: var(--neon-purple); border-bottom-color: rgba(122, 108, 255, 0.2); }

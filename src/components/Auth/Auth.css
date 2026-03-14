@@ -392,3 +392,35 @@
   .otp-input-digit { width: 40px; height: 44px; font-size: 1.2rem; }
   .otp-input-group { gap: 7px; }
 }
+
+/* ── Theme Overrides (2026 Cyber Revamp) ── */
+.auth-container { background: transparent; }
+.auth-card {
+  background: var(--cyber-panel-strong);
+  border-color: var(--cyber-border);
+  box-shadow: var(--shadow-card), 0 0 30px rgba(35, 242, 255, 0.15);
+}
+.auth-card h2 { color: var(--text-bright); }
+.auth-subtitle { color: var(--text-secondary); }
+.form-group label { color: rgba(35, 242, 255, 0.8); }
+.form-input {
+  background: rgba(35, 242, 255, 0.06);
+  border-color: var(--cyber-border);
+  color: var(--text-primary);
+}
+.form-input:focus {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 0 3px rgba(35, 242, 255, 0.14), 0 0 18px rgba(35, 242, 255, 0.18);
+}
+.auth-button.primary {
+  background: linear-gradient(135deg, var(--neon-cyan), #1aa3b0);
+  color: #04121a;
+  box-shadow: 0 0 24px rgba(35, 242, 255, 0.45);
+}
+.auth-button.google { color: var(--text-secondary); }
+.text-button { color: rgba(35, 242, 255, 0.8); }
+.divider { color: var(--text-muted); }
+.otp-input, .otp-input-digit { color: var(--neon-cyan); }
+.otp-input-digit.filled { color: var(--neon-green); }
+.error-message { color: var(--error); }
+.success-message { color: var(--success); }

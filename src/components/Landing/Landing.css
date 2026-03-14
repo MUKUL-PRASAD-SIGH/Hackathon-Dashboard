@@ -447,3 +447,30 @@
   .banner-inner { padding: 2.5rem 1.5rem; }
   .footer-inner { flex-direction: column; text-align: center; }
 }
+
+/* ── Theme Overrides (2026 Cyber Revamp) ── */
+.landing { background: transparent; color: var(--text-primary); }
+.landing-ticker { background: rgba(12, 18, 30, 0.85); border-bottom-color: var(--cyber-border); }
+.ticker-label { color: var(--neon-pink); }
+.ticker-inner { color: rgba(35, 242, 255, 0.85); }
+.hero-eyebrow { color: rgba(35, 242, 255, 0.8); border-color: var(--cyber-border); }
+.eyebrow-pulse { background: var(--neon-cyan); }
+.ht-line1 { text-shadow: 0 0 40px rgba(35, 242, 255, 0.35); }
+.ht-line2 { background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple)); }
+.ht-line3 { color: var(--neon-pink); }
+.hero-sub { color: var(--text-secondary); }
+.hero-btn-primary { background: linear-gradient(135deg, var(--neon-cyan), #1aa3b0); color: #04121a; }
+.hero-btn-secondary { color: var(--neon-cyan); border-color: rgba(35, 242, 255, 0.6); }
+.section-tag { color: rgba(35, 242, 255, 0.7); }
+.section-title { color: var(--text-bright); }
+.section-sub { color: var(--text-secondary); }
+.feat-card { background: var(--cyber-panel); border-color: var(--cyber-border); }
+.feat-title { color: var(--text-bright); }
+.feat-desc { color: var(--text-secondary); }
+.banner-inner { background: var(--cyber-panel-strong); border-color: rgba(255, 75, 216, 0.3); }
+.banner-title { color: var(--text-bright); }
+.banner-sub { color: var(--text-secondary); }
+.footer-logo { color: var(--neon-cyan); text-shadow: 0 0 15px rgba(35, 242, 255, 0.45); }
+.footer-by, .footer-copy { color: var(--text-muted); }
+.footer-links a { color: rgba(35, 242, 255, 0.7); }
+.footer-links a:hover { color: var(--neon-cyan); }

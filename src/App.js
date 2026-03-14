@@ -5,6 +5,7 @@ import { getUserHackathons, createHackathon, updateHackathon, deleteHackathon } 
 import './App.css';
 import Header from './components/Header/Header';
 import Landing from './components/Landing/Landing';
+import ThreeBackground from './components/ThreeBackground/ThreeBackground';
 import CalendarView from './components/CalendarView/CalendarView';
 import Dashboard from './components/Dashboard/Dashboard';
 import HackathonForm from './components/HackathonForm/HackathonForm';
@@ -168,8 +169,9 @@ function App() {
 
   return (
     <div className="App">
+      <ThreeBackground />
       {showHeader && <Header />}
-      <main className={showHeader ? 'main-content' : ''}>
+      <main className={showHeader ? 'main-content' : 'main-content main-content--full'}>
         <Routes>
           {/* Landing */}
           <Route path="/" element={

@@ -2,12 +2,23 @@
 import { toast } from 'react-hot-toast';
 
 // API URL - relative in dev (proxy), absolute in prod
+const normalizeApiUrl = (url) => {
+  if (!url) return url;
+  const trimmed = url.replace(/\/+$/, '');
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+};
+
 const getApiUrl = () => {
-  if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
+  if (process.env.REACT_APP_API_URL) return normalizeApiUrl(process.env.REACT_APP_API_URL);
   const isLocalhost = window.location.hostname === 'localhost';
   return isLocalhost
     ? '/api'
     : 'https://hackathon-dashboard-backend-md49.onrender.com/api';
+};
+
+const getApiBase = () => {
+  const apiUrl = getApiUrl();
+  return apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
 };
 
 const authService = {
@@ -236,7 +247,7 @@ const authService = {
     // In dev, proxy handles routing; in prod use full URL
     const base = window.location.hostname === 'localhost'
       ? ''
-      : 'https://hackathon-dashboard-backend-md49.onrender.com';
+      : getApiBase();
     window.location.href = `${base}/api/auth/google`;
   },
 
