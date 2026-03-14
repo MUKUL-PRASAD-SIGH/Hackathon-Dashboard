@@ -150,7 +150,7 @@ const RegisterWithOtp = () => {
       let userMessage = error.message || 'Failed to send OTP';
       
       if (error.message.includes('Backend server not responding')) {
-        userMessage = 'Cannot connect to server. Please make sure the backend is running on port 5000.';
+        userMessage = 'Cannot connect to server. Please try again in a moment.';
       } else if (error.message.includes('HTML instead of JSON')) {
         userMessage = 'Server configuration error. The backend may not be properly set up.';
       }

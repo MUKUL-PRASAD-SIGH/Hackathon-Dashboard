@@ -200,10 +200,10 @@ export const runNetworkDiagnostics = async () => {
     };
   }
 
-  // Test API endpoint
+  // Test API endpoint (use a public route that exists in production)
   try {
     const startTime = performance.now();
-    const response = await fetch(`${backendUrl}/api/users`, {
+    const response = await fetch(`${backendUrl}/api/hackathons/public`, {
       method: 'GET',
       timeout: 5000
     });
