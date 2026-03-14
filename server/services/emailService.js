@@ -5,13 +5,21 @@ class EmailService {
   constructor() {
     this.transporter = null;
     this.isConnected = false;
+    const smtpPort = Number(process.env.SMTP_PORT) || 587;
+    const smtpSecure = process.env.SMTP_SECURE
+      ? process.env.SMTP_SECURE === 'true'
+      : smtpPort === 465;
+
     this.config = {
-      service: 'gmail',
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
-      retryAttempts: 3,
-      retryDelay: 1000
+      service: process.env.SMTP_SERVICE || 'gmail',
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: smtpPort,
+      secure: smtpSecure,
+      retryAttempts: 2,
+      retryDelay: 1000,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000
     };
     
     console.log('📧 EmailService initialized');
@@ -22,8 +30,13 @@ class EmailService {
    */
   async initialize() {
     try {
-      if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-        throw new Error('Gmail credentials not found in environment variables');
+      const user = process.env.SMTP_USER || process.env.GMAIL_USER;
+      const pass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
+
+      if (!user || !pass) {
+        const error = new Error('Email credentials not found in environment variables');
+        error.code = 'EMAIL_CREDENTIALS_MISSING';
+        throw error;
       }
 
       this.transporter = nodemailer.createTransport({
@@ -32,12 +45,15 @@ class EmailService {
         port: this.config.port,
         secure: this.config.secure,
         auth: {
-          user: process.env.GMAIL_USER,
-          pass: process.env.GMAIL_APP_PASSWORD
+          user,
+          pass
         },
         tls: {
           rejectUnauthorized: false
-        }
+        },
+        connectionTimeout: this.config.connectionTimeout,
+        greetingTimeout: this.config.greetingTimeout,
+        socketTimeout: this.config.socketTimeout
       });
 
       // Verify connection
@@ -59,7 +75,7 @@ class EmailService {
       this.transporter = null;
       this.isConnected = false;
       
-      return { success: false, error: error.message };
+      throw error;
     }
   }
 
@@ -196,10 +212,18 @@ The HackTrack Team
     console.log(`📧 Sending ${isResend ? 'resend' : 'new'} OTP email to ${email}`);
 
     // Check if service is available
-    if (!this.transporter) {
-      const error = new Error('Email service not configured');
-      error.code = 'EMAIL_SERVICE_NOT_CONFIGURED';
-      throw error;
+    if (!this.transporter || !this.isConnected) {
+      try {
+        await this.initialize();
+      } catch (initError) {
+        const error = new Error(
+          initError.code === 'ETIMEDOUT'
+            ? 'SMTP connection timed out. Hosting provider may block SMTP ports.'
+            : initError.message || 'Email service not configured'
+        );
+        error.code = initError.code || 'EMAIL_SERVICE_NOT_CONFIGURED';
+        throw error;
+      }
     }
 
     try {
@@ -207,8 +231,9 @@ The HackTrack Team
       const template = this.getOtpEmailTemplate(otp, { isResend, userName, expirationMinutes });
       
       // Prepare mail options
+      const fromAddress = process.env.SMTP_FROM || process.env.GMAIL_USER;
       const mailOptions = {
-        from: `"HackTrack Security" <${process.env.GMAIL_USER}>`,
+        from: `"HackTrack Security" <${fromAddress}>`,
         to: email,
         subject: template.subject,
         html: template.html,
@@ -251,12 +276,25 @@ The HackTrack Team
    */
   async sendWithRetry(mailOptions, attempt = 1) {
     try {
+      if (!this.transporter) {
+        const error = new Error('Email transporter not initialized');
+        error.code = 'EMAIL_TRANSPORTER_MISSING';
+        throw error;
+      }
+
       const result = await this.transporter.sendMail(mailOptions);
       return result;
     } catch (error) {
       console.error(`📧 Email send attempt ${attempt} failed:`, error.message);
       
-      if (attempt < this.config.retryAttempts) {
+      const nonRetryable = new Set([
+        'EAUTH',
+        'EENVELOPE',
+        'EMAIL_TRANSPORTER_MISSING',
+        'EMAIL_CREDENTIALS_MISSING'
+      ]);
+
+      if (!nonRetryable.has(error.code) && attempt < this.config.retryAttempts) {
         console.log(`🔄 Retrying email send in ${this.config.retryDelay}ms...`);
         await new Promise(resolve => setTimeout(resolve, this.config.retryDelay * attempt));
         return this.sendWithRetry(mailOptions, attempt + 1);
@@ -272,7 +310,7 @@ The HackTrack Team
   async sendWelcomeEmail(email, userName) {
     console.log(`📧 Sending welcome email to ${email}`);
 
-    if (!this.transporter) {
+    if (!this.transporter || !this.isConnected) {
       console.log('📧 Email service not available, skipping welcome email');
       return { success: true, demoMode: true };
     }
@@ -342,8 +380,9 @@ The HackTrack Team
     `;
 
     try {
+      const fromAddress = process.env.SMTP_FROM || process.env.GMAIL_USER;
       const mailOptions = {
-        from: `"HackTrack Team" <${process.env.GMAIL_USER}>`,
+        from: `"HackTrack Team" <${fromAddress}>`,
         to: email,
         subject,
         html
@@ -382,8 +421,8 @@ The HackTrack Team
         port: this.config.port
       },
       credentials: {
-        hasUser: !!process.env.GMAIL_USER,
-        hasPassword: !!process.env.GMAIL_APP_PASSWORD
+        hasUser: !!(process.env.SMTP_USER || process.env.GMAIL_USER),
+        hasPassword: !!(process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD)
       }
     };
   }

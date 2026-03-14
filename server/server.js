@@ -389,6 +389,14 @@ app.post('/api/send-otp', otpLimiter, validateEmail, asyncHandler(async (req, re
     if (error.message.includes('Rate limit')) {
       statusCode = 429;
       errorCode = 'RATE_LIMIT_EXCEEDED';
+    } else if (
+      error.code === 'ETIMEDOUT' ||
+      error.code === 'EMAIL_SERVICE_NOT_CONFIGURED' ||
+      error.code === 'EMAIL_CREDENTIALS_MISSING' ||
+      error.message.includes('SMTP connection timed out')
+    ) {
+      statusCode = 503;
+      errorCode = 'SMTP_TIMEOUT';
     } else if (error.message.includes('Email service')) {
       statusCode = 503;
       errorCode = 'EMAIL_SERVICE_ERROR';
@@ -508,6 +516,14 @@ app.post('/api/resend-otp', otpLimiter, validateEmail, asyncHandler(async (req, 
     if (error.message.includes('Rate limit')) {
       statusCode = 429;
       errorCode = 'RATE_LIMIT_EXCEEDED';
+    } else if (
+      error.code === 'ETIMEDOUT' ||
+      error.code === 'EMAIL_SERVICE_NOT_CONFIGURED' ||
+      error.code === 'EMAIL_CREDENTIALS_MISSING' ||
+      error.message.includes('SMTP connection timed out')
+    ) {
+      statusCode = 503;
+      errorCode = 'SMTP_TIMEOUT';
     }
 
     res.status(statusCode).json({
@@ -779,6 +795,14 @@ app.post('/api/send-login-otp', otpLimiter, validateEmail, asyncHandler(async (r
     if (error.message.includes('Rate limit')) {
       statusCode = 429;
       errorCode = 'RATE_LIMIT_EXCEEDED';
+    } else if (
+      error.code === 'ETIMEDOUT' ||
+      error.code === 'EMAIL_SERVICE_NOT_CONFIGURED' ||
+      error.code === 'EMAIL_CREDENTIALS_MISSING' ||
+      error.message.includes('SMTP connection timed out')
+    ) {
+      statusCode = 503;
+      errorCode = 'SMTP_TIMEOUT';
     } else if (error.message.includes('Email service')) {
       statusCode = 503;
       errorCode = 'EMAIL_SERVICE_ERROR';
