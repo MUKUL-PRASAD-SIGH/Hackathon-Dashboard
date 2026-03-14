@@ -7,7 +7,7 @@
 
 [[redirects]]
   from = "/api/*"
-  to = "https://hackathon-dashboard-backend.onrender.com/api/:splat"
+  to = "https://hackathon-dashboard-c5sq.onrender.com/api/:splat"
   status = 200
   force = true
 
@@ -17,5 +17,5 @@
   status = 200
 
 [context.production.environment]
-  REACT_APP_API_URL = "https://hackathon-dashboard-backend.onrender.com"
+  REACT_APP_API_URL = "https://hackathon-dashboard-c5sq.onrender.com"
   NODE_ENV = "production"
