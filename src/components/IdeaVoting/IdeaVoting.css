@@ -1,0 +1,177 @@
+.idea-voting-card {
+  margin-top: 1rem;
+  border-top: 1px solid rgba(0, 255, 255, 0.08);
+  padding-top: 1rem;
+}
+
+.idea-voting-toggle {
+  width: 100%;
+  background: rgba(0, 255, 255, 0.04);
+  border: 1px solid rgba(0, 255, 255, 0.12);
+  color: #e0e8ff;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.idea-voting-toggle:hover {
+  border-color: rgba(0, 255, 255, 0.35);
+  box-shadow: 0 0 18px rgba(0, 255, 255, 0.2);
+}
+
+.idea-voting-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+}
+
+.idea-voting-meta {
+  font-size: 0.75rem;
+  color: rgba(224, 232, 255, 0.6);
+}
+
+.idea-voting-chevron {
+  transform: rotate(0deg);
+  transition: transform 0.2s ease;
+  font-size: 0.85rem;
+}
+
+.idea-voting-chevron.open {
+  transform: rotate(180deg);
+}
+
+.idea-voting-body {
+  margin-top: 0.9rem;
+  background: rgba(8, 10, 24, 0.6);
+  border: 1px solid rgba(0, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.idea-voting-error {
+  color: #ff8aa1;
+  font-size: 0.78rem;
+  margin-bottom: 0.75rem;
+}
+
+.idea-voting-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 1rem;
+}
+
+.idea-submit h5,
+.idea-list h5 {
+  margin: 0 0 0.6rem 0;
+  font-size: 0.8rem;
+  color: rgba(224, 232, 255, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.idea-submit form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.idea-submit input,
+.idea-submit textarea {
+  background: rgba(0, 255, 255, 0.03);
+  border: 1px solid rgba(0, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  color: #e0e8ff;
+  font-size: 0.82rem;
+  outline: none;
+}
+
+.idea-submit input:focus,
+.idea-submit textarea:focus {
+  border-color: #00ffff;
+}
+
+.idea-submit button {
+  background: linear-gradient(135deg, rgba(0, 255, 255, 0.9), rgba(0, 145, 255, 0.8));
+  color: #040818;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 0.8rem;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.idea-submit button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.idea-muted {
+  font-size: 0.78rem;
+  color: rgba(122, 138, 176, 0.7);
+}
+
+.idea-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid rgba(0, 255, 255, 0.06);
+}
+
+.idea-row:last-child {
+  border-bottom: none;
+}
+
+.idea-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #ffffff;
+}
+
+.idea-desc {
+  font-size: 0.76rem;
+  color: rgba(122, 138, 176, 0.7);
+  margin-top: 0.25rem;
+}
+
+.idea-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.idea-votes {
+  font-size: 0.75rem;
+  color: rgba(224, 232, 255, 0.6);
+}
+
+.idea-vote-btn {
+  background: rgba(0, 255, 255, 0.1);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  color: #00ffff;
+  font-size: 0.72rem;
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+}
+
+.idea-vote-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .idea-voting-grid {
+    grid-template-columns: 1fr;
+  }
+}

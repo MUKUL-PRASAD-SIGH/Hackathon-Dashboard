@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import UserGuide from '../UserGuide/UserGuide';
 import PrivateChat from '../PrivateChat/PrivateChat';
+import IdeaVotingCard from '../IdeaVoting/IdeaVotingCard';
 import './Dashboard.css';
 import './UserInfo.css';
 import './VibrantCards.css';
@@ -713,6 +714,8 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
                     </div>
                   </div>
                 </div>
+
+                <IdeaVotingCard hackathonId={hackathon._id || hackathon.id} />
                 
                 {hackathon.remarks && (
                   <div className="hackathon-remarks">
@@ -800,6 +803,8 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
                       </div>
                     </div>
                   </div>
+
+                  <IdeaVotingCard hackathonId={hackathon._id} />
                 </div>
               );
             })

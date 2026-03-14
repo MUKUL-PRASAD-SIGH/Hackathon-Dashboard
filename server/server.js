@@ -37,6 +37,7 @@ const UserMongoDB = require('./models/UserMongoDB');
 const hackathonRoutes = require('./routes/hackathons');
 const usersRoutes = require('./routes/users');
 const Hackathon = require('./models/Hackathon');
+const ideaVotingRoutes = require('./routes/ideaVoting');
 
 // Import middleware
 const { errorHandler, asyncHandler } = require('./middleware/errorHandler');
@@ -876,6 +877,7 @@ app.post('/api/verify-login-otp', authLimiter, validateEmail, validateOtp, async
 // Hackathon routes (existing personal hackathon tracking)
 console.log('📊 Loading hackathon routes at /api/hackathons/*');
 app.use('/api/hackathons', hackathonRoutes);
+app.use('/api/hackathons', ideaVotingRoutes);
 console.log('✅ Hackathon routes loaded successfully');
 
 console.log('👤 Loading users routes at /api/users/*');
