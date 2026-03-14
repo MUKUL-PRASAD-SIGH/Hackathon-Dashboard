@@ -57,8 +57,6 @@ const { Server } = require('socket.io');
 
 const allowedOrigins = new Set([
   process.env.FRONTEND_URL,
-  'https://hackathon-dashboard-mukul.netlify.app',
-  'https://hackdashboard.netlify.app',
   'https://hackersboard.netlify.app',
 ].filter(Boolean));
 
