@@ -291,19 +291,40 @@ router.get('/friends', authMiddleware, asyncHandler(async (req, res) => {
 
   const userMap = new Map(users.map(u => [u.email, u]));
 
+  const userHackathons = await Hackathon.find({
+    $or: [
+      { email: req.user.email.toLowerCase() },
+      { 'teamMembers.email': req.user.email.toLowerCase() }
+    ]
+  }).select('name platform date teamMembers email');
+
+  const getSharedHackathons = (friendEmail) => {
+    return userHackathons.filter(h => {
+      if (h.email && h.email.toLowerCase() === friendEmail.toLowerCase()) return true;
+      return (h.teamMembers || []).some(m => m.email?.toLowerCase() === friendEmail.toLowerCase());
+    }).map(h => ({
+      name: h.name,
+      platform: h.platform,
+      date: h.date
+    }));
+  };
+
   res.json({
     success: true,
     friends: user.friends.map(f => ({
       ...f.toObject?.() || f,
-      user: userMap.get(f.email) || null
+      user: userMap.get(f.email) || null,
+      sharedHackathons: getSharedHackathons(f.email)
     })),
     sentRequests: user.friendRequests.sent.map(r => ({
       ...r.toObject?.() || r,
-      user: userMap.get(r.email) || null
+      user: userMap.get(r.email) || null,
+      sharedHackathons: getSharedHackathons(r.email)
     })),
     receivedRequests: user.friendRequests.received.map(r => ({
       ...r.toObject?.() || r,
-      user: userMap.get(r.email) || null
+      user: userMap.get(r.email) || null,
+      sharedHackathons: getSharedHackathons(r.email)
     }))
   });
 }));

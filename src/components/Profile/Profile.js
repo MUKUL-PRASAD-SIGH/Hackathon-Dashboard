@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import './Profile.css';
 import { getApiUrl } from '../../utils/apiBase';
 
@@ -7,6 +7,7 @@ const API = getApiUrl();
 
 const Profile = () => {
   const { userId } = useParams();
+  const location = useLocation();
   const [profile, setProfile] = useState(null);
   const [hackathons, setHackathons] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,19 +33,25 @@ const Profile = () => {
   const [friendRequests, setFriendRequests] = useState({ sent: [], received: [] });
   const [currentTeam, setCurrentTeam] = useState(null);
   const [activeFriendsTab, setActiveFriendsTab] = useState('friends');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     setIsOwnProfile(!userId);
     fetchProfile();
   }, [userId]);
-  
+
   useEffect(() => {
-    // Force refresh on mount
-    fetchProfile();
-  }, []);
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab === 'friends' || tab === 'requests') {
+      setActiveFriendsTab(tab);
+    }
+  }, [location.search]);
 
   const fetchProfile = async () => {
     try {
+      setLoading(true);
+      setError('');
       const token = localStorage.getItem('token');
       
       console.log('🔍 Token exists:', !!token);
@@ -55,9 +62,14 @@ const Profile = () => {
         : `${API}/users/profile`;
       console.log('🔍 API URL:', url);
       
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+
       const response = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 'Authorization': `Bearer ${token}` },
+        signal: controller.signal
       });
+      clearTimeout(timeout);
       
       console.log('🔍 Response status:', response.status);
       console.log('🔍 Response ok:', response.ok);
@@ -89,9 +101,19 @@ const Profile = () => {
         setProfile({ ...data.user, isPrivate: true });
       } else {
         console.error('Profile fetch failed:', data);
+        setError(data.error?.message || 'Failed to load profile');
       }
     } catch (error) {
       console.error('❌ Error fetching profile:', error);
+      setError('Failed to load profile. Showing cached data.');
+      const cachedUser = localStorage.getItem('user');
+      if (cachedUser) {
+        try {
+          setProfile(JSON.parse(cachedUser));
+        } catch {
+          setProfile(null);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -275,6 +297,11 @@ const Profile = () => {
   return (
     <div className="profile-container">
       <div className="container">
+        {error && (
+          <div className="profile-error">
+            <p>❌ {error}</p>
+          </div>
+        )}
         <div className="profile-header">
           <div className="profile-avatar">
             {profile?.profile?.avatar ? (
@@ -507,6 +534,18 @@ const Profile = () => {
                         <div className="friend-info">
                           <h4>{friendUser.name || 'Friend'}</h4>
                           <p>{friendUser.email}</p>
+                          {friend.sharedHackathons?.length > 0 && (
+                            <div className="friend-hackathons">
+                              <span className="friend-hackathons-label">Shared Hackathons</span>
+                              <div className="friend-hackathon-list">
+                                {friend.sharedHackathons.map((shared) => (
+                                  <span key={`${shared.name}-${shared.date}`} className="friend-hackathon-pill">
+                                    {shared.name}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );

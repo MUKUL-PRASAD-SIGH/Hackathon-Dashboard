@@ -41,9 +41,11 @@
 .header-nav {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-  overflow-x: visible;
+  gap: 0.75rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  width: 100%;
+  justify-content: space-between;
 }
 .header-nav::-webkit-scrollbar { display: none; }
 
@@ -183,7 +185,7 @@
 /* Mobile */
 @media (max-width: 900px) {
   .header-container { padding: 0 1rem; height: auto; padding-top: 0.6rem; padding-bottom: 0.6rem; flex-wrap: wrap; }
-  .header-nav { gap: 0.35rem; }
+  .header-nav { gap: 0.5rem; justify-content: flex-start; }
   .nav-link, .logout-btn, .friend-requests-btn { font-size: 0.65rem; padding: 0.35rem 0.55rem; }
   .header-brand h1 { font-size: 0.9rem; }
 }

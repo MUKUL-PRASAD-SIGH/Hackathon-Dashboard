@@ -100,20 +100,36 @@ export const useWorldSocket = (hackathonWorldId) => {
 
     // User joined world
     const handleUserJoined = (data) => {
-      console.log('👥 User joined:', data.user.name);
-      setParticipants(prev => [...prev, data.user]);
+      const user = data.user || {
+        id: data.userId || data.socketId,
+        name: data.userName,
+        email: data.userEmail
+      };
+      console.log('👥 User joined:', user?.name || data.userName);
+      if (user?.name) {
+        setParticipants(prev => [...prev, user]);
+      }
     };
 
     // User left world
     const handleUserLeft = (data) => {
-      console.log('👋 User left:', data.userId);
-      setParticipants(prev => prev.filter(p => p.id !== data.userId));
+      const userId = data.userId || data.socketId || data.user?.id;
+      console.log('👋 User left:', userId);
+      setParticipants(prev => prev.filter(p => p.id !== userId));
     };
 
     // New message
     const handleNewMessage = (data) => {
-      console.log('💬 New message:', data);
-      setMessages(prev => [...prev, data]);
+      const normalized = {
+        id: data.id || data._id || `${data.timestamp || data.createdAt || Date.now()}`,
+        content: data.content || data.message,
+        sender: data.sender || (data.userName ? { name: data.userName, email: data.userEmail } : undefined),
+        createdAt: data.createdAt || data.timestamp || Date.now(),
+        isEdited: data.isEdited,
+        messageType: data.messageType
+      };
+      console.log('💬 New message:', normalized);
+      setMessages(prev => [...prev, normalized]);
     };
 
     // Typing indicator

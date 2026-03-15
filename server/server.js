@@ -105,7 +105,14 @@ io.on('connection', (socket) => {
       socket.join(`world_${hackathonWorldId}`);
       console.log(`🌍 ${userName} joined world: ${hackathonWorldId}`);
       socket.to(`world_${hackathonWorldId}`).emit('userJoined', {
+        userId: socket.userId,
         userName,
+        userEmail: socket.userEmail,
+        user: {
+          id: socket.userId,
+          name: userName,
+          email: socket.userEmail
+        },
         socketId: socket.id,
         timestamp: Date.now()
       });
@@ -122,7 +129,14 @@ io.on('connection', (socket) => {
       socket.leave(`world_${hackathonWorldId}`);
       console.log(`🌍 ${userName} left world: ${hackathonWorldId}`);
       socket.to(`world_${hackathonWorldId}`).emit('userLeft', {
+        userId: socket.userId,
         userName,
+        userEmail: socket.userEmail,
+        user: {
+          id: socket.userId,
+          name: userName,
+          email: socket.userEmail
+        },
         socketId: socket.id,
         timestamp: Date.now()
       });
@@ -135,13 +149,33 @@ io.on('connection', (socket) => {
   // Handle chat messages
   socket.on('chatMessage', ({ hackathonWorldId, teamId, message }) => {
     try {
+      const Message = require('./models/Message');
+      const now = new Date();
+
       const messageData = {
-        id: Date.now().toString(),
-        userName,
-        message,
-        timestamp: Date.now(),
-        teamId
+        id: now.getTime().toString(),
+        content: message,
+        sender: {
+          name: userName,
+          email: socket.userEmail
+        },
+        createdAt: now,
+        messageType: 'text'
       };
+
+      if (hackathonWorldId) {
+        const newMessage = new Message({
+          content: message,
+          sender: socket.userId,
+          hackathonWorldId,
+          teamId: teamId || null,
+          messageType: 'text'
+        });
+
+        newMessage.save().catch((err) => {
+          console.error('❌ Message save error:', err.message);
+        });
+      }
 
       if (teamId) {
         // Private team chat
@@ -165,7 +199,14 @@ io.on('connection', (socket) => {
     try {
       const room = teamId ? `team_${teamId}` : `world_${hackathonWorldId}`;
       socket.to(room).emit('userTyping', {
+        userId: socket.userId,
         userName,
+        userEmail: socket.userEmail,
+        user: {
+          id: socket.userId,
+          name: userName,
+          email: socket.userEmail
+        },
         isTyping,
         timestamp: Date.now()
       });

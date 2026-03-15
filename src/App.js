@@ -19,6 +19,7 @@ import JoinHackathon from './components/JoinHackathon/JoinHackathon';
 import AcceptInvite from './components/AcceptInvite/AcceptInvite';
 import Notifications from './components/Notifications/Notifications';
 import Profile from './components/Profile/Profile';
+import Friends from './components/Friends/Friends';
 import HackathonDetail from './components/HackathonDetail/HackathonDetail';
 import TeamPage from './components/TeamPage/TeamPage';
 import ChatPage from './components/ChatPage/ChatPage';
@@ -235,6 +236,7 @@ function App() {
           <Route path="/join-hackathon" element={<ProtectedRoute><JoinHackathon /></ProtectedRoute>} />
           <Route path="/accept-invite/:notificationId" element={<ProtectedRoute><AcceptInvite /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+          <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
           <Route path="/profile/:userId?" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/hackathon/:id" element={<ProtectedRoute><HackathonDetail /></ProtectedRoute>} />
           <Route path="/team/:id" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />

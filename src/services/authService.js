@@ -105,6 +105,11 @@ const authService = {
         throw new Error(data.message || 'Registration failed');
       }
 
+      // Save user session
+      if (data.token && data.user) {
+        authService.setUserSession(data.token, data.user);
+      }
+
       return data;
     } catch (error) {
       console.error('Registration error:', error);

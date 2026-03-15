@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useContext } from 'react';
 import { getApiBaseUrl } from '../../config/api';
 import AuthContext from '../../contexts/AuthContext';
 import { useWorldSocket } from '../../hooks/useSocket';
+import { enableNotificationSound, playNotificationSound } from '../../utils/notificationSound';
 
 const PublicChat = ({ worldId }) => {
   const [messages, setMessages] = useState([]);
@@ -9,6 +10,7 @@ const PublicChat = ({ worldId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
+  const lastNotifiedId = useRef(null);
   const { token, user } = useContext(AuthContext);
   
   // Use Socket.IO for real-time messaging
@@ -21,6 +23,7 @@ const PublicChat = ({ worldId }) => {
   } = useWorldSocket(worldId);
 
   useEffect(() => {
+    enableNotificationSound();
     fetchMessages();
   }, [worldId]);
 
@@ -30,12 +33,23 @@ const PublicChat = ({ worldId }) => {
   }, [messages, socketMessages]);
 
   // Merge socket messages with fetched messages
+  const normalizeMessage = (message) => {
+    const createdAt = message.createdAt || message.timestamp || new Date().toISOString();
+    return {
+      id: message.id || message._id || `${createdAt}-${Math.random()}`,
+      content: message.content || message.message,
+      sender: message.sender || (message.userName ? { name: message.userName, email: message.userEmail } : undefined),
+      createdAt,
+      isEdited: message.isEdited || false
+    };
+  };
+
   useEffect(() => {
     if (socketMessages.length > 0) {
+      const normalizedSocket = socketMessages.map(normalizeMessage);
       setMessages(prev => {
-        const allMessages = [...prev, ...socketMessages];
-        // Remove duplicates based on message ID
-        const uniqueMessages = allMessages.filter((msg, index, self) => 
+        const allMessages = [...prev, ...normalizedSocket];
+        const uniqueMessages = allMessages.filter((msg, index, self) =>
           index === self.findIndex(m => m.id === msg.id)
         );
         return uniqueMessages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
@@ -56,7 +70,8 @@ const PublicChat = ({ worldId }) => {
       const data = await response.json();
       
       if (data.success) {
-        setMessages(data.messages);
+        const normalized = (data.messages || []).map(normalizeMessage);
+        setMessages(normalized);
       } else {
         setError(data.error?.message || 'Failed to fetch messages');
       }
@@ -124,6 +139,18 @@ const PublicChat = ({ worldId }) => {
       minute: '2-digit' 
     });
   };
+
+  useEffect(() => {
+    if (!messages.length) return;
+    const latest = messages[messages.length - 1];
+    if (!latest?.id || latest.id === lastNotifiedId.current) return;
+
+    const senderEmail = latest.sender?.email;
+    if (senderEmail && user?.email && senderEmail !== user.email) {
+      playNotificationSound();
+      lastNotifiedId.current = latest.id;
+    }
+  }, [messages, user]);
 
   if (loading) {
     return (

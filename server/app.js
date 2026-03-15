@@ -55,15 +55,25 @@ app.get('/api/test', (req, res) => {
   res.json({ success: true, message: 'Server is working!' });
 });
 
-// Auth
+// Auth (JWT primary, base64 fallback)
+const { verifyToken } = require('./middleware/security');
 const auth = (req, res, next) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
-  if (!token) return res.status(401).json({ error: 'No token' });
+  if (!token) {
+    return res.status(401).json({ success: false, error: { message: 'No token' } });
+  }
+
   try {
-    req.user = JSON.parse(Buffer.from(token, 'base64').toString());
-    next();
-  } catch (e) {
-    res.status(401).json({ error: 'Invalid token' });
+    req.user = verifyToken(token);
+    return next();
+  } catch (jwtError) {
+    try {
+      const decodedString = Buffer.from(token, 'base64').toString('utf-8');
+      req.user = JSON.parse(decodedString);
+      return next();
+    } catch (e) {
+      return res.status(401).json({ success: false, error: { message: 'Invalid or expired token' } });
+    }
   }
 };
 
@@ -457,7 +467,7 @@ io.on('connection', (socket) => {
         id: newMessage._id,
         content: newMessage.content,
         sender: newMessage.sender,
-        timestamp: newMessage.createdAt,
+        createdAt: newMessage.createdAt,
         messageType: newMessage.messageType
       });
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './PrivateChat.css';
 import { getApiUrl } from '../../utils/apiBase';
+import { enableNotificationSound, playNotificationSound } from '../../utils/notificationSound';
 
 const API = getApiUrl();
 
@@ -9,9 +10,11 @@ const PrivateChat = ({ hackathonId }) => {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
+  const lastNotifiedId = useRef(null);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
+    enableNotificationSound();
     if (!hackathonId) {
       setMessages([{ sender: 'System', content: 'Chat unavailable: invalid hackathon ID.', timestamp: new Date() }]);
       setLoading(false);
@@ -25,6 +28,17 @@ const PrivateChat = ({ hackathonId }) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    if (!messages.length) return;
+    const latest = messages[messages.length - 1];
+    if (!latest?.timestamp || latest.timestamp === lastNotifiedId.current) return;
+
+    if (latest.sender && latest.sender !== user.name) {
+      playNotificationSound();
+      lastNotifiedId.current = latest.timestamp;
+    }
+  }, [messages, user.name]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

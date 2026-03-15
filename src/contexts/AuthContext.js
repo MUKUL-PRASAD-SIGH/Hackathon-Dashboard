@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
 import { toast } from 'react-hot-toast';
+import { getApiUrl } from '../utils/apiBase';
 
 const AuthContext = createContext(null);
 
@@ -13,6 +14,27 @@ export const AuthProvider = ({ children }) => {
   const [otpSent, setOtpSent] = useState(false);
   const navigate = useNavigate();
 
+  const refreshUserProfile = async (authToken) => {
+    try {
+      const apiUrl = getApiUrl();
+      const response = await fetch(`${apiUrl}/users/profile`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) return;
+      const data = await response.json();
+      if (data?.success && data.user) {
+        authService.setUserSession(authToken, data.user);
+        setUser(data.user);
+      }
+    } catch (error) {
+      console.error('Profile refresh failed:', error);
+    }
+  };
+
   // Check if user is logged in on initial load
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -20,6 +42,7 @@ export const AuthProvider = ({ children }) => {
     if (userData && userToken) {
       setUser(JSON.parse(userData));
       setToken(userToken);
+      refreshUserProfile(userToken);
     }
     setLoading(false);
   }, []);
@@ -54,6 +77,7 @@ export const AuthProvider = ({ children }) => {
       if (response.user && response.token) {
         setUser(response.user);
         setToken(response.token);
+        refreshUserProfile(response.token);
         return true;
       }
       return false;
@@ -70,6 +94,7 @@ export const AuthProvider = ({ children }) => {
       if (response.user && response.token) {
         setUser(response.user);
         setToken(response.token);
+        refreshUserProfile(response.token);
         return true;
       }
       return false;

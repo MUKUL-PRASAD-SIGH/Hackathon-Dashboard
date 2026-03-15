@@ -102,12 +102,6 @@ const Header = () => {
   return (
     <header className="header">
       <div className="header-container">
-        <div className="header-brand">
-          <Link to="/" className="brand-link">
-            <h1>🚀 Hackathon Dashboard</h1>
-          </Link>
-        </div>
-        
         <nav className="header-nav">
           <Link 
             to="/profile" 
@@ -144,6 +138,12 @@ const Header = () => {
             className={`nav-link ${isActive('/notifications')}`}
           >
             🔔 Notifications
+          </Link>
+          <Link 
+            to="/friends" 
+            className={`nav-link ${isActive('/friends')}`}
+          >
+            👥 Friends
           </Link>
           {isAuthenticated && friendRequests.length > 0 && (
             <div className="friend-requests-dropdown">

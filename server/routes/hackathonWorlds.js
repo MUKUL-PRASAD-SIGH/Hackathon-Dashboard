@@ -3,6 +3,7 @@ const router = express.Router();
 const HackathonWorld = require('../models/HackathonWorld');
 const Team = require('../models/Team');
 const Message = require('../models/Message');
+const UserMongoDB = require('../models/UserMongoDB');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { verifyToken } = require('../middleware/security');
 
@@ -465,6 +466,116 @@ router.post('/:id/leave', extractUser, asyncHandler(async (req, res) => {
     }
     throw error;
   }
+}));
+
+// 🟢 REST API - Get public chat messages for hackathon world
+router.get('/:id/messages', extractUser, asyncHandler(async (req, res) => {
+  const world = await HackathonWorld.findById(req.params.id);
+
+  if (!world) {
+    return res.status(404).json({
+      success: false,
+      error: { code: 'WORLD_NOT_FOUND', message: 'Hackathon world not found' }
+    });
+  }
+
+  const isCreator = world.createdBy === req.user.email;
+  const isParticipant = world.participants.some(p => p.email === req.user.email);
+  if (!isCreator && !isParticipant) {
+    return res.status(403).json({
+      success: false,
+      error: { code: 'NOT_PARTICIPANT', message: 'Join the world to view chat messages' }
+    });
+  }
+
+  const messages = await Message.find({
+    hackathonWorldId: world._id,
+    teamId: null
+  })
+    .populate('sender', 'name email')
+    .sort({ createdAt: 1 })
+    .limit(200);
+
+  res.json({
+    success: true,
+    messages: messages.map(msg => ({
+      id: msg._id,
+      content: msg.content,
+      sender: msg.sender ? { name: msg.sender.name, email: msg.sender.email } : null,
+      createdAt: msg.createdAt,
+      isEdited: msg.isEdited || false
+    }))
+  });
+}));
+
+// 🟢 REST API - Send public chat message to hackathon world
+router.post('/:id/messages', extractUser, asyncHandler(async (req, res) => {
+  const { message } = req.body;
+
+  if (!message || !message.trim()) {
+    return res.status(400).json({
+      success: false,
+      error: { code: 'EMPTY_MESSAGE', message: 'Message cannot be empty' }
+    });
+  }
+
+  const world = await HackathonWorld.findById(req.params.id);
+  if (!world) {
+    return res.status(404).json({
+      success: false,
+      error: { code: 'WORLD_NOT_FOUND', message: 'Hackathon world not found' }
+    });
+  }
+
+  const isCreator = world.createdBy === req.user.email;
+  const isParticipant = world.participants.some(p => p.email === req.user.email);
+  if (!isCreator && !isParticipant) {
+    return res.status(403).json({
+      success: false,
+      error: { code: 'NOT_PARTICIPANT', message: 'Join the world to send chat messages' }
+    });
+  }
+
+  const sender = await UserMongoDB.findOne({ email: req.user.email });
+  if (!sender) {
+    return res.status(404).json({
+      success: false,
+      error: { code: 'USER_NOT_FOUND', message: 'User not found in database' }
+    });
+  }
+
+  const newMessage = new Message({
+    content: message.trim(),
+    sender: sender._id,
+    hackathonWorldId: world._id,
+    teamId: null,
+    messageType: 'text'
+  });
+
+  await newMessage.save();
+  await newMessage.populate('sender', 'name email');
+
+  const io = req.app.get('io');
+  if (io) {
+    io.to(`world_${world._id}`).emit('newMessage', {
+      id: newMessage._id,
+      content: newMessage.content,
+      sender: { name: newMessage.sender.name, email: newMessage.sender.email },
+      createdAt: newMessage.createdAt,
+      messageType: newMessage.messageType
+    });
+  }
+
+  res.json({
+    success: true,
+    message: 'Message sent successfully',
+    data: {
+      id: newMessage._id,
+      content: newMessage.content,
+      sender: { name: newMessage.sender.name, email: newMessage.sender.email },
+      createdAt: newMessage.createdAt
+    }
+  });
 }));
 
 // 🟢 REST API - Create team in hackathon world
