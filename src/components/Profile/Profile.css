@@ -262,6 +262,7 @@
   margin-bottom: 1.5rem;
   padding-bottom: 0.6rem;
   border-bottom: 1px solid rgba(0,255,255,0.1);
+  pointer-events: none;
 }
 
 .friends-header {
@@ -270,11 +271,16 @@
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1rem;
+  position: relative;
+  z-index: 2;
 }
 
 .friends-tabs {
   display: flex;
   gap: 0.5rem;
+  position: relative;
+  z-index: 3;
+  pointer-events: auto;
 }
 
 .friends-tab {

@@ -7,28 +7,29 @@
 .search-input {
   width: 100%;
   padding: 1rem 1.5rem;
-  border: 2px solid #e9ecef;
+  border: 1px solid rgba(0, 255, 255, 0.25);
   border-radius: 25px;
   font-size: 1rem;
   outline: none;
   transition: all 0.3s ease;
-  background: white;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  background: rgba(8, 18, 34, 0.85);
+  color: #eaf6ff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
 }
 
 .search-input:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  border-color: #00ffff;
+  box-shadow: 0 0 0 4px rgba(0, 255, 255, 0.12);
 }
 
 .created-date {
   font-size: 0.85rem;
-  color: #6c757d;
+  color: rgba(214, 234, 255, 0.7);
   font-style: italic;
 }
 
 .no-results {
   text-align: center;
   padding: 2rem;
-  color: #6c757d;
+  color: rgba(214, 234, 255, 0.75);
 }

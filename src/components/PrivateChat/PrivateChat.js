@@ -12,6 +12,11 @@ const PrivateChat = ({ hackathonId }) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
+    if (!hackathonId) {
+      setMessages([{ sender: 'System', content: 'Chat unavailable: invalid hackathon ID.', timestamp: new Date() }]);
+      setLoading(false);
+      return;
+    }
     fetchMessages();
     const interval = setInterval(fetchMessages, 2000); // Poll every 2 seconds
     return () => clearInterval(interval);

@@ -39,19 +39,28 @@ const userSchema = new mongoose.Schema({
     avatar: { type: String, default: '' },
     isPublic: { type: Boolean, default: false }
   },
-  friends: [{
-    email: { type: String, required: true },
-    addedAt: { type: Date, default: Date.now }
-  }],
-  friendRequests: {
-    sent: [{
+  friends: {
+    type: [{
       email: { type: String, required: true },
-      sentAt: { type: Date, default: Date.now }
+      addedAt: { type: Date, default: Date.now }
     }],
-    received: [{
-      email: { type: String, required: true },
-      receivedAt: { type: Date, default: Date.now }
-    }]
+    default: []
+  },
+  friendRequests: {
+    sent: {
+      type: [{
+        email: { type: String, required: true },
+        sentAt: { type: Date, default: Date.now }
+      }],
+      default: []
+    },
+    received: {
+      type: [{
+        email: { type: String, required: true },
+        receivedAt: { type: Date, default: Date.now }
+      }],
+      default: []
+    }
   },
   loginAttempts: {
     type: Number,

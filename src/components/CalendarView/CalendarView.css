@@ -9,10 +9,11 @@
 }
 
 .calendar-container {
-  background: white;
+  background: rgba(8, 12, 22, 0.92);
   border-radius: 12px;
   padding: 1rem;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(0, 255, 255, 0.16);
 }
 
 /* FullCalendar Customization */
@@ -23,25 +24,26 @@
 .fc-toolbar-title {
   font-size: 1.5rem !important;
   font-weight: 600 !important;
-  color: var(--text-primary) !important;
+  color: #eaf6ff !important;
 }
 
 .fc-button {
-  background: var(--primary-color) !important;
-  border-color: var(--primary-color) !important;
+  background: linear-gradient(135deg, #00ffff, #0088aa) !important;
+  border-color: rgba(0, 255, 255, 0.6) !important;
   border-radius: 8px !important;
   font-weight: 500 !important;
   padding: 0.5rem 1rem !important;
+  color: #001018 !important;
 }
 
 .fc-button:hover {
-  background: var(--secondary-color) !important;
-  border-color: var(--secondary-color) !important;
+  background: linear-gradient(135deg, #00e6e6, #007799) !important;
+  border-color: rgba(0, 255, 255, 0.8) !important;
 }
 
 .fc-button-active {
-  background: var(--secondary-color) !important;
-  border-color: var(--secondary-color) !important;
+  background: linear-gradient(135deg, #00e6e6, #007799) !important;
+  border-color: rgba(0, 255, 255, 0.8) !important;
 }
 
 .fc-daygrid-event {
@@ -56,7 +58,26 @@
 }
 
 .fc-daygrid-day:hover {
-  background-color: var(--bg-secondary) !important;
+  background-color: rgba(0, 255, 255, 0.08) !important;
+}
+
+.fc-theme-standard .fc-scrollgrid,
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.fc .fc-col-header-cell-cushion,
+.fc .fc-daygrid-day-number {
+  color: rgba(214, 234, 255, 0.9) !important;
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+  background: rgba(0, 255, 255, 0.12) !important;
+}
+
+.fc .fc-daygrid-day-frame {
+  background: transparent !important;
 }
 
 /* Modal Styles */
@@ -66,7 +87,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(2, 6, 12, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -75,13 +96,14 @@
 }
 
 .modal-content {
-  background: white;
+  background: rgba(8, 12, 22, 0.95);
   border-radius: 12px;
   max-width: 600px;
   width: 100%;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(0, 255, 255, 0.16);
 }
 
 .modal-header {
@@ -89,12 +111,12 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.5rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid rgba(0, 255, 255, 0.16);
 }
 
 .modal-header h3 {
   margin: 0;
-  color: var(--text-primary);
+  color: #eaf6ff;
   font-size: 1.25rem;
 }
 
@@ -103,7 +125,7 @@
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
-  color: var(--text-secondary);
+  color: rgba(214, 234, 255, 0.7);
   padding: 0;
   width: 30px;
   height: 30px;
@@ -115,8 +137,8 @@
 }
 
 .modal-close:hover {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
+  background: rgba(0, 255, 255, 0.12);
+  color: #eaf6ff;
 }
 
 .modal-body {
@@ -125,11 +147,11 @@
 
 /* Hackathon Card Styles */
 .hackathon-card {
-  background: var(--bg-secondary);
+  background: rgba(6, 10, 20, 0.7);
   border-radius: 8px;
   padding: 1.5rem;
   margin-bottom: 1rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(0, 255, 255, 0.12);
 }
 
 .hackathon-card:last-child {
@@ -145,7 +167,7 @@
 
 .hackathon-header h4 {
   margin: 0;
-  color: var(--text-primary);
+  color: #eaf6ff;
   font-size: 1.1rem;
 }
 
@@ -163,32 +185,32 @@
 
 .hackathon-details > div {
   padding: 0.5rem 0;
-  color: var(--text-secondary);
+  color: rgba(214, 234, 255, 0.8);
 }
 
 .hackathon-details strong {
-  color: var(--text-primary);
+  color: #eaf6ff;
 }
 
 .hackathon-remarks,
 .hackathon-notifications {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid rgba(0, 255, 255, 0.12);
 }
 
 .hackathon-remarks strong,
 .hackathon-notifications strong {
   display: block;
   margin-bottom: 0.5rem;
-  color: var(--text-primary);
+  color: #eaf6ff;
 }
 
 .hackathon-remarks ul,
 .hackathon-notifications ul {
   margin: 0;
   padding-left: 1.5rem;
-  color: var(--text-secondary);
+  color: rgba(214, 234, 255, 0.8);
 }
 
 .hackathon-remarks li,

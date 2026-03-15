@@ -1,21 +1,22 @@
 .hackathon-team-card {
-  border: 2px solid #e1e8ed;
+  border: 1px solid rgba(0, 255, 255, 0.18);
   border-radius: 12px;
   padding: 20px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  background: rgba(8, 12, 22, 0.92);
   transition: all 0.3s ease;
   cursor: default;
 }
 
 .hackathon-team-card:hover {
-  border-color: #007bff;
-  box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+  border-color: rgba(0, 255, 255, 0.5);
+  box-shadow: 0 10px 30px rgba(0, 255, 255, 0.2);
   transform: translateY(-2px);
 }
 
 .team-full-badge {
-  background: #dc3545;
-  color: white;
+  background: rgba(255, 51, 102, 0.2);
+  color: #ff9ab5;
+  border: 1px solid rgba(255, 51, 102, 0.5);
   padding: 4px 8px;
   border-radius: 12px;
   font-size: 0.8em;
@@ -25,9 +26,9 @@
 .team-leader {
   margin: 15px 0;
   padding: 10px;
-  background: #fff3cd;
+  background: rgba(255, 193, 7, 0.12);
   border-radius: 8px;
-  border-left: 4px solid #ffc107;
+  border-left: 4px solid rgba(255, 193, 7, 0.6);
 }
 
 .team-leader .creator-info {
@@ -48,14 +49,15 @@
 .team-members {
   margin: 15px 0;
   padding: 10px;
-  background: #e7f3ff;
+  background: rgba(0, 255, 255, 0.08);
   border-radius: 8px;
+  border: 1px solid rgba(0, 255, 255, 0.15);
 }
 
 .team-members h4 {
   margin: 0 0 10px 0;
   font-size: 0.9em;
-  color: #495057;
+  color: rgba(214, 234, 255, 0.85);
 }
 
 .team-member {
@@ -64,15 +66,16 @@
   gap: 8px;
   margin: 5px 0;
   padding: 5px;
-  background: white;
+  background: rgba(8, 18, 34, 0.8);
   border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .member-avatar {
   width: 24px;
   height: 24px;
-  background: #007bff;
-  color: white;
+  background: linear-gradient(135deg, #00ffff, #0088aa);
+  color: #001018;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -83,12 +86,12 @@
 
 .member-name {
   font-weight: 500;
-  color: #333;
+  color: #eaf6ff;
 }
 
 .member-role {
   font-size: 0.8em;
-  color: #666;
+  color: rgba(214, 234, 255, 0.7);
 }
 
 .world-actions {
@@ -99,7 +102,7 @@
 
 .action-btn {
   padding: 10px 20px;
-  border: none;
+  border: 1px solid transparent;
   border-radius: 8px;
   font-weight: 500;
   cursor: pointer;
@@ -108,32 +111,34 @@
 }
 
 .action-btn.primary {
-  background: #007bff;
-  color: white;
+  background: linear-gradient(135deg, #00ffff, #0088aa);
+  color: #001018;
+  border-color: rgba(0, 255, 255, 0.5);
 }
 
 .action-btn.primary:hover {
-  background: #0056b3;
+  background: linear-gradient(135deg, #00e6e6, #007799);
   transform: translateY(-1px);
 }
 
 .action-btn.success {
-  background: #28a745;
-  color: white;
+  background: linear-gradient(135deg, #2af598, #08aeea);
+  color: #001018;
 }
 
 .action-btn.success:hover {
-  background: #1e7e34;
+  background: linear-gradient(135deg, #22d984, #0498cf);
 }
 
 .action-btn.pending {
-  background: #ffc107;
-  color: #212529;
+  background: rgba(255, 193, 7, 0.2);
+  color: #ffd88a;
+  border-color: rgba(255, 193, 7, 0.5);
 }
 
 .action-btn.disabled {
-  background: #6c757d;
-  color: white;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(214, 234, 255, 0.6);
   cursor: not-allowed;
 }
 
@@ -143,7 +148,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(2, 6, 12, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -151,17 +156,18 @@
 }
 
 .modal-content {
-  background: white;
+  background: rgba(8, 12, 22, 0.95);
   padding: 30px;
   border-radius: 12px;
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(0, 255, 255, 0.16);
 }
 
 .modal-content h3 {
   margin: 0 0 15px 0;
-  color: #333;
+  color: #eaf6ff;
 }
 
 .modal-actions {
@@ -172,8 +178,8 @@
 }
 
 .btn-primary {
-  background: #007bff;
-  color: white;
+  background: linear-gradient(135deg, #00ffff, #0088aa);
+  color: #001018;
   border: none;
   padding: 10px 20px;
   border-radius: 6px;
@@ -182,18 +188,18 @@
 }
 
 .btn-primary:hover {
-  background: #0056b3;
+  background: linear-gradient(135deg, #00e6e6, #007799);
 }
 
 .btn-secondary {
-  background: #6c757d;
-  color: white;
-  border: none;
+  background: rgba(8, 18, 34, 0.85);
+  color: #eaf6ff;
+  border: 1px solid rgba(0, 255, 255, 0.2);
   padding: 10px 20px;
   border-radius: 6px;
   cursor: pointer;
 }
 
 .btn-secondary:hover {
-  background: #545b62;
+  background: rgba(0, 255, 255, 0.15);
 }

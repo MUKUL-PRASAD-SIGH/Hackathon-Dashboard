@@ -557,7 +557,22 @@ app.post('/api/register', authLimiter, validateRegistration, asyncHandler(async 
       name,
       email,
       password,
-      emailVerified: true
+      emailVerified: true,
+      profile: {
+        bio: '',
+        skills: [],
+        experience: '',
+        linkedin: '',
+        github: '',
+        portfolio: '',
+        location: '',
+        avatar: '',
+        isPublic: false
+      },
+      friends: [],
+      friendRequests: { sent: [], received: [] },
+      hackathonsWon: 0,
+      hackathonsParticipated: 0
     });
 
     await user.save();

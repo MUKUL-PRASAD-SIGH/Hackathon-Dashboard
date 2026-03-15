@@ -1090,7 +1090,7 @@ const HackathonDetailsModal = ({ hackathon, onClose, onReload }) => {
             
             <div className="chat-section">
               <h3>💬 Private Team Chat</h3>
-              <PrivateChat hackathonId={hackathon._id} />
+              <PrivateChat hackathonId={hackathon._id || hackathon.id} />
             </div>
           </div>
         </div>
