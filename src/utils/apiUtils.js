@@ -38,6 +38,15 @@ export const apiCall = async (endpoint, options = {}) => {
     console.log('🔍 METHOD:', finalOptions.method || 'GET');
     console.log('🔍 BODY:', finalOptions.body);
 
+    const method = (finalOptions.method || 'GET').toUpperCase();
+    const rateLimitKey = `rateLimit:${endpoint}:${method}`;
+    const now = Date.now();
+    const cooldownUntil = Number(sessionStorage.getItem(rateLimitKey) || 0);
+    if (cooldownUntil && now < cooldownUntil) {
+      const waitSeconds = Math.ceil((cooldownUntil - now) / 1000);
+      throw new Error(`Rate limited. Please wait ${waitSeconds}s and try again.`);
+    }
+
     let response;
     try {
       response = await fetch(url, finalOptions);
@@ -64,6 +73,21 @@ export const apiCall = async (endpoint, options = {}) => {
       throw new Error(`Request failed: ${fetchError.message}`);
     }
     
+    if (response.status === 429) {
+      const retryAfterRaw = response.headers.get('retry-after');
+      const retryAfterSeconds = retryAfterRaw ? Number(retryAfterRaw) : 15;
+      const waitMs = Math.max(5, retryAfterSeconds) * 1000;
+      sessionStorage.setItem(rateLimitKey, String(Date.now() + waitMs));
+
+      if (method === 'GET') {
+        apiLogger.warn('Rate limited, retrying after backoff', { retryAfterSeconds });
+        await new Promise((resolve) => setTimeout(resolve, waitMs));
+        return apiCall(endpoint, options);
+      }
+
+      throw new Error(`Rate limited. Please wait ${Math.ceil(waitMs / 1000)}s and try again.`);
+    }
+
     let data;
     const contentType = response.headers.get('content-type');
     apiLogger.debug('Processing response', { contentType });

@@ -285,7 +285,7 @@ app.use(helmet({
 // Rate limiting
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: 300, // limit each IP to 300 requests per windowMs
   skip: (req) => req.method === 'OPTIONS',
   message: {
     success: false,
@@ -300,7 +300,7 @@ const generalLimiter = rateLimit({
 
 const otpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 OTP requests per windowMs
+  max: 10, // limit each IP to 10 OTP requests per windowMs
   skip: (req) => req.method === 'OPTIONS',
   message: {
     success: false,
@@ -315,7 +315,7 @@ const otpLimiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // limit each IP to 10 auth attempts per windowMs
+  max: 30, // limit each IP to 30 auth attempts per windowMs
   skip: (req) => req.method === 'OPTIONS',
   message: {
     success: false,
