@@ -98,6 +98,34 @@ body::after {
 
 code { font-family: 'JetBrains Mono', 'Courier New', monospace; }
 
+/* ── Global Button Feedback ── */
+button,
+[role="button"],
+.click-effect {
+  transition: transform 0.08s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+button:active,
+[role="button"]:active,
+.click-effect:active {
+  transform: translateY(1px) scale(0.98);
+  filter: brightness(1.08);
+}
+
+button:focus-visible,
+[role="button"]:focus-visible,
+.click-effect:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.18), 0 0 18px rgba(0, 255, 255, 0.25);
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: none;
+}
+
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--cyber-bg2); }

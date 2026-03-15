@@ -57,3 +57,15 @@ export const fetchIdeaResults = async (hackathonId) => {
   }
   return data;
 };
+
+export const deleteIdea = async (hackathonId, ideaId) => {
+  const response = await fetch(`${API}/hackathons/${hackathonId}/ideas/${ideaId}`, {
+    method: 'DELETE',
+    headers: authHeaders()
+  });
+  const data = await response.json();
+  if (!response.ok || !data.success) {
+    throw new Error(data.error?.message || 'Failed to delete idea');
+  }
+  return data;
+};

@@ -7,7 +7,7 @@ const notificationSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['hackathon_invite', 'join_request', 'invite_accepted', 'invite_declined', 'request_approved', 'request_rejected', 'invitation_accepted', 'welcome_team', 'friend_request', 'friend_accepted', 'friend_rejected'],
+    enum: ['hackathon_invite', 'join_request', 'invite_accepted', 'invite_declined', 'request_approved', 'request_rejected', 'invitation_accepted', 'welcome_team', 'friend_request', 'friend_accepted', 'friend_rejected', 'idea_submitted', 'idea_deleted'],
     required: true
   },
   title: {

@@ -238,7 +238,9 @@ const Notifications = () => {
                     {notification.type === 'welcome_team' && '🚀 Welcome Message'}
                     {notification.type === 'request_accepted' && '🎉 You were accepted!'}
                     {notification.type === 'member_joined' && '👥 New team member'}
-                    {!['hackathon_invite', 'join_request', 'invitation_accepted', 'welcome_team', 'request_accepted', 'member_joined'].includes(notification.type) && '✓ Processed'}
+                    {notification.type === 'idea_submitted' && '💡 New idea submitted'}
+                    {notification.type === 'idea_deleted' && '🗑️ Idea removed'}
+                    {!['hackathon_invite', 'join_request', 'invitation_accepted', 'welcome_team', 'request_accepted', 'member_joined', 'idea_submitted', 'idea_deleted'].includes(notification.type) && '✓ Processed'}
                   </div>
                 )}
               </div>

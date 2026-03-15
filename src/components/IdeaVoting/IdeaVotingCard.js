@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { fetchIdeas, submitIdea, voteIdea, fetchIdeaResults } from '../../utils/ideaVotingApi';
+import { fetchIdeas, submitIdea, voteIdea, fetchIdeaResults, deleteIdea } from '../../utils/ideaVotingApi';
 import './IdeaVoting.css';
 
 const IdeaVotingCard = ({ hackathonId, initialExpanded = false, showToggle = true }) => {
@@ -15,6 +15,7 @@ const IdeaVotingCard = ({ hackathonId, initialExpanded = false, showToggle = tru
   const [resultsVisible, setResultsVisible] = useState(false);
   const [results, setResults] = useState(null);
   const [calculating, setCalculating] = useState(false);
+  const [recentIdeaId, setRecentIdeaId] = useState(null);
 
   const totalPoints = useMemo(
     () => (results?.totalPoints ?? ideas.reduce((sum, idea) => sum + (idea.voteScore || 0), 0)),
@@ -58,10 +59,14 @@ const IdeaVotingCard = ({ hackathonId, initialExpanded = false, showToggle = tru
     setSubmitting(true);
     setError('');
     try {
-      await submitIdea(hackathonId, {
+      const response = await submitIdea(hackathonId, {
         title: form.title.trim(),
         description: form.description.trim()
       });
+      if (response?.idea?.id) {
+        setRecentIdeaId(response.idea.id);
+        setTimeout(() => setRecentIdeaId(null), 2500);
+      }
       setForm({ title: '', description: '' });
       await loadIdeas();
     } catch (err) {
@@ -81,6 +86,17 @@ const IdeaVotingCard = ({ hackathonId, initialExpanded = false, showToggle = tru
       setError(err.message || 'Failed to vote');
     } finally {
       setVotingId(null);
+    }
+  };
+
+  const handleDelete = async (ideaId) => {
+    if (!window.confirm('Delete this idea?')) return;
+    setError('');
+    try {
+      await deleteIdea(hackathonId, ideaId);
+      await loadIdeas();
+    } catch (err) {
+      setError(err.message || 'Failed to delete idea');
     }
   };
 
@@ -156,7 +172,10 @@ const IdeaVotingCard = ({ hackathonId, initialExpanded = false, showToggle = tru
                   const nextRank = votesUsed >= 1 ? 2 : 1;
                   const pointsLabel = nextRank === 1 ? '10 pts' : '5 pts';
                   return (
-                    <div key={idea.id} className="idea-row">
+                    <div
+                      key={idea.id}
+                      className={`idea-row ${recentIdeaId === idea.id ? 'idea-row--new' : ''}`}
+                    >
                       <div className="idea-content">
                         <div className="idea-title">{idea.title}</div>
                         {idea.description && <div className="idea-desc">{idea.description}</div>}
@@ -165,6 +184,16 @@ const IdeaVotingCard = ({ hackathonId, initialExpanded = false, showToggle = tru
                         <span className="idea-votes">
                           {idea.voteScore || 0} pts ({idea.voteCount} vote{idea.voteCount === 1 ? '' : 's'})
                         </span>
+                        {idea.canDelete && (
+                          <button
+                            type="button"
+                            className="idea-delete-btn"
+                            onClick={() => handleDelete(idea.id)}
+                            title="Delete idea"
+                          >
+                            🗑️ Delete
+                          </button>
+                        )}
                         <button
                           type="button"
                           className="idea-vote-btn"

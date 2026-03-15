@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Idea = require('../models/Idea');
 const Hackathon = require('../models/Hackathon');
+const Notification = require('../models/Notification');
+const UserMongoDB = require('../models/UserMongoDB');
 const { authenticateToken } = require('../middleware/security');
 
 const router = express.Router();
@@ -17,6 +19,21 @@ const isHackathonMember = (hackathon, userEmail) => {
   return (hackathon.teamMembers || []).some(
     (member) => normalizeEmail(member.email) === normalized
   );
+};
+
+const isTeamLeader = (hackathon, user) => {
+  const normalized = normalizeEmail(user?.email);
+  if (hackathon.userId && String(hackathon.userId) === String(user?.id)) return true;
+  return normalizeEmail(hackathon.email) === normalized;
+};
+
+const getTeamEmails = (hackathon) => {
+  const emails = new Set();
+  if (hackathon.email) emails.add(normalizeEmail(hackathon.email));
+  (hackathon.teamMembers || []).forEach(m => {
+    if (m.email) emails.add(normalizeEmail(m.email));
+  });
+  return [...emails];
 };
 
 const ensureHackathon = async (hackathonId) => {
@@ -46,6 +63,7 @@ router.get('/:id/ideas', authenticateToken, async (req, res) => {
       'votes.userId': userId
     });
 
+    const leader = isTeamLeader(hackathon, req.user);
     const responseIdeas = ideas.map((idea) => {
       const isOwner = String(idea.ownerId) === userId;
       const userVote = (idea.votes || []).find((vote) => String(vote.userId) === userId);
@@ -60,7 +78,8 @@ router.get('/:id/ideas', authenticateToken, async (req, res) => {
         voteScore,
         isOwner,
         hasVoted,
-        voteRank: userVote?.rank || null
+        voteRank: userVote?.rank || null,
+        canDelete: isOwner || leader
       };
     });
 
@@ -68,7 +87,8 @@ router.get('/:id/ideas', authenticateToken, async (req, res) => {
       success: true,
       ideas: responseIdeas,
       votesUsed,
-      maxVotes: MAX_VOTES_PER_USER
+      maxVotes: MAX_VOTES_PER_USER,
+      isLeader: leader
     });
   } catch (error) {
     console.error('Idea list error:', error);
@@ -147,6 +167,22 @@ router.post('/:id/ideas', authenticateToken, async (req, res) => {
       description
     });
 
+    const teamEmails = getTeamEmails(hackathon).filter(email => email !== normalizeEmail(req.user.email));
+    if (teamEmails.length > 0) {
+      const payload = teamEmails.map(email => ({
+        userEmail: email,
+        type: 'idea_submitted',
+        title: 'New Idea Submitted',
+        message: `${req.user.name || 'Someone'} submitted an idea in "${hackathon.name}"`,
+        data: {
+          hackathonId: hackathon._id,
+          ideaId: idea._id,
+          ideaTitle: idea.title
+        }
+      }));
+      await Notification.insertMany(payload);
+    }
+
     return res.status(201).json({
       success: true,
       idea: {
@@ -158,7 +194,8 @@ router.post('/:id/ideas', authenticateToken, async (req, res) => {
         voteScore: 0,
         isOwner: true,
         hasVoted: false,
-        voteRank: null
+        voteRank: null,
+        canDelete: true
       }
     });
   } catch (error) {
@@ -242,6 +279,51 @@ router.post('/:id/ideas/:ideaId/vote', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Idea vote error:', error);
     return res.status(500).json({ success: false, error: { message: 'Failed to cast vote' } });
+  }
+});
+
+// Delete an idea (owner or team leader)
+router.delete('/:id/ideas/:ideaId', authenticateToken, async (req, res) => {
+  try {
+    const hackathon = await ensureHackathon(req.params.id);
+    if (!hackathon) {
+      return res.status(404).json({ success: false, error: { message: 'Hackathon not found' } });
+    }
+
+    if (!isHackathonMember(hackathon, req.user?.email)) {
+      return res.status(403).json({ success: false, error: { message: 'Not a member of this hackathon' } });
+    }
+
+    const idea = await Idea.findOne({ _id: req.params.ideaId, hackathonId: hackathon._id });
+    if (!idea) {
+      return res.status(404).json({ success: false, error: { message: 'Idea not found' } });
+    }
+
+    const isOwner = String(idea.ownerId) === String(req.user.id);
+    const leader = isTeamLeader(hackathon, req.user);
+    if (!isOwner && !leader) {
+      return res.status(403).json({ success: false, error: { message: 'Not allowed to delete this idea' } });
+    }
+
+    await Idea.deleteOne({ _id: idea._id });
+
+    if (leader && !isOwner) {
+      const owner = await UserMongoDB.findById(idea.ownerId).select('email');
+      if (owner?.email) {
+        await Notification.create({
+          userEmail: normalizeEmail(owner.email),
+          type: 'idea_deleted',
+          title: 'Idea Removed',
+          message: `A team leader removed your idea in "${hackathon.name}"`,
+          data: { hackathonId: hackathon._id, ideaId: idea._id }
+        });
+      }
+    }
+
+    return res.json({ success: true, message: 'Idea deleted', ideaId: idea._id });
+  } catch (error) {
+    console.error('Idea delete error:', error);
+    return res.status(500).json({ success: false, error: { message: 'Failed to delete idea' } });
   }
 });
 
