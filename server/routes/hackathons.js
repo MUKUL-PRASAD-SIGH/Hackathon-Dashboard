@@ -138,9 +138,19 @@ router.get('/joined', authMiddleware, asyncHandler(async (req, res) => {
 
   console.log('🤝 Found joined hackathons:', joinedHackathons.length);
 
+  const leaderEmails = joinedHackathons
+    .map(h => normalizeEmail(h.email))
+    .filter(Boolean);
+  const leaderUsers = await UserMongoDB.find({ email: { $in: leaderEmails } })
+    .select('name email');
+  const leaderMap = new Map(leaderUsers.map(u => [normalizeEmail(u.email), u.name]));
+
   res.json({
     success: true,
-    hackathons: joinedHackathons,
+    hackathons: joinedHackathons.map(h => ({
+      ...h.toObject(),
+      leaderName: leaderMap.get(normalizeEmail(h.email)) || ''
+    })),
     count: joinedHackathons.length
   });
 }));
@@ -164,11 +174,27 @@ router.get('/', authMiddleware, asyncHandler(async (req, res) => {
   console.log('🔍 Found owned hackathons:', ownedHackathons.length);
   console.log('🔍 Found joined hackathons:', joinedHackathons.length);
 
+  const allLeaderEmails = [...ownedHackathons, ...joinedHackathons]
+    .map(h => normalizeEmail(h.email))
+    .filter(Boolean);
+  const allLeaderUsers = await UserMongoDB.find({ email: { $in: allLeaderEmails } })
+    .select('name email');
+  const allLeaderMap = new Map(allLeaderUsers.map(u => [normalizeEmail(u.email), u.name]));
+
   res.json({
     success: true,
-    ownedHackathons,
-    joinedHackathons,
-    hackathons: ownedHackathons, // Keep for backward compatibility
+    ownedHackathons: ownedHackathons.map(h => ({
+      ...h.toObject(),
+      leaderName: allLeaderMap.get(normalizeEmail(h.email)) || ''
+    })),
+    joinedHackathons: joinedHackathons.map(h => ({
+      ...h.toObject(),
+      leaderName: allLeaderMap.get(normalizeEmail(h.email)) || ''
+    })),
+    hackathons: ownedHackathons.map(h => ({
+      ...h.toObject(),
+      leaderName: allLeaderMap.get(normalizeEmail(h.email)) || ''
+    })), // Keep for backward compatibility
     count: ownedHackathons.length + joinedHackathons.length,
     debug: {
       userEmail: req.user.email

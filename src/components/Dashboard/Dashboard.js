@@ -824,7 +824,7 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
                       
                       <div className="hackathon-meta grid grid-3">
                         <span><strong>Platform:</strong> {hackathon.platform}</span>
-                        <span><strong>Team Leader:</strong> {hackathon.userId}</span>
+                        <span><strong>Team Leader:</strong> {hackathon.leaderName || hackathon.email || hackathon.userId}</span>
                         <span><strong>Date:</strong> {hackathon.date}</span>
                       </div>
                       <div className="hackathon-meta grid grid-2">
