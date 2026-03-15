@@ -281,11 +281,30 @@ router.get('/friends', authMiddleware, asyncHandler(async (req, res) => {
   const user = await UserMongoDB.findOne({ email: req.user.email })
     .select('friends friendRequests');
 
+  const friendEmails = user.friends.map(f => f.email);
+  const sentEmails = user.friendRequests.sent.map(r => r.email);
+  const receivedEmails = user.friendRequests.received.map(r => r.email);
+  const allEmails = [...new Set([...friendEmails, ...sentEmails, ...receivedEmails])];
+
+  const users = await UserMongoDB.find({ email: { $in: allEmails } })
+    .select('name email profile.avatar');
+
+  const userMap = new Map(users.map(u => [u.email, u]));
+
   res.json({
     success: true,
-    friends: user.friends,
-    sentRequests: user.friendRequests.sent,
-    receivedRequests: user.friendRequests.received
+    friends: user.friends.map(f => ({
+      ...f.toObject?.() || f,
+      user: userMap.get(f.email) || null
+    })),
+    sentRequests: user.friendRequests.sent.map(r => ({
+      ...r.toObject?.() || r,
+      user: userMap.get(r.email) || null
+    })),
+    receivedRequests: user.friendRequests.received.map(r => ({
+      ...r.toObject?.() || r,
+      user: userMap.get(r.email) || null
+    }))
   });
 }));
 

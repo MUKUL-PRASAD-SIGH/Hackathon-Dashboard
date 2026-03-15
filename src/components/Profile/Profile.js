@@ -31,6 +31,7 @@ const Profile = () => {
   const [friends, setFriends] = useState([]);
   const [friendRequests, setFriendRequests] = useState({ sent: [], received: [] });
   const [currentTeam, setCurrentTeam] = useState(null);
+  const [activeFriendsTab, setActiveFriendsTab] = useState('friends');
 
   useEffect(() => {
     setIsOwnProfile(!userId);
@@ -197,7 +198,7 @@ const Profile = () => {
     }
   };
 
-  const handleFriendRequest = async (userId, action) => {
+  const handleFriendRequest = async (email, action) => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(API + `/users/friend-request/${action}`, {
@@ -206,15 +207,13 @@ const Profile = () => {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ userId })
+        body: JSON.stringify({ email })
       });
       
       const data = await response.json();
       if (data.success) {
         fetchFriends();
-        if (userId === profile?._id) {
-          setFriendshipStatus(action === 'accept' ? 'friends' : 'none');
-        }
+        setFriendshipStatus(action === 'accept' ? 'friends' : 'none');
       }
     } catch (error) {
       console.error('Error handling friend request:', error);
@@ -337,10 +336,10 @@ const Profile = () => {
                 )}
                 {friendshipStatus === 'request_received' && (
                   <div className="friend-actions">
-                    <button onClick={() => handleFriendRequest(profile._id, 'accept')} className="friend-btn accept">
+                    <button onClick={() => handleFriendRequest(profile.email, 'accept')} className="friend-btn accept">
                       ✅ Accept
                     </button>
-                    <button onClick={() => handleFriendRequest(profile._id, 'reject')} className="friend-btn reject">
+                    <button onClick={() => handleFriendRequest(profile.email, 'reject')} className="friend-btn reject">
                       ❌ Decline
                     </button>
                   </div>
@@ -473,51 +472,97 @@ const Profile = () => {
 
         {isOwnProfile && (
           <div className="friends-section">
-            <h3>Friends ({friends.length})</h3>
-            {friends.length > 0 ? (
-              <div className="friends-grid">
-                {friends.map(friend => (
-                  <div key={friend.userId._id} className="friend-card">
-                    <div className="friend-avatar">
-                      {friend.userId.profile?.avatar ? (
-                        <img src={friend.userId.profile.avatar} alt={friend.userId.name} />
-                      ) : (
-                        friend.userId.name.charAt(0).toUpperCase()
-                      )}
-                    </div>
-                    <div className="friend-info">
-                      <h4>{friend.userId.name}</h4>
-                      <p>{friend.userId.email}</p>
-                    </div>
-                  </div>
-                ))}
+            <div className="friends-header">
+              <h3>Friends Hub</h3>
+              <div className="friends-tabs">
+                <button
+                  className={`friends-tab ${activeFriendsTab === 'friends' ? 'active' : ''}`}
+                  onClick={() => setActiveFriendsTab('friends')}
+                >
+                  Friends ({friends.length})
+                </button>
+                <button
+                  className={`friends-tab ${activeFriendsTab === 'requests' ? 'active' : ''}`}
+                  onClick={() => setActiveFriendsTab('requests')}
+                >
+                  Requests ({friendRequests.received.length})
+                </button>
               </div>
+            </div>
+
+            {activeFriendsTab === 'friends' ? (
+              friends.length > 0 ? (
+                <div className="friends-grid">
+                  {friends.map(friend => {
+                    const friendUser = friend.user || friend.userId || { email: friend.email };
+                    return (
+                      <div key={friendUser.email} className="friend-card">
+                        <div className="friend-avatar">
+                          {friendUser.profile?.avatar ? (
+                            <img src={friendUser.profile.avatar} alt={friendUser.name || friendUser.email} />
+                          ) : (
+                            (friendUser.name || friendUser.email || '?').charAt(0).toUpperCase()
+                          )}
+                        </div>
+                        <div className="friend-info">
+                          <h4>{friendUser.name || 'Friend'}</h4>
+                          <p>{friendUser.email}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p>No friends yet. Send friend requests to connect!</p>
+              )
             ) : (
-              <p>No friends yet. Send friend requests to connect!</p>
-            )}
-            
-            {friendRequests.received.length > 0 && (
               <div className="friend-requests">
-                <h4>Friend Requests ({friendRequests.received.length})</h4>
-                {friendRequests.received.map(request => (
-                  <div key={request.userId._id} className="friend-request">
-                    <span>{request.userId.name} ({request.userId.email})</span>
-                    <div className="request-actions">
-                      <button 
-                        onClick={() => handleFriendRequest(request.userId._id, 'accept')}
-                        className="accept-btn"
-                      >
-                        ✅ Accept
-                      </button>
-                      <button 
-                        onClick={() => handleFriendRequest(request.userId._id, 'reject')}
-                        className="reject-btn"
-                      >
-                        ❌ Decline
-                      </button>
-                    </div>
+                {friendRequests.received.length > 0 ? (
+                  <>
+                    <h4>Received Requests</h4>
+                    {friendRequests.received.map(request => {
+                      const requestUser = request.user || request.userId || { email: request.email };
+                      return (
+                        <div key={requestUser.email} className="friend-request">
+                          <span>
+                            {requestUser.name || 'User'} ({requestUser.email})
+                          </span>
+                          <div className="request-actions">
+                            <button
+                              onClick={() => handleFriendRequest(requestUser.email, 'accept')}
+                              className="accept-btn"
+                            >
+                              ✅ Accept
+                            </button>
+                            <button
+                              onClick={() => handleFriendRequest(requestUser.email, 'reject')}
+                              className="reject-btn"
+                            >
+                              ❌ Decline
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </>
+                ) : (
+                  <p>No new friend requests right now.</p>
+                )}
+
+                {friendRequests.sent.length > 0 && (
+                  <div className="friend-requests sent-requests">
+                    <h4>Sent Requests</h4>
+                    {friendRequests.sent.map(request => {
+                      const requestUser = request.user || request.userId || { email: request.email };
+                      return (
+                        <div key={requestUser.email} className="friend-request">
+                          <span>{requestUser.name || 'User'} ({requestUser.email})</span>
+                          <span className="request-status">Pending</span>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
+                )}
               </div>
             )}
           </div>

@@ -256,6 +256,17 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
     planning: hackathons?.filter(h => h.status === 'Planning').length || 0,
   };
 
+  const combinedHackathons = [...hackathons, ...joinedHackathons];
+  const upcomingHackathons = combinedHackathons
+    .filter(h => h.date && new Date(h.date) >= new Date())
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  const nextHackathon = upcomingHackathons[0];
+  const daysUntilNext = nextHackathon
+    ? Math.ceil((new Date(nextHackathon.date) - new Date()) / (1000 * 60 * 60 * 24))
+    : null;
+  const activeCount = combinedHackathons.filter(h => ['Participating', 'Planning'].includes(h.status)).length;
+  const winRate = stats.total > 0 ? Math.round((stats.won / stats.total) * 100) : 0;
+
   const handleRemarksChange = (hackathonId, round, newRemark) => {
     if (onUpdateHackathon) {
       const hackathon = hackathons.find(h => h.id === hackathonId);
@@ -552,6 +563,32 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div className="insights-panel">
+          <div className="insight-card">
+            <div className="insight-title">⏳ Next Hackathon</div>
+            {nextHackathon ? (
+              <>
+                <div className="insight-value">{nextHackathon.name}</div>
+                <div className="insight-meta">
+                  {new Date(nextHackathon.date).toLocaleDateString()} · {daysUntilNext} day(s) left
+                </div>
+              </>
+            ) : (
+              <div className="insight-meta">No upcoming hackathons yet</div>
+            )}
+          </div>
+          <div className="insight-card">
+            <div className="insight-title">🔥 Active Now</div>
+            <div className="insight-value">{activeCount}</div>
+            <div className="insight-meta">Participating or planning</div>
+          </div>
+          <div className="insight-card">
+            <div className="insight-title">🏆 Win Rate</div>
+            <div className="insight-value">{winRate}%</div>
+            <div className="insight-meta">{stats.won} wins out of {stats.total}</div>
           </div>
         </div>
 

@@ -72,8 +72,8 @@
   margin: 0 0 0.4rem 0;
   letter-spacing: 0.04em;
 }
-.profile-email { color: rgba(122,138,176,0.6); font-size: 0.85rem; margin: 0; }
-.profile-location { color: rgba(122,138,176,0.5); font-size: 0.82rem; margin: 0.4rem 0 0 0; }
+.profile-email { color: rgba(210,225,255,0.9); font-size: 0.88rem; margin: 0; }
+.profile-location { color: rgba(200,214,255,0.75); font-size: 0.84rem; margin: 0.4rem 0 0 0; }
 
 .edit-profile-btn {
   font-family: 'Orbitron', monospace;
@@ -262,6 +262,49 @@
   margin-bottom: 1.5rem;
   padding-bottom: 0.6rem;
   border-bottom: 1px solid rgba(0,255,255,0.1);
+}
+
+.friends-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.friends-tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.friends-tab {
+  background: rgba(0, 255, 255, 0.08);
+  border: 1px solid rgba(0, 255, 255, 0.25);
+  color: #b9f5ff;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.friends-tab.active {
+  background: rgba(191, 0, 255, 0.18);
+  border-color: rgba(191, 0, 255, 0.5);
+  color: #f3d3ff;
+}
+
+.friends-tab:hover {
+  transform: translateY(-1px);
+}
+
+.sent-requests {
+  margin-top: 1rem;
+}
+
+.request-status {
+  font-size: 0.75rem;
+  color: rgba(122, 138, 176, 0.7);
 }
 
 .friends-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }

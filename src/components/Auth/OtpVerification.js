@@ -159,6 +159,9 @@ const OtpVerification = ({
           <p className="auth-subtitle">
             We've sent a verification code to <strong>{email}</strong>
           </p>
+          <p className="auth-subtitle">
+            If you don't see it, check your Spam/Junk folder.
+          </p>
         </div>
         
         <form onSubmit={handleVerifyClick} className="auth-form">

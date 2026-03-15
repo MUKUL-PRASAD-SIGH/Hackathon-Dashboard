@@ -181,6 +181,12 @@ class EmailService {
                 ⏰ This OTP is valid for ${expirationMinutes} minutes only. Please use it promptly.
               </p>
             </div>
+
+            <div class="expiry-info">
+              <p class="expiry-text">
+                📬 Not seeing the email? Please check your Spam/Junk folder.
+              </p>
+            </div>
             
             <div class="security-notice">
               <p class="security-text">
@@ -215,6 +221,7 @@ ${actionText} ${otpText}
 Your OTP: ${otp}
 
 This OTP is valid for ${expirationMinutes} minutes. Please do not share it with anyone.
+If you don't see this email, please check your Spam/Junk folder.
 
 If you didn't request this OTP, you can safely ignore this email.
 
