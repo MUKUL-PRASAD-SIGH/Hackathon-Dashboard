@@ -144,11 +144,35 @@
   position: relative;
   overflow: hidden;
 }
+.auth-button::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 12px;
+  background: radial-gradient(circle at center, rgba(0, 255, 255, 0.35), transparent 60%);
+  opacity: 0;
+  transform: scale(0.9);
+  pointer-events: none;
+}
+.auth-button:active:not(:disabled)::after {
+  animation: buttonBurst 0.45s ease;
+}
 .auth-button:active:not(:disabled) { transform: scale(0.97); }
 .auth-button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
   transform: none !important;
+}
+.auth-button.is-loading::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: 12px;
+  border: 2px solid rgba(0, 255, 255, 0.2);
+  border-top-color: rgba(0, 255, 255, 0.8);
+  border-right-color: rgba(0, 255, 255, 0.5);
+  animation: ringSpin 1.1s linear infinite;
+  pointer-events: none;
 }
 
 .auth-button.primary {
@@ -238,6 +262,35 @@
   font-size: 0.78rem;
   color: rgba(200, 214, 255, 0.75);
 }
+.otp-warning {
+  margin-top: 0.8rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 193, 7, 0.4);
+  background: rgba(255, 193, 7, 0.12);
+  color: #ffe7a3;
+  font-size: 0.78rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  animation: warningGlow 2.2s ease-in-out infinite;
+}
+
+.otp-warning .warning-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 193, 7, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  box-shadow: 0 0 10px rgba(255, 193, 7, 0.3);
+}
+
+.otp-warning strong {
+  color: #fff2c1;
+}
 .otp-input {
   letter-spacing: 0.6rem;
   font-size: 1.6rem;
@@ -290,12 +343,58 @@
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
+.button-loader-advanced {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #00ffff;
+  animation: processingPulse 1.2s ease-in-out infinite;
+}
+.button-loader-advanced::before {
+  content: '';
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(0, 255, 255, 0.25);
+  border-top-color: #00ffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.45);
+}
+.button-loader-advanced::after {
+  content: '';
+  position: absolute;
+  inset: -6px auto -6px 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px dashed rgba(0, 255, 255, 0.25);
+  animation: spinReverse 1.6s linear infinite;
+}
 .auth-button.google .button-loader {
   border-color: rgba(224,232,255,0.2);
   border-top-color: rgba(224,232,255,0.8);
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spinReverse { to { transform: rotate(-360deg); } }
+@keyframes ringSpin { to { transform: rotate(360deg); } }
+@keyframes processingPulse {
+  0%, 100% { opacity: 0.65; text-shadow: 0 0 6px rgba(0, 255, 255, 0.3); }
+  50% { opacity: 1; text-shadow: 0 0 16px rgba(0, 255, 255, 0.8); }
+}
+@keyframes buttonBurst {
+  0% { opacity: 0; transform: scale(0.9); }
+  40% { opacity: 0.7; transform: scale(1.02); }
+  100% { opacity: 0; transform: scale(1.2); }
+}
+@keyframes warningGlow {
+  0%, 100% { box-shadow: 0 0 0 rgba(255, 193, 7, 0.1); }
+  50% { box-shadow: 0 0 18px rgba(255, 193, 7, 0.35); }
+}
 
 /* ── Error / Success ── */
 .field-error { color: #ff3366; font-size: 0.75rem; margin-top: 0.3rem; }

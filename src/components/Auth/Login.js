@@ -252,6 +252,12 @@ const Login = () => {
                 required
               />
               <p className="otp-note">We've sent a 6-digit code to your email</p>
+              <div className="otp-warning">
+                <span className="warning-icon">⚠️</span>
+                <span>
+                  OTPs often land in <strong>Spam / Junk</strong>. Please check there too.
+                </span>
+              </div>
             </div>
           ) : null}
 
@@ -276,11 +282,11 @@ const Login = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            className="auth-button primary"
+            className={`auth-button primary ${isLoading ? 'is-loading' : ''}`}
             disabled={isLoading}
           >
             {isLoading ? (
-              <span className="button-loader">Processing...</span>
+              <span className="button-loader-advanced">Processing</span>
             ) : showOtpField ? (
               'Verify OTP'
             ) : loginMethod === 'otp' ? (

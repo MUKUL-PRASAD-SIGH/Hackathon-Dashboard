@@ -27,8 +27,6 @@ const Profile = () => {
   const [avatarFile, setAvatarFile] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [friendshipStatus, setFriendshipStatus] = useState('none');
-  const [showFriendRequest, setShowFriendRequest] = useState(false);
-  const [friendEmail, setFriendEmail] = useState('');
   const [friends, setFriends] = useState([]);
   const [friendRequests, setFriendRequests] = useState({ sent: [], received: [] });
   const [currentTeam, setCurrentTeam] = useState(null);
@@ -195,33 +193,6 @@ const Profile = () => {
     }
   };
 
-  const sendFriendRequest = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(API + '/users/friend-request', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email: friendEmail })
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        setShowSuccess(true);
-        setFriendEmail('');
-        setShowFriendRequest(false);
-        fetchFriends();
-        setTimeout(() => setShowSuccess(false), 3000);
-      } else {
-        alert(data.error?.message || 'Failed to send friend request');
-      }
-    } catch (error) {
-      alert('Error sending friend request: ' + error.message);
-    }
-  };
-
   const handleFriendRequest = async (email, action) => {
     try {
       const token = localStorage.getItem('token');
@@ -244,29 +215,6 @@ const Profile = () => {
     }
   };
 
-  const sendFriendRequestToProfile = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(API + '/users/friend-request', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email: profile.email })
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        setFriendshipStatus('request_sent');
-      } else {
-        alert(data.error?.message);
-      }
-    } catch (error) {
-      alert('Error sending friend request');
-    }
-  };
-
   if (loading) return <div className="profile-loading">Loading profile...</div>;
 
   if (profile?.isPrivate) {
@@ -283,9 +231,7 @@ const Profile = () => {
               <p className="private-notice">🔒 This profile is private</p>
             </div>
             {friendshipStatus === 'none' && (
-              <button onClick={sendFriendRequestToProfile} className="friend-btn">
-                👥 Send Friend Request
-              </button>
+              <button className="friend-btn disabled">👥 Add from Friends Tab</button>
             )}
             {friendshipStatus === 'request_sent' && (
               <button className="friend-btn disabled">📤 Request Sent</button>
@@ -346,19 +292,11 @@ const Profile = () => {
                 >
                   {editing ? '❌ Cancel' : '✏️ Edit Profile'}
                 </button>
-                <button 
-                  onClick={() => setShowFriendRequest(true)}
-                  className="friend-btn click-effect"
-                >
-                  👥 Add Friend
-                </button>
               </>
             ) : (
               <>
                 {friendshipStatus === 'none' && (
-                  <button onClick={sendFriendRequestToProfile} className="friend-btn">
-                    👥 Send Friend Request
-                  </button>
+                  <button className="friend-btn disabled">👥 Add from Friends Tab</button>
                 )}
                 {friendshipStatus === 'request_sent' && (
                   <button className="friend-btn disabled">📤 Request Sent</button>
@@ -640,31 +578,6 @@ const Profile = () => {
         </div>
       </div>
       
-      {/* Friend Request Modal */}
-      {showFriendRequest && (
-        <div className="modal-overlay" onClick={() => setShowFriendRequest(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h3>Add Friend</h3>
-            <p>Enter the email address of the person you want to add as a friend:</p>
-            <input
-              type="email"
-              value={friendEmail}
-              onChange={(e) => setFriendEmail(e.target.value)}
-              placeholder="friend@example.com"
-              className="friend-email-input"
-            />
-            <div className="modal-actions">
-              <button onClick={sendFriendRequest} className="send-btn">
-                📤 Send Request
-              </button>
-              <button onClick={() => setShowFriendRequest(false)} className="cancel-btn">
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Success Notification */}
       {showSuccess && (
         <div className="success-notification">

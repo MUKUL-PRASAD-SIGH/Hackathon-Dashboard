@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
+const normalizeEmail = (email) => (email || '').toLowerCase().trim();
+
 // MongoDB User Schema
 const userSchema = new mongoose.Schema({
   name: {
@@ -161,39 +163,46 @@ userSchema.statics.authenticate = async function(email, password) {
 
 // Friend system methods
 userSchema.methods.sendFriendRequest = async function(targetEmail) {
-  if (this.email === targetEmail) {
+  const normalizedTarget = normalizeEmail(targetEmail);
+  const normalizedSelf = normalizeEmail(this.email);
+
+  if (!normalizedTarget) {
+    throw new Error('User not found');
+  }
+
+  if (normalizedSelf === normalizedTarget) {
     throw new Error('Cannot send friend request to yourself');
   }
   
   // Check if already friends
-  if (this.friends.some(f => f.email === targetEmail)) {
+  if (this.friends.some(f => normalizeEmail(f.email) === normalizedTarget)) {
     throw new Error('Already friends');
   }
   
   // Check if request already sent
-  if (this.friendRequests.sent.some(r => r.email === targetEmail)) {
+  if (this.friendRequests.sent.some(r => normalizeEmail(r.email) === normalizedTarget)) {
     throw new Error('Friend request already sent');
   }
   
   // Add to sender's sent requests
-  this.friendRequests.sent.push({ email: targetEmail });
+  this.friendRequests.sent.push({ email: normalizedTarget });
   
   // Add to receiver's received requests
-  const targetUser = await this.constructor.findOne({ email: targetEmail });
+  const targetUser = await this.constructor.findOne({ email: normalizedTarget });
   if (!targetUser) {
     throw new Error('User not found');
   }
   
-  targetUser.friendRequests.received.push({ email: this.email });
+  targetUser.friendRequests.received.push({ email: normalizedSelf });
   
   // Create notification
   const Notification = require('./Notification');
   await Notification.create({
-    userEmail: targetEmail,
+    userEmail: normalizedTarget,
     type: 'friend_request',
     title: 'New Friend Request',
     message: `${this.name} sent you a friend request`,
-    data: { senderEmail: this.email, senderName: this.name }
+    data: { senderEmail: normalizedSelf, senderName: this.name }
   });
   
   await Promise.all([this.save(), targetUser.save()]);
@@ -201,21 +210,31 @@ userSchema.methods.sendFriendRequest = async function(targetEmail) {
 };
 
 userSchema.methods.acceptFriendRequest = async function(senderEmail) {
+  const normalizedSender = normalizeEmail(senderEmail);
+  const normalizedSelf = normalizeEmail(this.email);
+
   // Check if request exists
-  const requestIndex = this.friendRequests.received.findIndex(r => r.email === senderEmail);
+  const requestIndex = this.friendRequests.received.findIndex(
+    r => normalizeEmail(r.email) === normalizedSender
+  );
   if (requestIndex === -1) {
     throw new Error('Friend request not found');
   }
   
   // Add to both users' friends lists
-  this.friends.push({ email: senderEmail });
+  this.friends.push({ email: normalizedSender });
   
-  const senderUser = await this.constructor.findOne({ email: senderEmail });
-  senderUser.friends.push({ email: this.email });
+  const senderUser = await this.constructor.findOne({ email: normalizedSender });
+  if (!senderUser) {
+    throw new Error('User not found');
+  }
+  senderUser.friends.push({ email: normalizedSelf });
   
   // Remove from requests
   this.friendRequests.received.splice(requestIndex, 1);
-  const sentIndex = senderUser.friendRequests.sent.findIndex(r => r.email === this.email);
+  const sentIndex = senderUser.friendRequests.sent.findIndex(
+    r => normalizeEmail(r.email) === normalizedSelf
+  );
   if (sentIndex !== -1) {
     senderUser.friendRequests.sent.splice(sentIndex, 1);
   }
@@ -223,11 +242,11 @@ userSchema.methods.acceptFriendRequest = async function(senderEmail) {
   // Create notification for sender
   const Notification = require('./Notification');
   await Notification.create({
-    userEmail: senderEmail,
+    userEmail: normalizedSender,
     type: 'friend_accepted',
     title: 'Friend Request Accepted',
     message: `${this.name} accepted your friend request`,
-    data: { accepterEmail: this.email, accepterName: this.name }
+    data: { accepterEmail: normalizedSelf, accepterName: this.name }
   });
   
   await Promise.all([this.save(), senderUser.save()]);
@@ -235,15 +254,25 @@ userSchema.methods.acceptFriendRequest = async function(senderEmail) {
 };
 
 userSchema.methods.rejectFriendRequest = async function(senderEmail) {
-  const requestIndex = this.friendRequests.received.findIndex(r => r.email === senderEmail);
+  const normalizedSender = normalizeEmail(senderEmail);
+  const normalizedSelf = normalizeEmail(this.email);
+
+  const requestIndex = this.friendRequests.received.findIndex(
+    r => normalizeEmail(r.email) === normalizedSender
+  );
   if (requestIndex === -1) {
     throw new Error('Friend request not found');
   }
   
   this.friendRequests.received.splice(requestIndex, 1);
   
-  const senderUser = await this.constructor.findOne({ email: senderEmail });
-  const sentIndex = senderUser.friendRequests.sent.findIndex(r => r.email === this.email);
+  const senderUser = await this.constructor.findOne({ email: normalizedSender });
+  if (!senderUser) {
+    throw new Error('User not found');
+  }
+  const sentIndex = senderUser.friendRequests.sent.findIndex(
+    r => normalizeEmail(r.email) === normalizedSelf
+  );
   if (sentIndex !== -1) {
     senderUser.friendRequests.sent.splice(sentIndex, 1);
   }
@@ -253,15 +282,25 @@ userSchema.methods.rejectFriendRequest = async function(senderEmail) {
 };
 
 userSchema.methods.removeFriend = async function(friendEmail) {
-  const friendIndex = this.friends.findIndex(f => f.email === friendEmail);
+  const normalizedFriend = normalizeEmail(friendEmail);
+  const normalizedSelf = normalizeEmail(this.email);
+
+  const friendIndex = this.friends.findIndex(
+    f => normalizeEmail(f.email) === normalizedFriend
+  );
   if (friendIndex === -1) {
     throw new Error('Not friends');
   }
   
   this.friends.splice(friendIndex, 1);
   
-  const friendUser = await this.constructor.findOne({ email: friendEmail });
-  const userIndex = friendUser.friends.findIndex(f => f.email === this.email);
+  const friendUser = await this.constructor.findOne({ email: normalizedFriend });
+  if (!friendUser) {
+    throw new Error('User not found');
+  }
+  const userIndex = friendUser.friends.findIndex(
+    f => normalizeEmail(f.email) === normalizedSelf
+  );
   if (userIndex !== -1) {
     friendUser.friends.splice(userIndex, 1);
   }
@@ -271,7 +310,8 @@ userSchema.methods.removeFriend = async function(friendEmail) {
 };
 
 userSchema.methods.isFriendWith = function(email) {
-  return this.friends.some(f => f.email === email);
+  const normalized = normalizeEmail(email);
+  return this.friends.some(f => normalizeEmail(f.email) === normalized);
 };
 
 module.exports = mongoose.model('User', userSchema);

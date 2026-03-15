@@ -159,9 +159,12 @@ const OtpVerification = ({
           <p className="auth-subtitle">
             We've sent a verification code to <strong>{email}</strong>
           </p>
-          <p className="auth-subtitle">
-            If you don't see it, check your Spam/Junk folder.
-          </p>
+          <div className="otp-warning">
+            <span className="warning-icon">⚠️</span>
+            <span>
+              If the OTP isn’t in your inbox, check <strong>Spam / Junk</strong>.
+            </span>
+          </div>
         </div>
         
         <form onSubmit={handleVerifyClick} className="auth-form">
@@ -181,10 +184,10 @@ const OtpVerification = ({
           
           <button 
             type="submit" 
-            className="auth-button"
+            className={`auth-button primary ${isVerifying ? 'is-loading' : ''}`}
             disabled={isVerifying || otp.length !== 6}
           >
-            {isVerifying ? 'Verifying...' : 'Verify OTP'}
+            {isVerifying ? <span className="button-loader-advanced">Processing</span> : 'Verify OTP'}
           </button>
         </form>
         

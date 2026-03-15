@@ -5,6 +5,8 @@ const Hackathon = require('../models/Hackathon');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { verifyToken } = require('../middleware/security');
 
+const normalizeEmail = (email) => (email || '').toLowerCase().trim();
+
 // Test endpoint
 router.get('/test', (req, res) => {
   console.log('✅ Users test endpoint hit');
@@ -36,14 +38,17 @@ const authMiddleware = (req, res, next) => {
 
 // Get user profile
 router.get('/profile/:userId?', authMiddleware, asyncHandler(async (req, res) => {
-  const targetEmail = req.params.userId || req.user.email;
-  const currentEmail = req.user.email;
+  const param = req.params.userId;
+  const currentEmail = normalizeEmail(req.user.email);
+  const targetEmail = normalizeEmail(param || req.user.email);
   const isOwnProfile = targetEmail === currentEmail;
 
   console.log('Profile request - targetEmail:', targetEmail, 'currentEmail:', currentEmail);
 
-  const user = await UserMongoDB.findOne({ email: targetEmail })
-    .select('-password');
+  let user = await UserMongoDB.findOne({ email: targetEmail }).select('-password');
+  if (!user && param && /^[0-9a-fA-F]{24}$/.test(param)) {
+    user = await UserMongoDB.findById(param).select('-password');
+  }
 
   console.log('Found user:', user ? { name: user.name, email: user.email } : 'null');
 
@@ -56,7 +61,7 @@ router.get('/profile/:userId?', authMiddleware, asyncHandler(async (req, res) =>
 
   // Check if current user can view this profile
   const currentUser = await UserMongoDB.findOne({ email: currentEmail });
-  const isFriend = currentUser.isFriendWith(targetEmail);
+  const isFriend = currentUser?.isFriendWith(targetEmail);
   const canViewProfile = isOwnProfile || user.profile.isPublic || isFriend;
 
   if (!canViewProfile) {
@@ -104,9 +109,9 @@ router.get('/profile/:userId?', authMiddleware, asyncHandler(async (req, res) =>
   let friendshipStatus = 'none';
   if (isFriend) {
     friendshipStatus = 'friends';
-  } else if (currentUser.friendRequests.sent.some(r => r.email === targetEmail)) {
+  } else if (currentUser.friendRequests.sent.some(r => normalizeEmail(r.email) === targetEmail)) {
     friendshipStatus = 'request_sent';
-  } else if (currentUser.friendRequests.received.some(r => r.email === targetEmail)) {
+  } else if (currentUser.friendRequests.received.some(r => normalizeEmail(r.email) === targetEmail)) {
     friendshipStatus = 'request_received';
   }
 
@@ -192,7 +197,18 @@ router.post('/friend-request', authMiddleware, asyncHandler(async (req, res) => 
     });
   }
 
-  const targetUser = await UserMongoDB.findOne({ email: email.toLowerCase().trim() });
+  const normalizedEmail = normalizeEmail(email);
+  const currentEmail = normalizeEmail(req.user.email);
+
+  if (normalizedEmail === currentEmail) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'Cannot send friend request to yourself' }
+    });
+  }
+  const targetUser = await UserMongoDB.findOne({
+    email: { $regex: new RegExp('^' + normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') }
+  });
   if (!targetUser) {
     return res.status(404).json({
       success: false,
@@ -200,7 +216,7 @@ router.post('/friend-request', authMiddleware, asyncHandler(async (req, res) => 
     });
   }
 
-  const currentUser = await UserMongoDB.findOne({ email: req.user.email });
+  const currentUser = await UserMongoDB.findOne({ email: currentEmail });
 
   try {
     await currentUser.sendFriendRequest(targetUser.email);
@@ -278,12 +294,13 @@ router.delete('/friend/:userId', authMiddleware, asyncHandler(async (req, res) =
 
 // Get friends list
 router.get('/friends', authMiddleware, asyncHandler(async (req, res) => {
-  const user = await UserMongoDB.findOne({ email: req.user.email })
+  const currentEmail = normalizeEmail(req.user.email);
+  const user = await UserMongoDB.findOne({ email: currentEmail })
     .select('friends friendRequests');
 
-  const friendEmails = user.friends.map(f => f.email);
-  const sentEmails = user.friendRequests.sent.map(r => r.email);
-  const receivedEmails = user.friendRequests.received.map(r => r.email);
+  const friendEmails = user.friends.map(f => normalizeEmail(f.email));
+  const sentEmails = user.friendRequests.sent.map(r => normalizeEmail(r.email));
+  const receivedEmails = user.friendRequests.received.map(r => normalizeEmail(r.email));
   const allEmails = [...new Set([...friendEmails, ...sentEmails, ...receivedEmails])];
 
   const users = await UserMongoDB.find({ email: { $in: allEmails } })
@@ -293,15 +310,16 @@ router.get('/friends', authMiddleware, asyncHandler(async (req, res) => {
 
   const userHackathons = await Hackathon.find({
     $or: [
-      { email: req.user.email.toLowerCase() },
-      { 'teamMembers.email': req.user.email.toLowerCase() }
+      { email: currentEmail },
+      { 'teamMembers.email': currentEmail }
     ]
   }).select('name platform date teamMembers email');
 
   const getSharedHackathons = (friendEmail) => {
+    const normalizedFriend = normalizeEmail(friendEmail);
     return userHackathons.filter(h => {
-      if (h.email && h.email.toLowerCase() === friendEmail.toLowerCase()) return true;
-      return (h.teamMembers || []).some(m => m.email?.toLowerCase() === friendEmail.toLowerCase());
+      if (h.email && normalizeEmail(h.email) === normalizedFriend) return true;
+      return (h.teamMembers || []).some(m => normalizeEmail(m.email) === normalizedFriend);
     }).map(h => ({
       name: h.name,
       platform: h.platform,
@@ -340,9 +358,13 @@ router.get('/search', authMiddleware, asyncHandler(async (req, res) => {
     });
   }
 
+  const normalizedEmail = normalizeEmail(email);
+  const currentEmail = normalizeEmail(req.user.email);
   const user = await UserMongoDB.findOne({
-    email: email.toLowerCase().trim(),
-    email: { $ne: req.user.email } // Exclude current user
+    $and: [
+      { email: normalizedEmail },
+      { email: { $ne: currentEmail } }
+    ]
   }).select('name email profile.avatar');
 
   if (!user) {

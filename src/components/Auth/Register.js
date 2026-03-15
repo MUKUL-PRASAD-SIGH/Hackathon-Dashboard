@@ -184,6 +184,12 @@ const Register = () => {
                   {showConfirmPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                 </button>
               </div>
+              {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                <div className="field-error">Passwords do not match</div>
+              )}
+              {formData.confirmPassword && formData.password === formData.confirmPassword && (
+                <div className="success-message">Passwords match</div>
+              )}
             </div>
           </>
         ) : (
@@ -191,7 +197,12 @@ const Register = () => {
             <div className="form-group">
               <label htmlFor="otp">Enter OTP</label>
               <p className="otp-instructions">We've sent a 6-digit verification code to {formData.email}</p>
-              <p className="otp-instructions">If you don't see it, check your Spam/Junk folder.</p>
+              <div className="otp-warning">
+                <span className="warning-icon">⚠️</span>
+                <span>
+                  If the OTP isn’t in your inbox, check <strong>Spam / Junk</strong>.
+                </span>
+              </div>
               <input
                 type="text"
                 id="otp"
@@ -217,10 +228,10 @@ const Register = () => {
         <div className="form-actions">
           <button 
             type="submit" 
-            className="btn btn-primary" 
+            className={`btn btn-primary ${isLoading ? 'is-loading' : ''}`} 
             disabled={isLoading}
           >
-            {isLoading ? 'Processing...' : registrationStep === 1 ? 'Send OTP' : 'Create Account'}
+            {isLoading ? <span className="button-loader-advanced">Processing</span> : registrationStep === 1 ? 'Send OTP' : 'Create Account'}
           </button>
         </div>
 

@@ -22,6 +22,7 @@ const RegisterWithOtp = () => {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordMatch, setPasswordMatch] = useState(null);
   const navigate = useNavigate();
 
   // Initialize debugging
@@ -82,6 +83,16 @@ const RegisterWithOtp = () => {
       [name]: value
     }));
     
+    if (name === 'password' || name === 'confirmPassword') {
+      const nextPassword = name === 'password' ? value : formData.password;
+      const nextConfirm = name === 'confirmPassword' ? value : formData.confirmPassword;
+      if (nextConfirm.length > 0) {
+        setPasswordMatch(nextPassword === nextConfirm);
+      } else {
+        setPasswordMatch(null);
+      }
+    }
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
@@ -359,15 +370,21 @@ const RegisterWithOtp = () => {
                 {showConfirmPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
               </button>
             </div>
+            {passwordMatch === false && (
+              <div className="field-error">Passwords do not match</div>
+            )}
+            {passwordMatch === true && (
+              <div className="success-message">Passwords match</div>
+            )}
             {errors.confirmPassword && <div className="field-error">{errors.confirmPassword}</div>}
           </div>
           
-          <button 
-            type="submit" 
-            className="auth-button"
+          <button
+            type="submit"
+            className={`auth-button primary ${isLoading ? 'is-loading' : ''}`}
             disabled={isLoading}
           >
-            {isLoading ? 'Sending OTP...' : 'Send OTP'}
+            {isLoading ? <span className="button-loader-advanced">Processing</span> : 'Send OTP'}
           </button>
         </form>
         

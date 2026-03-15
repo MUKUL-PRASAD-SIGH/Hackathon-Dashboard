@@ -20,6 +20,109 @@
   color: rgba(214, 234, 255, 0.75);
 }
 
+.friends-actions {
+  background: rgba(8, 12, 22, 0.9);
+  border: 1px solid rgba(0, 255, 255, 0.16);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.friends-add-form {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.friends-add-input {
+  flex: 1;
+  min-width: 220px;
+  background: rgba(0, 255, 255, 0.08);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  color: #eaf6ff;
+}
+
+.friends-add-btn {
+  background: linear-gradient(135deg, #00ffff, #0088aa);
+  color: #001018;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7rem 1rem;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.friends-action-message {
+  margin-top: 0.75rem;
+  color: rgba(214, 234, 255, 0.8);
+  font-size: 0.85rem;
+}
+
+.friends-requests {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: rgba(8, 12, 22, 0.9);
+  border: 1px solid rgba(191, 0, 255, 0.2);
+  border-radius: 12px;
+}
+
+.friends-requests h3 {
+  margin: 0 0 0.75rem;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(191, 0, 255, 0.8);
+}
+
+.friends-request-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  background: rgba(191, 0, 255, 0.08);
+  border: 1px solid rgba(191, 0, 255, 0.2);
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+  color: #eaf6ff;
+}
+
+.friends-request-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.friends-accept,
+.friends-reject {
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Orbitron', monospace;
+  text-transform: uppercase;
+}
+
+.friends-accept {
+  background: rgba(0, 255, 136, 0.2);
+  color: #00ff88;
+  border: 1px solid rgba(0, 255, 136, 0.4);
+}
+
+.friends-reject {
+  background: rgba(255, 51, 102, 0.2);
+  color: #ff7fa1;
+  border: 1px solid rgba(255, 51, 102, 0.4);
+}
+
 .friends-loading,
 .friends-empty,
 .friends-error {
