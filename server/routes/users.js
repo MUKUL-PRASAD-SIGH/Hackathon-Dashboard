@@ -1,11 +1,32 @@
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 const router = express.Router();
 const UserMongoDB = require('../models/UserMongoDB');
+const DirectMessage = require('../models/DirectMessage');
 const Hackathon = require('../models/Hackathon');
+const ChatPresence = require('../models/ChatPresence');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { verifyToken } = require('../middleware/security');
+const { ensureDir, addFile } = require('../utils/tempFileStore');
 
 const normalizeEmail = (email) => (email || '').toLowerCase().trim();
+
+const uploadDir = path.join(__dirname, '..', 'temp-uploads');
+ensureDir(uploadDir);
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadDir),
+    filename: (req, file, cb) => {
+      const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const unique = `${Date.now()}_${Math.round(Math.random() * 1e9)}_${safeName}`;
+      cb(null, unique);
+    }
+  }),
+  limits: { fileSize: 1 * 1024 * 1024 }
+});
 
 // Test endpoint
 router.get('/test', (req, res) => {
@@ -34,6 +55,37 @@ const authMiddleware = (req, res, next) => {
   } catch (error) {
     return res.status(401).json({ success: false, error: { message: 'Invalid or expired token' } });
   }
+};
+
+const requireFriendship = async (currentEmail, friendEmail) => {
+  const normalizedCurrent = normalizeEmail(currentEmail);
+  const normalizedFriend = normalizeEmail(friendEmail);
+
+  const currentUser = await UserMongoDB.findOne({ email: normalizedCurrent })
+    .select('friends name email');
+
+  if (!currentUser) {
+    return { error: { status: 404, message: 'User not found' } };
+  }
+
+  const isFriend = currentUser.friends.some(f => normalizeEmail(f.email) === normalizedFriend);
+  if (!isFriend) {
+    return { error: { status: 403, message: 'You can only message friends' } };
+  }
+
+  const friendUser = await UserMongoDB.findOne({ email: normalizedFriend })
+    .select('name email');
+
+  if (!friendUser) {
+    return { error: { status: 404, message: 'Friend not found' } };
+  }
+
+  return { currentUser, friendUser };
+};
+
+const getDmKey = (idA, idB) => {
+  const parts = [String(idA), String(idB)].sort();
+  return `dm:${parts.join(':')}`;
 };
 
 // Get user profile
@@ -344,6 +396,205 @@ router.get('/friends', authMiddleware, asyncHandler(async (req, res) => {
       user: userMap.get(r.email) || null,
       sharedHackathons: getSharedHackathons(r.email)
     }))
+  });
+}));
+
+// Get direct messages with a friend
+router.get('/dm/:email', authMiddleware, asyncHandler(async (req, res) => {
+  const friendEmail = req.params.email;
+  if (!friendEmail) {
+    return res.status(400).json({ success: false, error: { message: 'Friend email is required' } });
+  }
+
+  const friendship = await requireFriendship(req.user.email, friendEmail);
+  if (friendship.error) {
+    return res.status(friendship.error.status).json({
+      success: false,
+      error: { message: friendship.error.message }
+    });
+  }
+  const { currentUser, friendUser } = friendship;
+
+  const chatKey = getDmKey(currentUser._id, friendUser._id);
+  await ChatPresence.findOneAndUpdate(
+    { chatKey, userId: currentUser._id },
+    { lastSeenAt: new Date() },
+    { upsert: true, new: true }
+  );
+
+  await DirectMessage.updateMany(
+    {
+      participants: { $all: [currentUser._id, friendUser._id] },
+      sender: { $ne: currentUser._id },
+      seenBy: { $ne: currentUser._id }
+    },
+    { $addToSet: { seenBy: currentUser._id } }
+  );
+
+  const messages = await DirectMessage.find({
+    $or: [
+      { sender: currentUser._id, recipient: friendUser._id },
+      { sender: friendUser._id, recipient: currentUser._id }
+    ]
+  })
+    .sort({ createdAt: 1 })
+    .limit(500)
+    .populate('sender', 'name email')
+    .populate('recipient', 'name email')
+    .populate('seenBy', 'name email');
+
+  res.json({
+    success: true,
+    friend: { name: friendUser.name, email: friendUser.email },
+    messages: messages.map(m => ({
+      id: m._id,
+      content: m.content,
+      messageType: m.messageType,
+      metadata: m.metadata || null,
+      sender: m.sender ? { name: m.sender.name, email: m.sender.email } : null,
+      recipient: m.recipient ? { name: m.recipient.name, email: m.recipient.email } : null,
+      createdAt: m.createdAt,
+      seenBy: (m.seenBy || []).map(u => ({
+        name: u.name,
+        email: u.email
+      }))
+    })),
+    presence: await (async () => {
+      const presenceDocs = await ChatPresence.find({
+        chatKey,
+        userId: { $in: [currentUser._id, friendUser._id] }
+      }).select('userId lastSeenAt');
+
+      const presenceMap = new Map(presenceDocs.map(p => [String(p.userId), p.lastSeenAt]));
+      return [
+        { name: currentUser.name, email: currentUser.email, lastSeenAt: presenceMap.get(String(currentUser._id)) || null },
+        { name: friendUser.name, email: friendUser.email, lastSeenAt: presenceMap.get(String(friendUser._id)) || null }
+      ];
+    })()
+  });
+}));
+
+// Send direct message to a friend
+router.post('/dm/:email', authMiddleware, asyncHandler(async (req, res) => {
+  const friendEmail = req.params.email;
+  const content = (req.body?.content || '').trim();
+
+  if (!friendEmail) {
+    return res.status(400).json({ success: false, error: { message: 'Friend email is required' } });
+  }
+  if (!content) {
+    return res.status(400).json({ success: false, error: { message: 'Message cannot be empty' } });
+  }
+
+  const friendship = await requireFriendship(req.user.email, friendEmail);
+  if (friendship.error) {
+    return res.status(friendship.error.status).json({
+      success: false,
+      error: { message: friendship.error.message }
+    });
+  }
+  const { currentUser, friendUser } = friendship;
+
+  const newMessage = await DirectMessage.create({
+    participants: [currentUser._id, friendUser._id],
+    sender: currentUser._id,
+    recipient: friendUser._id,
+    content,
+    messageType: 'text',
+    seenBy: [currentUser._id]
+  });
+
+  await newMessage.populate('sender', 'name email');
+  await newMessage.populate('recipient', 'name email');
+
+  const chatKey = getDmKey(currentUser._id, friendUser._id);
+  await ChatPresence.findOneAndUpdate(
+    { chatKey, userId: currentUser._id },
+    { lastSeenAt: new Date() },
+    { upsert: true, new: true }
+  );
+
+  res.status(201).json({
+    success: true,
+    message: {
+      id: newMessage._id,
+      content: newMessage.content,
+      messageType: newMessage.messageType,
+      metadata: newMessage.metadata || null,
+      sender: newMessage.sender ? { name: newMessage.sender.name, email: newMessage.sender.email } : null,
+      recipient: newMessage.recipient ? { name: newMessage.recipient.name, email: newMessage.recipient.email } : null,
+      createdAt: newMessage.createdAt,
+      seenBy: [{ name: newMessage.sender.name, email: newMessage.sender.email }]
+    }
+  });
+}));
+
+// Send file via direct message (max 1MB, expires in 6 hours)
+router.post('/dm/:email/file', authMiddleware, upload.single('file'), asyncHandler(async (req, res) => {
+  const friendEmail = req.params.email;
+
+  if (!req.file) {
+    return res.status(400).json({ success: false, error: { message: 'File is required (max 1MB)' } });
+  }
+
+  const friendship = await requireFriendship(req.user.email, friendEmail);
+  if (friendship.error) {
+    fs.unlinkSync(req.file.path);
+    return res.status(friendship.error.status).json({
+      success: false,
+      error: { message: friendship.error.message }
+    });
+  }
+  const { currentUser, friendUser } = friendship;
+
+  const { token, expiresAt } = addFile({
+    filePath: req.file.path,
+    originalName: req.file.originalname,
+    mimeType: req.file.mimetype,
+    size: req.file.size,
+    allowedUserIds: [currentUser._id, friendUser._id]
+  });
+
+  const fileUrl = `/api/files/${token}`;
+
+  const newMessage = await DirectMessage.create({
+    participants: [currentUser._id, friendUser._id],
+    sender: currentUser._id,
+    recipient: friendUser._id,
+    content: req.file.originalname,
+    messageType: 'file',
+    metadata: {
+      fileName: req.file.originalname,
+      fileSize: req.file.size,
+      fileType: req.file.mimetype,
+      fileUrl,
+      expiresAt
+    },
+    seenBy: [currentUser._id]
+  });
+
+  await newMessage.populate('sender', 'name email');
+  await newMessage.populate('recipient', 'name email');
+
+  const chatKey = getDmKey(currentUser._id, friendUser._id);
+  await ChatPresence.findOneAndUpdate(
+    { chatKey, userId: currentUser._id },
+    { lastSeenAt: new Date() },
+    { upsert: true, new: true }
+  );
+
+  res.status(201).json({
+    success: true,
+    message: {
+      id: newMessage._id,
+      content: newMessage.content,
+      messageType: newMessage.messageType,
+      metadata: newMessage.metadata || null,
+      sender: newMessage.sender ? { name: newMessage.sender.name, email: newMessage.sender.email } : null,
+      recipient: newMessage.recipient ? { name: newMessage.recipient.name, email: newMessage.recipient.email } : null,
+      createdAt: newMessage.createdAt,
+      seenBy: [{ name: newMessage.sender.name, email: newMessage.sender.email }]
+    }
   });
 }));
 

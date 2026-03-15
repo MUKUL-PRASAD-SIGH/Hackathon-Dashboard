@@ -38,6 +38,7 @@ const hackathonRoutes = require('./routes/hackathons');
 const usersRoutes = require('./routes/users');
 const Hackathon = require('./models/Hackathon');
 const ideaVotingRoutes = require('./routes/ideaVoting');
+const fileRoutes = require('./routes/files');
 
 // Import middleware
 const { errorHandler, asyncHandler } = require('./middleware/errorHandler');
@@ -212,6 +213,45 @@ io.on('connection', (socket) => {
       });
     } catch (error) {
       console.error(`❌ Error handling typing indicator:`, error);
+    }
+  });
+
+  // Join direct message room
+  socket.on('joinDm', ({ dmKey }) => {
+    try {
+      if (!dmKey) return;
+      socket.join(`dm_${dmKey}`);
+      socket.emit('dmJoined', { dmKey });
+    } catch (error) {
+      console.error(`❌ Error joining DM ${dmKey}:`, error);
+      socket.emit('error', { message: 'Failed to join DM' });
+    }
+  });
+
+  // Leave direct message room
+  socket.on('leaveDm', ({ dmKey }) => {
+    try {
+      if (!dmKey) return;
+      socket.leave(`dm_${dmKey}`);
+      socket.emit('dmLeft', { dmKey });
+    } catch (error) {
+      console.error(`❌ Error leaving DM ${dmKey}:`, error);
+    }
+  });
+
+  // DM typing indicator
+  socket.on('dmTyping', ({ dmKey, isTyping }) => {
+    try {
+      if (!dmKey) return;
+      socket.to(`dm_${dmKey}`).emit('dmTyping', {
+        userId: socket.userId,
+        userName,
+        userEmail: socket.userEmail,
+        isTyping,
+        timestamp: Date.now()
+      });
+    } catch (error) {
+      console.error(`❌ Error handling DM typing indicator:`, error);
     }
   });
 
@@ -966,6 +1006,10 @@ console.log('✅ Hackathon routes loaded successfully');
 console.log('👤 Loading users routes at /api/users/*');
 app.use('/api/users', usersRoutes);
 console.log('✅ Users routes loaded successfully');
+
+console.log('📎 Loading file routes at /api/files/*');
+app.use('/api/files', fileRoutes);
+console.log('✅ File routes loaded successfully');
 
 // 🧪 DIRECT TEST ROUTE - Public hackathons
 app.get('/api/hackathons/public', asyncHandler(async (req, res) => {

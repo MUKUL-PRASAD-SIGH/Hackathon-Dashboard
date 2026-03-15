@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { fetchIdeas, submitIdea, voteIdea } from '../../utils/ideaVotingApi';
+import { fetchIdeas, submitIdea, voteIdea, fetchIdeaResults } from '../../utils/ideaVotingApi';
 import './IdeaVoting.css';
 
-const IdeaVotingCard = ({ hackathonId }) => {
-  const [expanded, setExpanded] = useState(false);
+const IdeaVotingCard = ({ hackathonId, initialExpanded = false, showToggle = true }) => {
+  const [expanded, setExpanded] = useState(initialExpanded);
   const [ideas, setIdeas] = useState([]);
   const [votesUsed, setVotesUsed] = useState(0);
   const [maxVotes, setMaxVotes] = useState(2);
@@ -12,19 +12,25 @@ const IdeaVotingCard = ({ hackathonId }) => {
   const [votingId, setVotingId] = useState(null);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ title: '', description: '' });
+  const [resultsVisible, setResultsVisible] = useState(false);
+  const [results, setResults] = useState(null);
+  const [calculating, setCalculating] = useState(false);
 
   const totalPoints = useMemo(
-    () => ideas.reduce((sum, idea) => sum + (idea.voteScore || 0), 0),
-    [ideas]
+    () => (results?.totalPoints ?? ideas.reduce((sum, idea) => sum + (idea.voteScore || 0), 0)),
+    [ideas, results]
   );
   const topIdeas = useMemo(() => {
-    const sorted = [...ideas].sort((a, b) => (b.voteScore || 0) - (a.voteScore || 0));
+    const source = results?.ideas || ideas;
+    const sorted = [...source].sort((a, b) => (b.voteScore || 0) - (a.voteScore || 0));
     return sorted.slice(0, 3);
-  }, [ideas]);
+  }, [ideas, results]);
 
   const loadIdeas = async () => {
     setLoading(true);
     setError('');
+    setResults(null);
+    setResultsVisible(false);
     try {
       const data = await fetchIdeas(hackathonId);
       setIdeas(data.ideas || []);
@@ -37,9 +43,11 @@ const IdeaVotingCard = ({ hackathonId }) => {
     }
   };
 
+  const isExpanded = showToggle ? expanded : true;
+
   useEffect(() => {
-    if (expanded) loadIdeas();
-  }, [expanded, hackathonId]);
+    if (isExpanded) loadIdeas();
+  }, [isExpanded, hackathonId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -76,21 +84,37 @@ const IdeaVotingCard = ({ hackathonId }) => {
     }
   };
 
+  const handleCalculateResults = async () => {
+    setCalculating(true);
+    setError('');
+    try {
+      const data = await fetchIdeaResults(hackathonId);
+      setResults(data);
+      setResultsVisible(true);
+    } catch (err) {
+      setError(err.message || 'Failed to calculate results');
+    } finally {
+      setCalculating(false);
+    }
+  };
+
   return (
     <div className="idea-voting-card">
-      <button
-        type="button"
-        className="idea-voting-toggle"
-        onClick={() => setExpanded((prev) => !prev)}
-      >
-        <span className="idea-voting-title">🧠 Anonymous Idea Voting</span>
-        <span className="idea-voting-meta">
-          Votes: {votesUsed}/{maxVotes}
-        </span>
-        <span className={`idea-voting-chevron ${expanded ? 'open' : ''}`}>▾</span>
-      </button>
+      {showToggle && (
+        <button
+          type="button"
+          className="idea-voting-toggle"
+          onClick={() => setExpanded((prev) => !prev)}
+        >
+          <span className="idea-voting-title">🧠 Anonymous Idea Voting</span>
+          <span className="idea-voting-meta">
+            Votes: {votesUsed}/{maxVotes}
+          </span>
+          <span className={`idea-voting-chevron ${expanded ? 'open' : ''}`}>▾</span>
+        </button>
+      )}
 
-      {expanded && (
+      {isExpanded && (
         <div className="idea-voting-body">
           {error && <div className="idea-voting-error">⚠️ {error}</div>}
 
@@ -165,9 +189,23 @@ const IdeaVotingCard = ({ hackathonId }) => {
           <div className="idea-results">
             <div className="idea-results-header">
               <strong>Results</strong>
-              <span className="idea-muted">Total points: {totalPoints}</span>
+              <div className="idea-results-actions">
+                <button
+                  type="button"
+                  className="idea-results-btn"
+                  onClick={handleCalculateResults}
+                  disabled={calculating || ideas.length === 0}
+                >
+                  {calculating ? 'Calculating…' : 'Calculate Results'}
+                </button>
+                {resultsVisible && (
+                  <span className="idea-muted">Total points: {totalPoints}</span>
+                )}
+              </div>
             </div>
-            {ideas.length === 0 ? (
+            {!resultsVisible ? (
+              <p className="idea-muted">Run “Calculate Results” to see the winner.</p>
+            ) : (results?.ideas?.length || ideas.length) === 0 ? (
               <p className="idea-muted">No results yet.</p>
             ) : (
               <ol className="idea-results-list">

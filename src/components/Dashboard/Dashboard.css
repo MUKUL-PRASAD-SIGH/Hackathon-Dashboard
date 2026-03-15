@@ -326,6 +326,7 @@
   align-items: flex-start;
   margin-bottom: 1rem;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 .hackathon-info { flex: 1; }
 .hackathon-info h4 {
@@ -350,6 +351,7 @@
   border: 1px solid rgba(0,255,255,0.08);
   border-radius: 10px;
   padding: 0.75rem;
+  flex-wrap: wrap;
 }
 
 /* Status badges */
@@ -377,6 +379,14 @@
 }
 .status-update .form-select:focus { border-color: #00ffff; }
 .status-update .form-select option { background: #0a0a1a; }
+
+.hackathon-actions .action-buttons {
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
 
 .hackathon-remarks, .hackathon-notifications {
   margin-top: 1rem;

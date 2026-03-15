@@ -46,3 +46,14 @@ export const voteIdea = async (hackathonId, ideaId, rank) => {
   }
   return data;
 };
+
+export const fetchIdeaResults = async (hackathonId) => {
+  const response = await fetch(`${API}/hackathons/${hackathonId}/ideas/results`, {
+    headers: authHeaders()
+  });
+  const data = await response.json();
+  if (!response.ok || !data.success) {
+    throw new Error(data.error?.message || 'Failed to calculate results');
+  }
+  return data;
+};

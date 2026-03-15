@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import RoundRemarks from './RoundRemarks';
+import IdeaVotingCard from '../IdeaVoting/IdeaVotingCard';
 import './TeamPage.css';
 import { getApiUrl } from '../../utils/apiBase';
 
@@ -12,6 +13,7 @@ const TeamPage = () => {
   const [hackathon, setHackathon] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showVoting, setShowVoting] = useState(false);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
@@ -167,6 +169,13 @@ const TeamPage = () => {
             >
               💬 Open Team Chat
             </button>
+
+            <button
+              onClick={() => setShowVoting(true)}
+              className="vote-btn"
+            >
+              🗳️ Anonymous Voting
+            </button>
             
             <button 
               onClick={() => navigate(`/edit-hackathon/${id}`)}
@@ -177,6 +186,20 @@ const TeamPage = () => {
           </div>
         </div>
       </div>
+
+      {showVoting && (
+        <div className="vote-modal-overlay" onClick={() => setShowVoting(false)}>
+          <div className="vote-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="vote-modal-header">
+              <h2>Anonymous Idea Voting</h2>
+              <button className="vote-back-btn" onClick={() => setShowVoting(false)}>
+                ← Back
+              </button>
+            </div>
+            <IdeaVotingCard hackathonId={id} initialExpanded={true} showToggle={false} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

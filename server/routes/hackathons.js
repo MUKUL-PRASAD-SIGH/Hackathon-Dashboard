@@ -1,7 +1,67 @@
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 const router = express.Router();
 const Hackathon = require('../models/Hackathon');
+const Message = require('../models/Message');
+const UserMongoDB = require('../models/UserMongoDB');
+const ChatPresence = require('../models/ChatPresence');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { ensureDir, addFile, EXPIRY_MS } = require('../utils/tempFileStore');
+
+const normalizeEmail = (email) => (email || '').toLowerCase().trim();
+
+const findUserByEmail = async (email) => {
+  const normalized = normalizeEmail(email);
+  if (!normalized) return null;
+  return UserMongoDB.findOne({ email: normalized });
+};
+
+const getHackathonParticipants = async (hackathon) => {
+  const memberEmails = (hackathon.teamMembers || [])
+    .map(m => normalizeEmail(m.email))
+    .filter(Boolean);
+
+  const emails = new Set(memberEmails);
+  if (hackathon.email) {
+    emails.add(normalizeEmail(hackathon.email));
+  }
+
+  const users = await UserMongoDB.find({ email: { $in: [...emails] } })
+    .select('name email');
+
+  const usersByEmail = new Map(users.map(u => [normalizeEmail(u.email), u]));
+  const leader = hackathon.userId
+    ? await UserMongoDB.findById(hackathon.userId).select('name email')
+    : usersByEmail.get(normalizeEmail(hackathon.email));
+
+  const participantUsers = [];
+  if (leader) participantUsers.push(leader);
+  for (const email of memberEmails) {
+    const user = usersByEmail.get(email);
+    if (user && (!leader || String(user._id) !== String(leader._id))) {
+      participantUsers.push(user);
+    }
+  }
+
+  return participantUsers;
+};
+
+const uploadDir = path.join(__dirname, '..', 'temp-uploads');
+ensureDir(uploadDir);
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadDir),
+    filename: (req, file, cb) => {
+      const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const unique = `${Date.now()}_${Math.round(Math.random() * 1e9)}_${safeName}`;
+      cb(null, unique);
+    }
+  }),
+  limits: { fileSize: 1 * 1024 * 1024 }
+});
 
 // 🌍 PUBLIC ROUTE - Get public hackathons (NO AUTH REQUIRED)
 router.get('/public', asyncHandler(async (req, res) => {
@@ -913,16 +973,41 @@ router.get('/:id/messages', authMiddleware, asyncHandler(async (req, res) => {
     });
   }
 
-  // Get messages from MongoDB - use hackathon ID as chat room identifier
-  const Message = require('../models/Message');
+  const currentUser = await findUserByEmail(req.user.email);
+  if (!currentUser) {
+    return res.status(404).json({
+      success: false,
+      error: { message: 'User not found' }
+    });
+  }
+
+  const chatKey = `team:${req.params.id}`;
+  await ChatPresence.findOneAndUpdate(
+    { chatKey, userId: currentUser._id },
+    { lastSeenAt: new Date() },
+    { upsert: true, new: true }
+  );
+
+  await Message.updateMany(
+    {
+      hackathonWorldId: req.params.id,
+      teamId: req.params.id,
+      messageType: { $in: ['text', 'file'] },
+      sender: { $ne: currentUser._id },
+      seenBy: { $ne: currentUser._id }
+    },
+    { $addToSet: { seenBy: currentUser._id } }
+  );
+
   const messages = await Message.find({
     hackathonWorldId: req.params.id,
     teamId: req.params.id,
-    messageType: 'text'
+    messageType: { $in: ['text', 'file'] }
   })
     .populate('sender', 'name email')
+    .populate('seenBy', 'name email')
     .sort({ createdAt: 1 })
-    .limit(100);
+    .limit(200);
 
   console.log(`🔍 Query: hackathonWorldId=${req.params.id}, teamId=${req.params.id}`);
 
@@ -934,9 +1019,30 @@ router.get('/:id/messages', authMiddleware, asyncHandler(async (req, res) => {
     messages: messages.map(msg => ({
       id: msg._id,
       sender: msg.sender?.name || 'Unknown',
+      senderEmail: msg.sender?.email || '',
       content: msg.content,
-      timestamp: msg.createdAt
-    }))
+      timestamp: msg.createdAt,
+      messageType: msg.messageType,
+      metadata: msg.metadata || null,
+      seenBy: (msg.seenBy || []).map(u => ({
+        name: u.name,
+        email: u.email
+      }))
+    })),
+    presence: await (async () => {
+      const participants = await getHackathonParticipants(hackathon);
+      const presenceDocs = await ChatPresence.find({
+        chatKey,
+        userId: { $in: participants.map(p => p._id) }
+      }).select('userId lastSeenAt');
+
+      const presenceMap = new Map(presenceDocs.map(p => [String(p.userId), p.lastSeenAt]));
+      return participants.map(p => ({
+        name: p.name,
+        email: p.email,
+        lastSeenAt: presenceMap.get(String(p._id)) || null
+      }));
+    })()
   });
 }));
 
@@ -975,23 +1081,10 @@ router.post('/:id/messages', authMiddleware, asyncHandler(async (req, res) => {
     });
   }
 
-  // Save message to MongoDB
-  const Message = require('../models/Message');
-  const UserMongoDB = require('../models/UserMongoDB');
-
   console.log(`🔍 Looking up user with email: "${req.user.email}"`);
   console.log(`🔍 User object from token:`, req.user);
 
-  // Try exact match first
-  let sender = await UserMongoDB.findOne({ email: req.user.email });
-
-  // If not found, try case insensitive
-  if (!sender) {
-    console.log(`⚠️ Exact match failed, trying case insensitive...`);
-    sender = await UserMongoDB.findOne({
-      email: { $regex: new RegExp('^' + req.user.email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') }
-    });
-  }
+  let sender = await findUserByEmail(req.user.email);
 
   // If still not found, log error
   if (!sender) {
@@ -1020,7 +1113,8 @@ router.post('/:id/messages', authMiddleware, asyncHandler(async (req, res) => {
     sender: sender._id,
     hackathonWorldId: req.params.id,
     teamId: req.params.id,
-    messageType: 'text'
+    messageType: 'text',
+    seenBy: [sender._id]
   });
 
   console.log(`💬 Creating message with hackathonWorldId: ${req.params.id}, teamId: ${req.params.id}`);
@@ -1036,14 +1130,111 @@ router.post('/:id/messages', authMiddleware, asyncHandler(async (req, res) => {
   const savedMessage = await Message.findById(newMessage._id);
   console.log(`💬 Verification - Message exists in DB: ${!!savedMessage}`);
 
+  const chatKey = `team:${req.params.id}`;
+  await ChatPresence.findOneAndUpdate(
+    { chatKey, userId: sender._id },
+    { lastSeenAt: new Date() },
+    { upsert: true, new: true }
+  );
+
   res.json({
     success: true,
     message: 'Message sent successfully',
     data: {
       id: newMessage._id,
       sender: newMessage.sender.name,
+      senderEmail: newMessage.sender.email,
       content: newMessage.content,
-      timestamp: newMessage.createdAt
+      timestamp: newMessage.createdAt,
+      messageType: newMessage.messageType,
+      metadata: newMessage.metadata || null,
+      seenBy: [{ name: newMessage.sender.name, email: newMessage.sender.email }]
+    }
+  });
+}));
+
+// Upload file to team chat (max 1MB, expires in 6 hours)
+router.post('/:id/messages/file', authMiddleware, upload.single('file'), asyncHandler(async (req, res) => {
+  console.log(`📎 POST /api/hackathons/${req.params.id}/messages/file`);
+
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'File is required (max 1MB)' }
+    });
+  }
+
+  const hackathon = await Hackathon.findById(req.params.id);
+  if (!hackathon) {
+    fs.unlinkSync(req.file.path);
+    return res.status(404).json({ success: false, error: { message: 'Hackathon not found' } });
+  }
+
+  const isTeamLeader = hackathon.email.toLowerCase() === req.user.email.toLowerCase();
+  const isTeamMember = hackathon.teamMembers.some(m => m.email.toLowerCase() === req.user.email.toLowerCase());
+
+  if (!isTeamLeader && !isTeamMember) {
+    fs.unlinkSync(req.file.path);
+    return res.status(403).json({ success: false, error: { message: 'Access denied. Only team members can send files.' } });
+  }
+
+  const sender = await findUserByEmail(req.user.email);
+  if (!sender) {
+    fs.unlinkSync(req.file.path);
+    return res.status(404).json({ success: false, error: { message: 'User not found' } });
+  }
+
+  const participants = await getHackathonParticipants(hackathon);
+  const allowedUserIds = participants.map(p => p._id);
+
+  const { token, expiresAt } = addFile({
+    filePath: req.file.path,
+    originalName: req.file.originalname,
+    mimeType: req.file.mimetype,
+    size: req.file.size,
+    allowedUserIds
+  });
+
+  const fileUrl = `/api/files/${token}`;
+
+  const newMessage = new Message({
+    content: req.file.originalname,
+    sender: sender._id,
+    hackathonWorldId: req.params.id,
+    teamId: req.params.id,
+    messageType: 'file',
+    metadata: {
+      fileName: req.file.originalname,
+      fileSize: req.file.size,
+      fileType: req.file.mimetype,
+      fileUrl,
+      expiresAt
+    },
+    seenBy: [sender._id]
+  });
+
+  await newMessage.save();
+  await newMessage.populate('sender', 'name email');
+
+  const chatKey = `team:${req.params.id}`;
+  await ChatPresence.findOneAndUpdate(
+    { chatKey, userId: sender._id },
+    { lastSeenAt: new Date() },
+    { upsert: true, new: true }
+  );
+
+  res.json({
+    success: true,
+    message: 'File sent successfully',
+    data: {
+      id: newMessage._id,
+      sender: newMessage.sender.name,
+      senderEmail: newMessage.sender.email,
+      content: newMessage.content,
+      timestamp: newMessage.createdAt,
+      messageType: newMessage.messageType,
+      metadata: newMessage.metadata || null,
+      seenBy: [{ name: newMessage.sender.name, email: newMessage.sender.email }]
     }
   });
 }));

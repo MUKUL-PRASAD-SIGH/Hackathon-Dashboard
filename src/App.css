@@ -111,30 +111,32 @@
 .form-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: rgba(0, 255, 255, 0.04);
-  border: 1px solid var(--cyber-border);
+  background: rgba(8, 16, 30, 0.9);
+  border: 1px solid var(--cyber-border-bright);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: #f5f9ff;
   font-size: 0.95rem;
   transition: border-color 0.2s, box-shadow 0.2s;
   outline: none;
+  caret-color: var(--neon-cyan);
 }
 .form-input:focus {
   border-color: var(--neon-cyan);
   box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.1);
 }
-.form-input::placeholder { color: var(--text-muted); }
+.form-input::placeholder { color: rgba(214, 234, 255, 0.55); }
 
 .form-select {
   width: 100%;
   padding: 0.75rem 1rem;
-  background: rgba(0, 255, 255, 0.04);
-  border: 1px solid var(--cyber-border);
+  background: rgba(8, 16, 30, 0.9);
+  border: 1px solid var(--cyber-border-bright);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: #f5f9ff;
   font-size: 0.95rem;
   cursor: pointer;
   outline: none;
+  caret-color: var(--neon-cyan);
 }
 .form-select:focus { border-color: var(--neon-cyan); }
 .form-select option { background: #0a0a1a; }

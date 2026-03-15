@@ -33,6 +33,7 @@ const messageSchema = new mongoose.Schema({
     fileSize: Number,
     fileType: String,
     fileUrl: String,
+    expiresAt: Date,
     
     // For system messages
     systemAction: String,
@@ -71,6 +72,11 @@ const messageSchema = new mongoose.Schema({
       default: Date.now
     }
   }]
+  ,
+  seenBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }]
 }, {
   timestamps: true
 });
@@ -80,6 +86,7 @@ messageSchema.index({ hackathonWorldId: 1, createdAt: -1 });
 messageSchema.index({ teamId: 1, createdAt: -1 });
 messageSchema.index({ sender: 1, createdAt: -1 });
 messageSchema.index({ messageType: 1 });
+messageSchema.index({ seenBy: 1 });
 
 // Virtual for chat room identifier
 messageSchema.virtual('chatRoom').get(function() {

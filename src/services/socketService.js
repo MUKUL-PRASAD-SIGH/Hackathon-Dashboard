@@ -146,6 +146,20 @@ class SocketService {
     }
   }
 
+  // Join DM room
+  joinDm(dmKey) {
+    if (this.isSocketConnected() && dmKey) {
+      this.socket.emit('joinDm', { dmKey });
+    }
+  }
+
+  // Leave DM room
+  leaveDm(dmKey) {
+    if (this.isSocketConnected() && dmKey) {
+      this.socket.emit('leaveDm', { dmKey });
+    }
+  }
+
   // Leave hackathon world room
   leaveWorld(hackathonWorldId) {
     if (this.isSocketConnected()) {
@@ -172,6 +186,17 @@ class SocketService {
       this.socket.emit('typing', {
         hackathonWorldId,
         teamId,
+        isTyping,
+        timestamp: Date.now()
+      });
+    }
+  }
+
+  // Send DM typing indicator
+  setDmTyping(dmKey, isTyping) {
+    if (this.isSocketConnected() && dmKey) {
+      this.socket.emit('dmTyping', {
+        dmKey,
         isTyping,
         timestamp: Date.now()
       });

@@ -190,6 +190,30 @@
   color: rgba(122, 138, 176, 0.7);
 }
 
+.idea-results-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.idea-results-btn {
+  background: rgba(0, 255, 255, 0.14);
+  border: 1px solid rgba(0, 255, 255, 0.35);
+  color: #00ffff;
+  font-size: 0.7rem;
+  border-radius: 6px;
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.idea-results-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .idea-results-list {
   margin: 0;
   padding-left: 1.2rem;

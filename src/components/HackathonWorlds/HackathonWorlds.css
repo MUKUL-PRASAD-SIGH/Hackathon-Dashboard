@@ -38,14 +38,15 @@
 .form-group input,
 .form-group select,
 .form-group textarea {
-  background: rgba(0, 255, 255, 0.04);
-  border: 1px solid var(--cyber-border);
+  background: rgba(8, 16, 30, 0.88);
+  border: 1px solid var(--cyber-border-bright);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: #f5f9ff;
   padding: 10px 14px;
   width: 100%;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
+  caret-color: var(--neon-cyan);
 }
 
 .search-input:focus,
@@ -221,12 +222,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
   margin-bottom: 12px;
 }
 
 .world-header h3 {
   color: var(--text-bright);
   font-size: 1.1rem;
+  flex: 1 1 200px;
+  min-width: 0;
 }
 
 .world-platform,
@@ -241,6 +246,7 @@
   letter-spacing: 0.08em;
   padding: 4px 8px;
   border-radius: 999px;
+  white-space: nowrap;
 }
 
 .world-platform {
@@ -498,6 +504,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .member-role {

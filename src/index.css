@@ -190,22 +190,23 @@ code { font-family: 'JetBrains Mono', 'Courier New', monospace; }
 
 /* ── Input ── */
 .cyber-input {
-  background: rgba(0, 255, 255, 0.04);
-  border: 1px solid var(--cyber-border);
+  background: rgba(8, 16, 30, 0.9);
+  border: 1px solid var(--cyber-border-bright);
   border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  color: #f5f9ff;
   font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
   padding: 0.75rem 1rem;
   width: 100%;
   transition: border-color 0.2s, box-shadow 0.2s;
   outline: none;
+  caret-color: var(--neon-cyan);
 }
 .cyber-input:focus {
   border-color: var(--neon-cyan);
   box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.1), 0 0 15px rgba(0, 255, 255, 0.15);
 }
-.cyber-input::placeholder { color: var(--text-muted); }
+.cyber-input::placeholder { color: rgba(214, 234, 255, 0.55); }
 
 /* ── Badge ── */
 .cyber-badge {
@@ -263,9 +264,11 @@ code { font-family: 'JetBrains Mono', 'Courier New', monospace; }
 input,
 select,
 textarea {
-  background-color: rgba(0, 255, 255, 0.04);
-  color: var(--text-primary);
-  border: 1px solid var(--cyber-border);
+  background-color: rgba(8, 16, 30, 0.85);
+  color: #f5f9ff;
+  border: 1px solid rgba(0, 255, 255, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(0, 255, 255, 0.08);
+  caret-color: var(--neon-cyan);
 }
 select option {
   background: #0a0a1a;

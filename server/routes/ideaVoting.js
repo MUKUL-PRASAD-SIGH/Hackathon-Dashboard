@@ -76,6 +76,50 @@ router.get('/:id/ideas', authenticateToken, async (req, res) => {
   }
 });
 
+// Get voting results for a hackathon (anonymous summary)
+router.get('/:id/ideas/results', authenticateToken, async (req, res) => {
+  try {
+    const hackathon = await ensureHackathon(req.params.id);
+    if (!hackathon) {
+      return res.status(404).json({ success: false, error: { message: 'Hackathon not found' } });
+    }
+
+    if (!isHackathonMember(hackathon, req.user?.email)) {
+      return res.status(403).json({ success: false, error: { message: 'Not a member of this hackathon' } });
+    }
+
+    const ideas = await Idea.find({ hackathonId: hackathon._id })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const results = ideas.map((idea) => ({
+      id: idea._id,
+      title: idea.title,
+      description: idea.description,
+      voteCount: (idea.votes || []).length,
+      voteScore: (idea.votes || []).reduce((sum, vote) => sum + (vote.points || 0), 0)
+    }));
+
+    const sorted = [...results].sort((a, b) => {
+      if ((b.voteScore || 0) !== (a.voteScore || 0)) return (b.voteScore || 0) - (a.voteScore || 0);
+      return (b.voteCount || 0) - (a.voteCount || 0);
+    });
+
+    const totalPoints = results.reduce((sum, idea) => sum + (idea.voteScore || 0), 0);
+    const winner = sorted[0] && (sorted[0].voteScore || 0) > 0 ? sorted[0] : null;
+
+    return res.json({
+      success: true,
+      totalPoints,
+      winner,
+      ideas: sorted
+    });
+  } catch (error) {
+    console.error('Idea results error:', error);
+    return res.status(500).json({ success: false, error: { message: 'Failed to calculate results' } });
+  }
+});
+
 // Submit a new idea (no per-user limit)
 router.post('/:id/ideas', authenticateToken, async (req, res) => {
   try {

@@ -37,11 +37,12 @@
 .friends-add-input {
   flex: 1;
   min-width: 220px;
-  background: rgba(0, 255, 255, 0.08);
-  border: 1px solid rgba(0, 255, 255, 0.2);
+  background: rgba(8, 16, 30, 0.9);
+  border: 1px solid rgba(0, 255, 255, 0.35);
   border-radius: 8px;
   padding: 0.7rem 0.9rem;
-  color: #eaf6ff;
+  color: #f5f9ff;
+  caret-color: #00ffff;
 }
 
 .friends-add-btn {
@@ -219,4 +220,238 @@
   margin-top: 0.35rem;
   color: rgba(214, 234, 255, 0.55);
   font-size: 0.72rem;
+}
+
+.friends-dm {
+  margin-top: 2rem;
+  background: rgba(8, 12, 22, 0.92);
+  border: 1px solid rgba(0, 255, 255, 0.16);
+  border-radius: 16px;
+  padding: 1.2rem;
+}
+
+.friends-dm-header h3 {
+  margin: 0 0 0.3rem 0;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #bffcff;
+}
+
+.friends-dm-header p {
+  margin: 0 0 1rem 0;
+  color: rgba(214, 234, 255, 0.65);
+  font-size: 0.8rem;
+}
+
+.friends-dm-grid {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 1rem;
+}
+
+.friends-dm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 0.2rem;
+}
+
+.friends-dm-item {
+  background: rgba(0, 255, 255, 0.06);
+  border: 1px solid rgba(0, 255, 255, 0.18);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  color: #eaf6ff;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.friends-dm-item.active,
+.friends-dm-item:hover {
+  border-color: rgba(0, 255, 255, 0.5);
+  box-shadow: 0 0 14px rgba(0, 255, 255, 0.2);
+}
+
+.friends-dm-name {
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.friends-dm-email {
+  display: block;
+  font-size: 0.7rem;
+  color: rgba(214, 234, 255, 0.6);
+}
+
+.friends-dm-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: rgba(5, 8, 18, 0.7);
+  border: 1px solid rgba(0, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0.9rem;
+}
+
+.friends-dm-presence {
+  font-size: 0.7rem;
+  color: rgba(214, 234, 255, 0.6);
+}
+
+.friends-dm-messages {
+  flex: 1;
+  max-height: 360px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.friends-dm-message {
+  background: rgba(0, 255, 255, 0.06);
+  border: 1px solid rgba(0, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 0.6rem 0.75rem;
+  max-width: 80%;
+}
+
+.friends-dm-message.own {
+  align-self: flex-end;
+  background: rgba(191, 0, 255, 0.16);
+  border-color: rgba(191, 0, 255, 0.4);
+}
+
+.friends-dm-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: rgba(214, 234, 255, 0.55);
+  margin-bottom: 0.35rem;
+}
+
+.friends-dm-content {
+  color: #eaf6ff;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.friends-dm-status {
+  margin-top: 0.3rem;
+  font-size: 0.7rem;
+  color: rgba(0, 255, 255, 0.7);
+}
+
+.friends-dm-file {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.friends-dm-file-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: rgba(214, 234, 255, 0.7);
+}
+
+.friends-dm-file-link {
+  color: #00ffff;
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.friends-dm-file-link:hover {
+  text-decoration: underline;
+}
+
+.friends-dm-form {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.friends-dm-input {
+  flex: 1;
+  background: rgba(0, 255, 255, 0.08);
+  border: 1px solid rgba(0, 255, 255, 0.25);
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  color: #eaf6ff;
+}
+
+.friends-dm-file-input {
+  display: none;
+}
+
+.friends-dm-attach {
+  background: rgba(0, 255, 255, 0.12);
+  border: 1px solid rgba(0, 255, 255, 0.35);
+  color: #bffcff;
+  border-radius: 10px;
+  padding: 0 0.9rem;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.friends-dm-attach:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.friends-dm-send {
+  background: linear-gradient(135deg, #00ffff, #0088aa);
+  color: #001018;
+  border: none;
+  border-radius: 10px;
+  padding: 0.7rem 1rem;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.friends-dm-send:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.friends-dm-error,
+.friends-dm-loading,
+.friends-dm-empty {
+  color: rgba(214, 234, 255, 0.7);
+  font-size: 0.85rem;
+}
+
+.friends-dm-typing {
+  font-size: 0.75rem;
+  color: rgba(214, 234, 255, 0.6);
+  padding-left: 0.2rem;
+}
+
+@media (max-width: 900px) {
+  .friends-dm-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .friends-dm-list {
+    max-height: 200px;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .friends-dm-item {
+    flex: 1 1 150px;
+  }
 }
