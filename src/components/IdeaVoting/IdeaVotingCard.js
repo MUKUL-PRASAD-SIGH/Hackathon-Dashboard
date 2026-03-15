@@ -6,23 +6,19 @@ const IdeaVotingCard = ({ hackathonId }) => {
   const [expanded, setExpanded] = useState(false);
   const [ideas, setIdeas] = useState([]);
   const [votesUsed, setVotesUsed] = useState(0);
-  const [maxVotes, setMaxVotes] = useState(3);
+  const [maxVotes, setMaxVotes] = useState(2);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [votingId, setVotingId] = useState(null);
   const [error, setError] = useState('');
   const [form, setForm] = useState({ title: '', description: '' });
 
-  const ideasSubmitted = useMemo(
-    () => ideas.filter((idea) => idea.isOwner).length,
-    [ideas]
-  );
-  const totalVotes = useMemo(
-    () => ideas.reduce((sum, idea) => sum + (idea.voteCount || 0), 0),
+  const totalPoints = useMemo(
+    () => ideas.reduce((sum, idea) => sum + (idea.voteScore || 0), 0),
     [ideas]
   );
   const topIdeas = useMemo(() => {
-    const sorted = [...ideas].sort((a, b) => b.voteCount - a.voteCount);
+    const sorted = [...ideas].sort((a, b) => (b.voteScore || 0) - (a.voteScore || 0));
     return sorted.slice(0, 3);
   }, [ideas]);
 
@@ -67,11 +63,11 @@ const IdeaVotingCard = ({ hackathonId }) => {
     }
   };
 
-  const handleVote = async (ideaId) => {
+  const handleVote = async (ideaId, rank) => {
     setVotingId(ideaId);
     setError('');
     try {
-      await voteIdea(hackathonId, ideaId);
+      await voteIdea(hackathonId, ideaId, rank);
       await loadIdeas();
     } catch (err) {
       setError(err.message || 'Failed to vote');
@@ -100,32 +96,28 @@ const IdeaVotingCard = ({ hackathonId }) => {
 
           <div className="idea-voting-grid">
             <div className="idea-submit">
-              <h5>Submit Ideas ({ideasSubmitted}/2)</h5>
-              {ideasSubmitted >= 2 ? (
-                <p className="idea-muted">You have used all idea slots.</p>
-              ) : (
-                <form onSubmit={handleSubmit}>
-                  <input
-                    type="text"
-                    placeholder="Idea title"
-                    value={form.title}
-                    onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    maxLength={120}
-                    disabled={submitting}
-                  />
-                  <textarea
-                    placeholder="Short description (optional)"
-                    value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    maxLength={500}
-                    rows={2}
-                    disabled={submitting}
-                  />
-                  <button type="submit" disabled={submitting}>
-                    {submitting ? 'Submitting…' : 'Submit Idea'}
-                  </button>
-                </form>
-              )}
+              <h5>Submit Ideas</h5>
+              <form onSubmit={handleSubmit}>
+                <input
+                  type="text"
+                  placeholder="Idea title"
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  maxLength={120}
+                  disabled={submitting}
+                />
+                <textarea
+                  placeholder="Short description (optional)"
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  maxLength={500}
+                  rows={2}
+                  disabled={submitting}
+                />
+                <button type="submit" disabled={submitting}>
+                  {submitting ? 'Submitting…' : 'Submit Idea'}
+                </button>
+              </form>
             </div>
 
             <div className="idea-list">
@@ -137,6 +129,8 @@ const IdeaVotingCard = ({ hackathonId }) => {
               ) : (
                 ideas.map((idea) => {
                   const voteDisabled = idea.isOwner || idea.hasVoted || votesUsed >= maxVotes;
+                  const nextRank = votesUsed >= 1 ? 2 : 1;
+                  const pointsLabel = nextRank === 1 ? '10 pts' : '5 pts';
                   return (
                     <div key={idea.id} className="idea-row">
                       <div className="idea-content">
@@ -144,15 +138,21 @@ const IdeaVotingCard = ({ hackathonId }) => {
                         {idea.description && <div className="idea-desc">{idea.description}</div>}
                       </div>
                       <div className="idea-actions">
-                        <span className="idea-votes">{idea.voteCount} vote{idea.voteCount === 1 ? '' : 's'}</span>
+                        <span className="idea-votes">
+                          {idea.voteScore || 0} pts ({idea.voteCount} vote{idea.voteCount === 1 ? '' : 's'})
+                        </span>
                         <button
                           type="button"
                           className="idea-vote-btn"
-                          onClick={() => handleVote(idea.id)}
+                          onClick={() => handleVote(idea.id, nextRank)}
                           disabled={voteDisabled || votingId === idea.id}
                           title={idea.isOwner ? 'Cannot vote for your own idea' : undefined}
                         >
-                          {idea.hasVoted ? 'Voted' : votingId === idea.id ? 'Voting…' : 'Vote'}
+                          {idea.hasVoted
+                            ? 'Voted'
+                            : votingId === idea.id
+                              ? 'Voting…'
+                              : `Vote (${pointsLabel})`}
                         </button>
                       </div>
                     </div>
@@ -165,7 +165,7 @@ const IdeaVotingCard = ({ hackathonId }) => {
           <div className="idea-results">
             <div className="idea-results-header">
               <strong>Results</strong>
-              <span className="idea-muted">Total votes: {totalVotes}</span>
+              <span className="idea-muted">Total points: {totalPoints}</span>
             </div>
             {ideas.length === 0 ? (
               <p className="idea-muted">No results yet.</p>
@@ -175,9 +175,9 @@ const IdeaVotingCard = ({ hackathonId }) => {
                   <li key={idea.id}>
                     <span className="idea-title">{idea.title}</span>
                     <span className="idea-votes">
-                      {idea.voteCount} vote{idea.voteCount === 1 ? '' : 's'}
+                      {idea.voteScore || 0} pts ({idea.voteCount} vote{idea.voteCount === 1 ? '' : 's'})
                     </span>
-                    {index === 0 && idea.voteCount > 0 && (
+                    {index === 0 && (idea.voteScore || 0) > 0 && (
                       <span className="idea-winner">Winner</span>
                     )}
                   </li>

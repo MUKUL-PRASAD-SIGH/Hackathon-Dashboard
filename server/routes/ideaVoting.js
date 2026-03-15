@@ -6,8 +6,8 @@ const { authenticateToken } = require('../middleware/security');
 
 const router = express.Router();
 
-const MAX_IDEAS_PER_USER = 2;
-const MAX_VOTES_PER_USER = 3;
+const MAX_VOTES_PER_USER = 2;
+const VOTE_POINTS = { 1: 10, 2: 5 };
 
 const normalizeEmail = (email) => (email || '').toLowerCase().trim();
 
@@ -48,15 +48,19 @@ router.get('/:id/ideas', authenticateToken, async (req, res) => {
 
     const responseIdeas = ideas.map((idea) => {
       const isOwner = String(idea.ownerId) === userId;
-      const hasVoted = (idea.votes || []).some((vote) => String(vote.userId) === userId);
+      const userVote = (idea.votes || []).find((vote) => String(vote.userId) === userId);
+      const hasVoted = Boolean(userVote);
+      const voteScore = (idea.votes || []).reduce((sum, vote) => sum + (vote.points || 0), 0);
       return {
         id: idea._id,
         title: idea.title,
         description: idea.description,
         createdAt: idea.createdAt,
         voteCount: (idea.votes || []).length,
+        voteScore,
         isOwner,
-        hasVoted
+        hasVoted,
+        voteRank: userVote?.rank || null
       };
     });
 
@@ -72,7 +76,7 @@ router.get('/:id/ideas', authenticateToken, async (req, res) => {
   }
 });
 
-// Submit a new idea (max 2 per user)
+// Submit a new idea (no per-user limit)
 router.post('/:id/ideas', authenticateToken, async (req, res) => {
   try {
     const hackathon = await ensureHackathon(req.params.id);
@@ -92,18 +96,6 @@ router.post('/:id/ideas', authenticateToken, async (req, res) => {
     }
 
     const ownerId = req.user.id;
-    const existingCount = await Idea.countDocuments({
-      hackathonId: hackathon._id,
-      ownerId
-    });
-
-    if (existingCount >= MAX_IDEAS_PER_USER) {
-      return res.status(400).json({
-        success: false,
-        error: { message: `You can only submit ${MAX_IDEAS_PER_USER} ideas per hackathon` }
-      });
-    }
-
     const idea = await Idea.create({
       hackathonId: hackathon._id,
       ownerId,
@@ -119,8 +111,10 @@ router.post('/:id/ideas', authenticateToken, async (req, res) => {
         description: idea.description,
         createdAt: idea.createdAt,
         voteCount: 0,
+        voteScore: 0,
         isOwner: true,
-        hasVoted: false
+        hasVoted: false,
+        voteRank: null
       }
     });
   } catch (error) {
@@ -129,7 +123,7 @@ router.post('/:id/ideas', authenticateToken, async (req, res) => {
   }
 });
 
-// Vote for an idea (max 3 votes per user per hackathon, no self-vote)
+// Vote for an idea (2 votes per user: rank 1 = 10 pts, rank 2 = 5 pts; no self-vote)
 router.post('/:id/ideas/:ideaId/vote', authenticateToken, async (req, res) => {
   try {
     const hackathon = await ensureHackathon(req.params.id);
@@ -156,10 +150,17 @@ router.post('/:id/ideas/:ideaId/vote', authenticateToken, async (req, res) => {
       return res.status(409).json({ success: false, error: { message: 'Already voted for this idea' } });
     }
 
-    const votesUsed = await Idea.countDocuments({
+    const existingVotes = await Idea.find({
       hackathonId: hackathon._id,
       'votes.userId': userId
-    });
+    }).select('votes');
+
+    const userVotes = existingVotes
+      .flatMap((item) => item.votes || [])
+      .filter((vote) => String(vote.userId) === userId);
+
+    const votesUsed = userVotes.length;
+    const usedRanks = new Set(userVotes.map((vote) => vote.rank));
 
     if (votesUsed >= MAX_VOTES_PER_USER) {
       return res.status(400).json({
@@ -168,14 +169,31 @@ router.post('/:id/ideas/:ideaId/vote', authenticateToken, async (req, res) => {
       });
     }
 
-    idea.votes.push({ userId });
+    let requestedRank = Number(req.body?.rank);
+    if (![1, 2].includes(requestedRank)) {
+      requestedRank = usedRanks.has(1) ? 2 : 1;
+    }
+
+    if (usedRanks.has(requestedRank)) {
+      return res.status(400).json({
+        success: false,
+        error: { message: `You already used vote rank ${requestedRank}` }
+      });
+    }
+
+    const points = VOTE_POINTS[requestedRank];
+
+    idea.votes.push({ userId, rank: requestedRank, points });
     await idea.save();
 
     return res.json({
       success: true,
       voteCount: idea.votes.length,
+      voteScore: idea.votes.reduce((sum, vote) => sum + (vote.points || 0), 0),
       votesUsed: votesUsed + 1,
-      maxVotes: MAX_VOTES_PER_USER
+      maxVotes: MAX_VOTES_PER_USER,
+      rankUsed: requestedRank,
+      pointsAwarded: points
     });
   } catch (error) {
     console.error('Idea vote error:', error);

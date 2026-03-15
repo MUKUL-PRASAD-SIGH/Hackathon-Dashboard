@@ -442,7 +442,9 @@ app.set('io', io);
 
 // Import hackathon routes
 const hackathonRoutes = require('./routes/hackathons');
+const ideaVotingRoutes = require('./routes/ideaVoting');
 app.use('/api/hackathons', hackathonRoutes);
+app.use('/api/hackathons', ideaVotingRoutes);
 
 // Import hackathon worlds routes
 const hackathonWorldRoutes = require('./routes/hackathonWorlds');

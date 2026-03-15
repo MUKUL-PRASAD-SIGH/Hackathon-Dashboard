@@ -34,6 +34,16 @@ const ideaSchema = new mongoose.Schema(
           ref: 'User',
           required: true
         },
+        rank: {
+          type: Number,
+          enum: [1, 2],
+          required: true
+        },
+        points: {
+          type: Number,
+          enum: [10, 5],
+          required: true
+        },
         createdAt: {
           type: Date,
           default: Date.now

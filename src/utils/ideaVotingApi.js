@@ -34,10 +34,11 @@ export const submitIdea = async (hackathonId, payload) => {
   return data;
 };
 
-export const voteIdea = async (hackathonId, ideaId) => {
+export const voteIdea = async (hackathonId, ideaId, rank) => {
   const response = await fetch(`${API}/hackathons/${hackathonId}/ideas/${ideaId}/vote`, {
     method: 'POST',
-    headers: authHeaders()
+    headers: authHeaders(),
+    body: JSON.stringify(rank ? { rank } : {})
   });
   const data = await response.json();
   if (!response.ok || !data.success) {

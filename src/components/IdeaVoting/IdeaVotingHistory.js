@@ -13,7 +13,7 @@ const IdeaVotingHistory = ({ hackathonId }) => {
     try {
       const data = await fetchIdeas(hackathonId);
       const sorted = [...(data.ideas || [])].sort(
-        (a, b) => b.voteCount - a.voteCount
+        (a, b) => (b.voteScore || 0) - (a.voteScore || 0)
       );
       setIdeas(sorted);
     } catch (err) {
@@ -45,7 +45,9 @@ const IdeaVotingHistory = ({ hackathonId }) => {
           {ideas.map((idea) => (
             <li key={idea.id}>
               <span className="idea-title">{idea.title}</span>
-              <span className="idea-votes">{idea.voteCount} vote{idea.voteCount === 1 ? '' : 's'}</span>
+              <span className="idea-votes">
+                {idea.voteScore || 0} pts ({idea.voteCount} vote{idea.voteCount === 1 ? '' : 's'})
+              </span>
             </li>
           ))}
         </ul>
