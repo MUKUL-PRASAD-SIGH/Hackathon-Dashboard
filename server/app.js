@@ -77,71 +77,7 @@ const auth = (req, res, next) => {
   }
 };
 
-// User routes with explicit CORS
-app.get('/api/users/friends', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  next();
-}, auth, async (req, res) => {
-  res.json({ success: true, friends: [], sentRequests: [], receivedRequests: [] });
-});
-
-app.post('/api/users/friend-request', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  next();
-}, auth, async (req, res) => {
-  res.json({ success: true, message: 'Friend request sent' });
-});
-
-app.get('/api/users/profile', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  next();
-}, auth, async (req, res) => {
-  try {
-    const user = await UserMongoDB.findOne({ email: req.user.email }).select('-password');
-    const Hackathon = require('./models/Hackathon');
-    const hackathons = await Hackathon.find({ email: req.user.email });
-    res.json({ success: true, user, hackathons, friendshipStatus: 'none', isOwnProfile: true });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.put('/api/users/profile', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  next();
-}, auth, async (req, res) => {
-  try {
-    const { bio, skills, experience, linkedin, github, portfolio, location, avatar, isPublic, name } = req.body;
-
-    const updateData = {
-      'profile.bio': bio || '',
-      'profile.skills': skills || [],
-      'profile.experience': experience || '',
-      'profile.linkedin': linkedin || '',
-      'profile.github': github || '',
-      'profile.portfolio': portfolio || '',
-      'profile.location': location || '',
-      'profile.avatar': avatar || '',
-      'profile.isPublic': isPublic !== undefined ? isPublic : false
-    };
-
-    if (name) updateData.name = name;
-
-    const user = await UserMongoDB.findOneAndUpdate(
-      { email: req.user.email },
-      { $set: updateData },
-      { new: true, runValidators: true }
-    ).select('-password');
-
-    res.json({ success: true, user, message: 'Profile updated successfully' });
-  } catch (e) {
-    res.status(500).json({ success: false, error: { message: e.message } });
-  }
-});
+// User routes are handled in server/routes/users.js
 
 // Root endpoint
 app.get('/', (req, res) => {

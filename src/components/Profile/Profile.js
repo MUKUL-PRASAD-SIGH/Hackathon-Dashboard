@@ -77,7 +77,7 @@ const Profile = () => {
       const data = await response.json();
       console.log('Profile fetch response:', data);
       
-      if (data.success) {
+      if (data.success && data.user) {
         setProfile(data.user);
         setHackathons(data.hackathons || []);
         setFriendshipStatus(data.friendshipStatus || 'none');
@@ -97,8 +97,10 @@ const Profile = () => {
           });
           fetchFriends();
         }
-      } else if (response.status === 403) {
+      } else if (response.status === 403 && data.user) {
         setProfile({ ...data.user, isPrivate: true });
+      } else if (data.success && !data.user) {
+        setError('User profile not found in database. Please log in again.');
       } else {
         console.error('Profile fetch failed:', data);
         setError(data.error?.message || 'Failed to load profile');
