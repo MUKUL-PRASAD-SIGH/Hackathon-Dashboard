@@ -116,6 +116,28 @@ router.get('/', authMiddleware, asyncHandler(async (req, res) => {
   });
 }));
 
+// Get a single hackathon by ID (leader or team member)
+router.get('/:id', authMiddleware, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+    return res.status(400).json({ success: false, error: { message: 'Invalid hackathon ID' } });
+  }
+
+  const hackathon = await Hackathon.findById(id);
+  if (!hackathon) {
+    return res.status(404).json({ success: false, error: { message: 'Hackathon not found' } });
+  }
+
+  const isTeamLeader = hackathon.email.toLowerCase() === req.user.email.toLowerCase();
+  const isTeamMember = hackathon.teamMembers?.some(m => m.email.toLowerCase() === req.user.email.toLowerCase());
+
+  if (!isTeamLeader && !isTeamMember) {
+    return res.status(403).json({ success: false, error: { message: 'Access denied' } });
+  }
+
+  res.json({ success: true, hackathon });
+}));
+
 // Create new hackathon
 router.post('/', authMiddleware, asyncHandler(async (req, res) => {
   console.log('🚀 CREATE hackathon - User Email:', req.user.email);

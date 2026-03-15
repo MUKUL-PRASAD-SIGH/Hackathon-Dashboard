@@ -11,6 +11,7 @@ const TeamPage = () => {
   const navigate = useNavigate();
   const [hackathon, setHackathon] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
@@ -20,17 +21,20 @@ const TeamPage = () => {
   const fetchHackathonDetails = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API}/hackathons`, {
+      setError('');
+      const response = await fetch(`${API}/hackathons/${id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
       const data = await response.json();
-      if (data.success) {
-        const foundHackathon = data.hackathons.find(h => h._id === id);
-        setHackathon(foundHackathon);
+      if (!response.ok || !data.success) {
+        throw new Error(data.error?.message || 'Failed to fetch hackathon details');
       }
+
+      setHackathon(data.hackathon || null);
     } catch (error) {
       console.error('Error fetching hackathon:', error);
+      setError(error.message || 'Failed to fetch hackathon details');
     } finally {
       setLoading(false);
     }
@@ -59,6 +63,7 @@ const TeamPage = () => {
   };
 
   if (loading) return <div className="loading">Loading team details...</div>;
+  if (error) return <div className="error">❌ {error}</div>;
   if (!hackathon) return <div className="error">Team not found</div>;
 
   // Filter out team leader from team members to prevent duplicates

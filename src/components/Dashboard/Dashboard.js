@@ -47,6 +47,8 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('');
   const [inviteNote, setInviteNote] = useState('');
+  const [inviteSending, setInviteSending] = useState(false);
+  const [inviteStatus, setInviteStatus] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [deletingHackathon, setDeletingHackathon] = useState(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -384,8 +386,13 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
 
   const handleSendInvite = async (e) => {
     e.preventDefault();
-    
+
+    if (inviteSending || inviteStatus === 'sent') {
+      return;
+    }
+
     try {
+      setInviteSending(true);
       const token = localStorage.getItem('token');
       const response = await fetch(API + `/hackathons/${invitingHackathon}/invite`, {
         method: 'POST',
@@ -403,6 +410,7 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
       const data = await response.json();
       
       if (data.success) {
+        setInviteStatus('sent');
         setShowConfirmation(true);
         // Don't close modal or reload immediately
         setTimeout(() => {
@@ -411,12 +419,16 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
           setInviteEmail('');
           setInviteRole('');
           setInviteNote('');
+          setInviteStatus('');
           // onReload?.(); // Removed auto-reload
         }, 2000);
       } else {
         const errorMsg = data.error?.message || 'Failed to send invitation';
         if (errorMsg.includes('not found') || errorMsg.includes('not registered')) {
           alert('❌ ' + errorMsg + '\n\nTip: Ask them to register at your platform first!');
+        } else if (errorMsg.includes('already sent') || errorMsg.includes('Invitation already sent')) {
+          setInviteStatus('sent');
+          alert('✅ Invitation already sent to this user.');
         } else {
           alert('❌ ' + errorMsg);
         }
@@ -424,6 +436,8 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
     } catch (error) {
       console.error('Send invite error:', error);
       alert('Failed to send invitation');
+    } finally {
+      setInviteSending(false);
     }
   };
 
@@ -864,7 +878,10 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
                     <input
                       type="email"
                       value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
+                      onChange={(e) => {
+                        setInviteEmail(e.target.value);
+                        setInviteStatus('');
+                      }}
                       placeholder="Enter email address"
                       required
                     />
@@ -890,7 +907,13 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
                   />
                 </div>
                 <div className="modal-actions">
-                  <button type="submit" className="btn-primary click-effect">🚀 Send Invite</button>
+                  <button
+                    type="submit"
+                    className="btn-primary click-effect"
+                    disabled={inviteSending || inviteStatus === 'sent'}
+                  >
+                    {inviteStatus === 'sent' ? '✅ Invite Sent' : inviteSending ? 'Sending…' : '🚀 Send Invite'}
+                  </button>
                   <button type="button" onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -898,6 +921,7 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
                     setInviteEmail('');
                     setInviteRole('');
                     setInviteNote('');
+                    setInviteStatus('');
                   }} className="btn-secondary click-effect">Cancel</button>
                 </div>
               </form>
