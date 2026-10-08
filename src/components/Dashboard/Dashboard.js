@@ -10,6 +10,7 @@ import './VibrantCards.css';
 import { getApiUrl } from '../../utils/apiBase';
 import { filterHackathons } from '../../utils/aiFilter';
 import AIFilterBar from '../AIFilterBar/AIFilterBar';
+import { RecommendedHackathons, RecommendedTeammates } from '../Recommendations/RecoCards';
 
 const API = getApiUrl();
 
@@ -640,6 +641,14 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
             <p className="stat-number">{stats.planning}</p>
           </div>
         </div>
+
+        {/* Personalised recommendations */}
+        <RecommendedHackathons
+          refreshKey={hackathons.length}
+          actionLabel="Find team in Worlds"
+          onAction={() => navigate('/worlds')}
+        />
+        <RecommendedTeammates refreshKey={hackathons.length} />
 
         {/* My Hackathons (Created) */}
         <div className="hackathons-list">
