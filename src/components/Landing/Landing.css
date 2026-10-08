@@ -474,3 +474,37 @@
 .footer-by, .footer-copy { color: var(--text-muted); }
 .footer-links a { color: rgba(35, 242, 255, 0.7); }
 .footer-links a:hover { color: var(--neon-cyan); }
+
+/* ── How it works ── */
+.landing-steps,
+.landing-demo {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+}
+
+.step-card {
+  padding: 1.5rem;
+  border: 1px solid var(--cyber-border);
+  border-radius: 14px;
+  background: var(--cyber-panel);
+  text-align: left;
+}
+
+.step-n {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-family: 'Orbitron', monospace;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 14px rgba(35, 242, 255, 0.4);
+}
