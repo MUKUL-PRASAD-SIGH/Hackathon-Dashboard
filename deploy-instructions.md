@@ -27,7 +27,7 @@ Start Command: npm start
 ### 1.3 Add Environment Variables
 ```
 NODE_ENV=production
-MONGODB_URI=mongodb+srv://hacktrack-user:mukulinblr%23123@cluster0.heduy1t.mongodb.net/hackathon-dashboard?retryWrites=true&w=majority&appName=Cluster0
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster-url>/hackathon-dashboard?retryWrites=true&w=majority&appName=Cluster0
 GMAIL_USER=vol670668@gmail.com
 GMAIL_APP_PASSWORD=uwgfpkdwbjnbrngv
 PORT=10000
