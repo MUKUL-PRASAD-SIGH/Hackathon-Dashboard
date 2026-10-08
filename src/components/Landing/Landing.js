@@ -1,14 +1,23 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import LandingDemo from './LandingDemo';
 import './Landing.css';
 
 const features = [
+  { icon: '✦', title: 'AI Smart Filter', desc: 'Type "devpost teams with open slots next month" and get exactly that. No dropdown hunting.', color: 'cyan' },
+  { icon: '🎯', title: 'Recommendation Engine', desc: 'Get open teams and complementary teammates ranked by your history, skills and timing.', color: 'pink' },
   { icon: '⚡', title: 'Real-Time Dashboard', desc: 'Track all your hackathons, rounds, and deadlines in one unified command center.', color: 'cyan' },
   { icon: '🌍', title: 'Hackathon Worlds', desc: 'Discover public hackathons, form teams, and collaborate with participants globally.', color: 'purple' },
   { icon: '🔔', title: 'Smart Notifications', desc: 'Never miss a deadline. Get alerts for rounds, submissions, and team updates.', color: 'pink' },
   { icon: '👥', title: 'Team Management', desc: 'Invite members, manage roles, chat privately, and track team progress.', color: 'green' },
   { icon: '📅', title: 'Calendar View', desc: 'Visualize your hackathon schedule with an interactive calendar and round markers.', color: 'cyan' },
   { icon: '🔐', title: 'Secure Auth', desc: 'OTP-based registration, JWT sessions, and Google OAuth for seamless access.', color: 'purple' },
+];
+
+const steps = [
+  { n: '01', title: 'Track', desc: 'Add the hackathons you are playing, with rounds, deadlines and team details.' },
+  { n: '02', title: 'Get matched', desc: 'The recommendation engine learns your platforms and skills, then ranks open teams and teammates.' },
+  { n: '03', title: 'Ship together', desc: 'Request to join, chat in real time, vote on ideas and keep every round on one calendar.' },
 ];
 
 const ticker = [
@@ -151,13 +160,40 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* How it works */}
+      <section className="landing-steps">
+        <div className="section-header">
+          <div className="section-tag">HOW IT WORKS</div>
+          <h2 className="section-title">From idea to <span className="neon-cyan">submission</span></h2>
+        </div>
+        <div className="steps-grid">
+          {steps.map(s => (
+            <div key={s.n} className="step-card">
+              <span className="step-n">{s.n}</span>
+              <h3 className="feat-title">{s.title}</h3>
+              <p className="feat-desc">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* AI filter demo */}
+      <section className="landing-demo">
+        <div className="section-header">
+          <div className="section-tag">TRY IT</div>
+          <h2 className="section-title">Search like you <span className="neon-pink">talk</span></h2>
+          <p className="section-sub">Live demo on sample data. Inside the app it filters your real hackathons, public teams and teammates.</p>
+        </div>
+        <LandingDemo />
+      </section>
+
       {/* CTA Banner */}
       <section className="landing-banner">
         <div className="banner-inner">
           <div className="banner-glow-left" />
           <div className="banner-glow-right" />
           <h2 className="banner-title">Ready to <span className="neon-pink">Compete?</span></h2>
-          <p className="banner-sub">Join thousands of hackers tracking their journey on HackTrack.</p>
+          <p className="banner-sub">Track every round, find the right team and never miss a deadline again.</p>
           <div className="banner-btns">
             <Link to="/register" className="hero-btn-primary">⚡ CREATE ACCOUNT</Link>
             <Link to="/login" className="hero-btn-secondary">SIGN IN →</Link>
@@ -172,7 +208,7 @@ export default function Landing() {
             <span className="footer-logo">HACKTRACK</span>
             <span className="footer-by">by Mukul Prasad</span>
           </div>
-          <p className="footer-copy">© 2025 HackTrack · Built with ⚡ for the hackathon community</p>
+          <p className="footer-copy">© {new Date().getFullYear()} HackTrack · Built with ⚡ for the hackathon community</p>
           <div className="footer-links">
             <Link to="/login">Sign In</Link>
             <Link to="/register">Register</Link>
