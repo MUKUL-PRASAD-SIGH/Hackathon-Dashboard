@@ -6,31 +6,33 @@ A comprehensive web application for managing and tracking hackathons with advanc
 
 ---
 
-## ⚡ **QUICK START - RUN COMMANDS**
+## ⚡ Quick start
 
-### Option 1: Run Everything (Recommended)
 ```bash
-# Double-click this file from File Explorer:
-start-all.bat
-```
+npm install && (cd server && npm install)   # first time only
+cp env.example .env                          # set MONGODB_URI, JWT_SECRET, email creds
 
-### Option 2: Run Separately (Two Terminals)
+# Terminal 1 - backend (port 10000)
+cd server && npm start
 
-**Terminal 1 — Backend Server (Port 10000):**
-```bash
-cd server
-node server.js
-```
-
-**Terminal 2 — Frontend React App (Port 3001):**
-```bash
+# Terminal 2 - frontend (port 3001)
 npm start
 ```
 
-### Option 3: Using Batch Files
+## ✨ Smart features
+
+- **Recommendation engine** (`server/services/recommendationEngine.js`, `GET /api/recommendations/hackathons|teammates`):
+  ranks open public teams by your platform history, timing, open slots and skills, and ranks public-profile
+  teammates by how well their skills complement yours. Shown on the Dashboard, Public Hackathons and Friends pages.
+- **AI filter** (`src/utils/aiFilter.js`, `AIFilterBar`): type things like `devpost teams with open slots next month`
+  or `expert react`. Parsed locally (no API key) into platform / status / date / open-slot / skill filters.
+- **Landing page** with a live AI-filter demo at `/`.
+
+## 🧪 Tests
+
 ```bash
-start-backend.bat     # Starts backend on port 10000
-start-frontend.bat    # Starts frontend on port 3001
+npm test -- --watchAll=false      # frontend (AI filter parser)
+cd server && npm test             # backend (recommendation engine)
 ```
 
 ### 🔗 URLs
