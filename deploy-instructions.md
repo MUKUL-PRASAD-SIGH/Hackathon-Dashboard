@@ -28,8 +28,8 @@ Start Command: npm start
 ```
 NODE_ENV=production
 MONGODB_URI=mongodb+srv://<username>:<password>@<cluster-url>/hackathon-dashboard?retryWrites=true&w=majority&appName=Cluster0
-GMAIL_USER=vol670668@gmail.com
-GMAIL_APP_PASSWORD=uwgfpkdwbjnbrngv
+GMAIL_USER=<your-gmail-address>
+GMAIL_APP_PASSWORD=<gmail-app-password>
 PORT=10000
 ```
 
