@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { getApiUrl, getApiBase } from '../../utils/apiBase';
 import './Friends.css';
 import socketService from '../../services/socketService';
+import { RecommendedTeammates } from '../Recommendations/RecoCards';
 
 const API = getApiUrl();
 
@@ -323,6 +324,8 @@ const Friends = () => {
         </form>
         {actionMessage && <div className="friends-action-message">{actionMessage}</div>}
       </div>
+
+      <RecommendedTeammates refreshKey={friends.length} />
 
       {requests.received.length > 0 && (
         <div className="friends-requests">
