@@ -1,0 +1,115 @@
+.ld {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 1.25rem;
+  border: 1px solid var(--cyber-border);
+  border-radius: 16px;
+  background: var(--cyber-panel-strong);
+  box-shadow: 0 0 40px rgba(35, 242, 255, 0.08);
+}
+
+.ld-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--cyber-border-bright);
+  border-radius: 10px;
+  background: rgba(11, 15, 26, 0.7);
+}
+
+.ld-badge {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #0b0f1a;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+}
+
+.ld-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.7rem 0.25rem;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.ld-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+}
+
+.ld-chip {
+  padding: 0.25rem 0.7rem;
+  border: 1px solid var(--cyber-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--neon-cyan);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.ld-chip:hover {
+  background: var(--primary-dim);
+}
+
+.ld-understood {
+  margin: 0.8rem 0;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.ld-results {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.ld-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--cyber-border);
+  border-radius: 10px;
+  background: var(--cyber-panel);
+  text-align: left;
+}
+
+.ld-card strong {
+  display: block;
+  color: var(--text-bright);
+}
+
+.ld-meta,
+.ld-reason {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.ld-reason {
+  color: var(--neon-green);
+}
+
+.ld-score {
+  flex-shrink: 0;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0b0f1a;
+  background: var(--neon-green);
+}
+
+.ld-empty {
+  margin: 0.5rem 0;
+  color: var(--text-secondary);
+}
