@@ -29,14 +29,7 @@ const RegisterWithOtp = () => {
   useEffect(() => {
     componentLogger.info('Component mounted', { formData });
     setupGlobalErrorHandling();
-    
-    // Run network diagnostics on mount
-    runNetworkDiagnostics().then(diagnostics => {
-      componentLogger.info('Network diagnostics completed', { diagnostics });
-    }).catch(error => {
-      componentLogger.error('Network diagnostics failed', { error });
-    });
-    
+
     return () => {
       componentLogger.info('Component unmounting');
     };
