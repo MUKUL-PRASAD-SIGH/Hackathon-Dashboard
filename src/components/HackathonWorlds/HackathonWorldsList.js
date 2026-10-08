@@ -4,13 +4,16 @@ import './HackathonWorlds.css';
 import './SearchStyles.css';
 import './TeamCards.css';
 import { getApiUrl } from '../../utils/apiBase';
+import { filterHackathons } from '../../utils/aiFilter';
+import AIFilterBar from '../AIFilterBar/AIFilterBar';
+import { RecommendedHackathons } from '../Recommendations/RecoCards';
 
 const API = getApiUrl();
 
 const HackathonWorldsList = ({ onSelectWorld, refreshTrigger }) => {
   const [worlds, setWorlds] = useState([]);
   const [filteredWorlds, setFilteredWorlds] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [aiFilter, setAiFilter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [joinRequestModal, setJoinRequestModal] = useState(null);
@@ -30,17 +33,8 @@ const HackathonWorldsList = ({ onSelectWorld, refreshTrigger }) => {
   }, []);
   
   useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setFilteredWorlds(worlds);
-    } else {
-      const filtered = worlds.filter(world => 
-        world.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        world.platform?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        world.description?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredWorlds(filtered);
-    }
-  }, [worlds, searchQuery]);
+    setFilteredWorlds(aiFilter ? filterHackathons(worlds, aiFilter) : worlds);
+  }, [worlds, aiFilter]);
   
   const removeDuplicateWorlds = (worldsList) => {
     const seen = new Set();
@@ -172,16 +166,19 @@ const HackathonWorldsList = ({ onSelectWorld, refreshTrigger }) => {
         <h2>🌍 Public Hackathons</h2>
         <p>Find teams and join hackathons!</p>
         
-        <div className="search-container">
-          <input
-            type="text"
-            placeholder="🔍 Search hackathons..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="search-input"
-          />
-        </div>
+        <AIFilterBar
+          placeholder='Try "devpost teams with open slots next month"'
+          examples={['open slots this month', 'devpost upcoming', 'hackerearth soonest']}
+          onChange={setAiFilter}
+          resultCount={filteredWorlds.length}
+        />
       </div>
+
+      <RecommendedHackathons
+        refreshKey={worlds.length}
+        actionLabel="🚀 Request to join"
+        onAction={(h) => handleJoinRequest(h._id)}
+      />
 
       {filteredWorlds.length === 0 ? (
         <div className="no-worlds">
