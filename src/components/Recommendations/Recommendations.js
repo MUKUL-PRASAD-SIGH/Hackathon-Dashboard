@@ -9,9 +9,11 @@ import './Recommendations.css';
  *  load():           async () => items[]
  *  renderItem(item): node (must set its own key)
  *  emptyText
+ *  toolbar:           optional node rendered under the header (e.g. an AIFilterBar)
+ *  filterItems(items): optional client-side filter applied to loaded items
  *  refreshKey:       change to reload
  */
-const Recommendations = ({ title, subtitle, load, renderItem, emptyText, refreshKey }) => {
+const Recommendations = ({ title, subtitle, load, renderItem, emptyText, refreshKey, toolbar, filterItems }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -29,20 +31,25 @@ const Recommendations = ({ title, subtitle, load, renderItem, emptyText, refresh
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshKey]);
 
+  const visible = filterItems ? filterItems(items) : items;
+
   return (
     <section className="reco" aria-label={title}>
       <header className="reco-header">
         <h3 className="reco-title">✦ {title}</h3>
         {subtitle && <p className="reco-subtitle">{subtitle}</p>}
       </header>
+      {toolbar}
 
       {loading && <p className="reco-state">Finding matches…</p>}
       {!loading && error && <p className="reco-state reco-state--error">{error}</p>}
-      {!loading && !error && items.length === 0 && (
-        <p className="reco-state">{emptyText || 'No recommendations yet.'}</p>
+      {!loading && !error && visible.length === 0 && (
+        <p className="reco-state">
+          {items.length > 0 ? 'Nothing matches that filter.' : (emptyText || 'No recommendations yet.')}
+        </p>
       )}
-      {!loading && !error && items.length > 0 && (
-        <div className="reco-grid">{items.map(renderItem)}</div>
+      {!loading && !error && visible.length > 0 && (
+        <div className="reco-grid">{visible.map(renderItem)}</div>
       )}
     </section>
   );

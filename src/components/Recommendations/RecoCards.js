@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Recommendations, { MatchBadge, MatchReasons } from './Recommendations';
+import { filterPeople } from '../../utils/aiFilter';
+import AIFilterBar from '../AIFilterBar/AIFilterBar';
 import { getRecommendedHackathons, getRecommendedTeammates } from '../../utils/recommendationApi';
 
 export const HackathonRecoCard = ({ hackathon, onAction, actionLabel = 'View team' }) => {
@@ -52,13 +54,24 @@ export const RecommendedHackathons = ({ onAction, actionLabel, refreshKey }) => 
   />
 );
 
-export const RecommendedTeammates = ({ refreshKey }) => (
-  <Recommendations
-    title="Teammates you might click with"
-    subtitle="Public profiles whose skills complement yours"
-    load={() => getRecommendedTeammates(6)}
-    refreshKey={refreshKey}
-    emptyText="No public profiles yet. Make yours public from your profile to appear here too."
-    renderItem={p => <TeammateRecoCard key={p.id} person={p} />}
-  />
-);
+export const RecommendedTeammates = ({ refreshKey }) => {
+  const [filter, setFilter] = useState(null);
+  return (
+    <Recommendations
+      title="Teammates you might click with"
+      subtitle="Public profiles whose skills complement yours"
+      load={() => getRecommendedTeammates(12)}
+      refreshKey={refreshKey}
+      emptyText="No public profiles yet. Make yours public from your profile to appear here too."
+      toolbar={(
+        <AIFilterBar
+          placeholder='Try "expert react designer"'
+          examples={['expert python', 'beginner design']}
+          onChange={setFilter}
+        />
+      )}
+      filterItems={items => (filter ? filterPeople(items, filter) : items)}
+      renderItem={p => <TeammateRecoCard key={p.id} person={p} />}
+    />
+  );
+};
