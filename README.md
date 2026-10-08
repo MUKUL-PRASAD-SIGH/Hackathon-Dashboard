@@ -57,7 +57,11 @@ npm start               # (set PORT=3001; Google OAuth is configured for localho
 
 If the dev server fails with `options.allowedHosts[0] should be a non-empty string`, start it with `DANGEROUSLY_DISABLE_HOST_CHECK=true`.
 
-OTP emails need real SMTP credentials. For a quick local demo without email, create a user directly in MongoDB through the `UserMongoDB` model (password is hashed by a pre-save hook) and log in with email + password.
+OTP emails need real SMTP credentials. For a demo without email, seed accounts and sample hackathons, then log in with email + password:
+
+```bash
+cd server && npm run seed:demo    # demo@hack.dev / password123 (refuses to run in production)
+```
 
 ## Scripts
 
@@ -70,6 +74,7 @@ OTP emails need real SMTP credentials. For a quick local demo without email, cre
 | `cd server && npm start` | Backend |
 | `cd server && npm run dev` | Backend with nodemon |
 | `cd server && npm test` | Backend tests (recommendation engine) |
+| `cd server && npm run seed:demo` | Demo users and hackathons |
 
 ## Project layout
 
