@@ -34,12 +34,6 @@ router.get('/test', (req, res) => {
   res.json({ success: true, message: 'Users API is working!' });
 });
 
-// Debug endpoint
-router.get('/debug', (req, res) => {
-  console.log('🔍 Users debug endpoint hit');
-  res.json({ success: true, message: 'Users routes are loaded', timestamp: new Date() });
-});
-
 console.log('🔍 Users routes file loaded successfully');
 
 const authMiddleware = (req, res, next) => {
