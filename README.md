@@ -1,248 +1,105 @@
-# 🚀 Hackathon Dashboard
+# HackTrack - Hackathon Dashboard
 
-A comprehensive web application for managing and tracking hackathons with advanced features like calendar view, notifications, and status management.
+A full-stack app for tracking hackathons, finding teams and collaborating, with a **recommendation engine** and a **natural-language AI filter**.
 
-**Note**: Using only localhost 3000 or 3001 because of OAuth Config
+- Frontend: React 18, React Router, FullCalendar, Socket.IO client
+- Backend: Node.js, Express, MongoDB (Mongoose), JWT, Socket.IO
+- Deploy: Netlify (frontend) + Render (backend) - see [deploy-instructions.md](deploy-instructions.md)
+- Demo guide: [WALKTHROUGH.md](WALKTHROUGH.md)
 
----
+## Features
 
-## ⚡ Quick start
+| Area | What it does |
+|------|--------------|
+| Landing page | Product pitch, how-it-works, and a live AI-filter demo at `/` |
+| Auth | OTP email registration, password login, JWT sessions, Google OAuth |
+| Dashboard | Track hackathons with rounds, status, team and notifications; search, filter, sort |
+| **AI filter** | Type plain English such as `devpost teams with open slots next month`; parsed locally into platform / status / date / open-slot / skill filters (`src/utils/aiFilter.js`) |
+| **Recommendations** | Ranks open public teams by platform history, timing, open slots and skills; ranks public-profile teammates by complementary skills (`server/services/recommendationEngine.js`) |
+| Public hackathons | Browse public teams, request to join, withdraw requests |
+| Teams | Invites, join-request approval, team chat, round remarks, idea voting |
+| Friends and DMs | Friend requests, private messages, profile privacy |
+| Calendar and sync | Calendar with round dates, Google Calendar sync, notifications |
+
+### Where the smart features appear
+
+| Page | AI filter | Recommendations |
+|------|-----------|-----------------|
+| `/dashboard` | filters your hackathons | recommended teams and teammates |
+| `/worlds` | filters public teams | recommended teams with one-click "Request to join" |
+| `/friends` | filters suggested teammates | recommended teammates |
+| `/` | live demo on sample data | - |
+
+API: `GET /api/recommendations/hackathons?limit=6` and `GET /api/recommendations/teammates?limit=6` (JWT required). Only profiles marked public are ever suggested.
+
+## Run locally
+
+Prerequisites: Node.js 18+ and a MongoDB instance (local or Atlas).
 
 ```bash
-npm install && (cd server && npm install)   # first time only
-cp env.example .env                          # set MONGODB_URI, JWT_SECRET, email creds
+npm install
+cd server && npm install && cd ..
 
-# Terminal 1 - backend (port 10000)
+cp env.example .env     # set MONGODB_URI, JWT_SECRET, and email credentials for OTP
+
+# Terminal 1 - backend on :10000
 cd server && npm start
 
-# Terminal 2 - frontend (port 3001)
-npm start
+# Terminal 2 - frontend on :3001
+npm start               # (set PORT=3001; Google OAuth is configured for localhost:3000/3001)
 ```
 
-## ✨ Smart features
+| Service | URL |
+|---------|-----|
+| Frontend | http://localhost:3001 |
+| API | http://localhost:10000/api |
+| Health | http://localhost:10000/health |
 
-- **Recommendation engine** (`server/services/recommendationEngine.js`, `GET /api/recommendations/hackathons|teammates`):
-  ranks open public teams by your platform history, timing, open slots and skills, and ranks public-profile
-  teammates by how well their skills complement yours. Shown on the Dashboard, Public Hackathons and Friends pages.
-- **AI filter** (`src/utils/aiFilter.js`, `AIFilterBar`): type things like `devpost teams with open slots next month`
-  or `expert react`. Parsed locally (no API key) into platform / status / date / open-slot / skill filters.
-- **Landing page** with a live AI-filter demo at `/`.
+If the dev server fails with `options.allowedHosts[0] should be a non-empty string`, start it with `DANGEROUSLY_DISABLE_HOST_CHECK=true`.
 
-## 🧪 Tests
+OTP emails need real SMTP credentials. For a quick local demo without email, create a user directly in MongoDB through the `UserMongoDB` model (password is hashed by a pre-save hook) and log in with email + password.
 
-```bash
-npm test -- --watchAll=false      # frontend (AI filter parser)
-cd server && npm test             # backend (recommendation engine)
+## Scripts
+
+| Command | Purpose |
+|---------|---------|
+| `npm start` | Frontend dev server |
+| `npm run build` | Production build |
+| `npm test -- --watchAll=false` | Frontend tests (AI filter parser) |
+| `npm run storybook` | Component stories |
+| `cd server && npm start` | Backend |
+| `cd server && npm run dev` | Backend with nodemon |
+| `cd server && npm test` | Backend tests (recommendation engine) |
+
+## Project layout
+
+```
+src/
+  components/        UI pages (Dashboard, HackathonWorlds, Friends, Landing, ...)
+    AIFilterBar/     natural-language filter input
+    Recommendations/ recommendation panel and cards
+  utils/aiFilter.js  query parser + list filters (tested)
+  utils/recommendationApi.js
+server/
+  routes/            REST API (auth, hackathons, worlds, users, recommendations, ...)
+  services/          recommendationEngine.js (pure, tested), email and OTP services
+  models/            Mongoose models
+  test/              node:test suites
 ```
 
-### 🔗 URLs
-| Service     | URL                          |
-|-------------|------------------------------|
-| Frontend    | http://localhost:3001         |
-| Backend API | http://localhost:10000/api    |
-| Health Check| http://localhost:10000/health |
+## Data model (hackathon)
 
-### 📋 Prerequisites
-- **Node.js** v18+ installed
-- **MongoDB** running locally (`mongodb://127.0.0.1:27017/storybook`) OR MongoDB Atlas URI in `.env`
-- Run `npm install` in both root and `server/` directories (first time only)
-
-### 🔧 First Time Setup
-```bash
-# 1. Install frontend dependencies
-npm install
-
-# 2. Install backend dependencies
-cd server
-npm install
-cd ..
-
-# 3. Configure .env (copy from env.example and update values)
-# Required: MONGODB_URI, GMAIL_USER, GMAIL_APP_PASSWORD
-
-# 4. Start everything
-start-all.bat
-```
-
----
-
-## ⚠️ **VALIDATION REQUIREMENTS**
-- **Username**: Letters, numbers, spaces, dots, underscores, hyphens only (2-50 chars)
-- **Password**: Minimum 6 characters
-- **Email**: Valid email format required
-- **OTP**: Exactly 6 numeric digits
-
-## 📊 **PROJECT STATUS**
-- **Current Version**: 1.3.0 (Enhanced Social Features) ✅
-- **Next Target**: 2.0.0 (Advanced Team Management) 🚧
-- **Overall Progress**: 75% Complete
-- **Frontend**: 100% ✅ | **Backend**: 100% ✅ | **Database**: 100% ✅ | **Social Features**: 85% ✅
-
----
-
-## ✅ **VERSION 1.3.0 - ENHANCED SOCIAL FEATURES** *(COMPLETED)*
-
-### 🎉 **New Social Features**
-- **Friend System** ✅ - Send/accept friend requests, profile privacy controls
-- **Enhanced Profile System** ✅ - MongoDB-based profiles with privacy settings
-- **Team Visibility** ✅ - Friends can see each other's current hackathon teams
-- **Join Request System** ✅ - Request to join public hackathons with withdraw option
-- **Notification System** ✅ - Real-time notifications for requests and team updates
-- **Email-Based Architecture** ✅ - Migrated from user IDs to email-based identification
-- **Enhanced Calendar** ✅ - Shows both owned and joined hackathons with round visualization
-- **Team Management** ✅ - Invite members, approve/reject join requests, team chat
-
-### 🔧 **Technical Improvements**
-- **CORS Configuration** ✅ - Proper cross-origin request handling
-- **Error Handling** ✅ - Comprehensive error handling and user feedback
-- **Real-time Updates** ✅ - Live data synchronization across components
-- **User Experience** ✅ - Improved UI/UX with better visual feedback
-
----
-
-## ✅ **VERSION 1.0.0 - FRONTEND FOUNDATION** *(COMPLETED)*
-
-### 🎯 **Core Features Built**
-- **Interactive Calendar** ✅ - FullCalendar.js with month/week/day views, color-coded events
-- **Advanced Dashboard** ✅ - Filtering, search, sorting, status management, statistics
-- **Hackathon Management** ✅ - Multi-section forms, round management, validation
-- **Notification System** ✅ - Multiple triggers, custom intervals, round-based alerts
-- **Modern UI/UX** ✅ - Responsive design, animations, accessibility
-- **Storybook Integration** ✅ - Component stories, interactive controls, testing
-
----
-
-## ✅ **VERSION 1.2.0 - FULL-STACK COMPLETE** *(COMPLETED)*
-
-### 🎉 **Production Ready Features**
-- **Authentication** ✅ - OTP-based registration, login/logout, protected routes
-- **Email Service** ✅ - Gmail SMTP integration, professional templates
-- **MongoDB Database** ✅ - Atlas connection, user data persistence, secure hashing
-- **Backend Infrastructure** ✅ - Node.js + Express, rate limiting, CORS configuration
-- **Production Deployment** ✅ - Backend on Render, Frontend on Netlify
-- **Debug System** ✅ - Real-time panel, logging, network diagnostics
-
-### 🌐 **Live Application**
-1. Visit production URL or `http://localhost:3001/register`
-2. Register with email → Receive OTP → Verify → Login
-3. Access personalized dashboard with persistent data
-
----
-
-## 🚀 **VERSION 2.0.0 - ADVANCED TEAM MANAGEMENT** *(IN PROGRESS)*
-
-### 🎯 **Core Focus**: Enhanced Team Collaboration & Management
-
-### ✅ **Completed Features**
-- **Hackathon Worlds** ✅ - Public hackathon discovery and team formation
-- **Join Request System** ✅ - Send, withdraw, approve/reject join requests
-- **Team Formation** ✅ - Team leader invitations and member management
-- **Private Team Chat** ✅ - Secure communication within teams
-- **Friend System** ✅ - Connect with other participants
-- **Profile Privacy** ✅ - Control profile visibility
-
-### 🚧 **Remaining Features**
-- **File Sharing** - Share documents and resources within teams
-- **Task Management** - Assign and track team tasks
-- **Video Chat Integration** - Built-in video calls for teams
-- **Team Analytics** - Performance metrics and insights
-- **Advanced Search** - Filter teams by skills, experience, location
-- **Team Templates** - Pre-configured team structures
-
-### 🛠️ **Implementation Status**
-- **Phase 1** ✅ - Basic worlds, teams, join requests (COMPLETED)
-- **Phase 2** ✅ - Team management, notifications (COMPLETED)
-- **Phase 3** 🚧 - Advanced collaboration tools (IN PROGRESS)
-
----
-
-## 📱 **VERSION 3.0.0 - ENTERPRISE & MENTORSHIP** *(FUTURE)*
-
-### 🌟 **Advanced Features**
-- **Mentorship System** 🔮 - Mentor roles, expertise matching, scheduling
-- **Calendar Integration** 🔮 - Real Google Calendar sync, team scheduling, event creation
-- **Mobile App** 🔮 - React Native for iOS/Android
-- **Enterprise Features** 🔮 - Multi-tenant, SSO, audit logging
-- **Advanced Analytics** 🔮 - Custom reports, data visualization
-- **Integration Hub** 🔮 - Webhooks, API marketplace, automation
-
----
-
-## 🌟 **VERSION 4.0.0 - AI & INTELLIGENCE** *(FUTURE)*
-
-### 🤖 **AI-Powered Features**
-- **Smart Recommendations** 🌟 - AI hackathon suggestions, success prediction
-- **Predictive Analytics** 🌟 - Performance forecasting, trend analysis
-- **Natural Language** 🌟 - Voice commands, chat interface
-- **Machine Learning** 🌟 - Pattern recognition, automated insights
-
----
-
-## 🛠️ **Tech Stack**
-
-### ✅ **Current (v1.2.0)**
-- **Frontend**: React 18, FullCalendar.js, CSS3, React Router
-- **Backend**: Node.js, Express, MongoDB Atlas, JWT
-- **Tools**: Storybook, React Hot Toast, Mongoose ODM
-- **Deployment**: Netlify (Frontend), Render (Backend)
-
-### ⏳ **Planned (v2.0+)**
-- **Real-time**: Socket.io, WebRTC
-- **Mobile**: React Native
-- **AI/ML**: TensorFlow.js, OpenAI API
-
----
-
-## 🚀 **Getting Started**
-
-### Prerequisites
-- Node.js (v16+)
-- npm or yarn
-
-### Installation
-```bash
-git clone <repository-url>
-cd hackathon-dashboard
-npm install
-npm start          # React app
-npm run storybook  # Component development
-npm run dev        # Both simultaneously
-```
-
-### Available Scripts
-- `npm start` - Development server
-- `npm run build` - Production build
-- `npm run storybook` - Component stories
-- `npm run dev` - Full development environment
-
----
-
-## 📊 **Data Model**
-```javascript
+```js
 {
-  name: "HackTheMountains",
-  platform: "Devpost",
-  email: "user@example.com",
-  team: "Solo",
-  date: "2025-09-20",
-  rounds: 3,
-  remarks: { round1: "Registration", round2: "Submission" },
-  status: "Participating",
-  notifications: [{ trigger: "2 days before" }]
+  name, platform,            // Devpost | HackerEarth | Topcoder | CodeChef | HackerRank | Other
+  email, team,               // owner email, "Solo" | "Team"
+  date, rounds, roundDates,
+  status,                    // Planning | Participating | Won | Qualified | Didn't qualify
+  isPublicWorld, maxParticipants, teamMembers, joinRequests,
+  notifications, remarks
 }
 ```
 
----
+## License
 
-## 🤝 **Contributing**
-1. Fork repository
-2. Create feature branch
-3. Make changes
-4. Submit pull request
-
-## 📄 **License**
-MIT License
-
----
-
-**Built with ❤️ for the hackathon community**
+MIT

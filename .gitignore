@@ -156,6 +156,7 @@ server/app.js
 *.md
 !README.md
 !deploy-instructions.md
+!WALKTHROUGH.md
 
 # Code dump (auto-generated)
 dump_code.py
