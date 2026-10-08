@@ -64,7 +64,7 @@ const allowedOrigins = new Set([
 ].filter(Boolean));
 
 const allowedOrigin = (origin, callback) => {
-  if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin) || allowedOrigins.has(origin)) {
+  if (!origin || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/.test(origin) || allowedOrigins.has(origin)) {
     callback(null, true);
   } else {
     callback(new Error('Not allowed by CORS: ' + origin));
