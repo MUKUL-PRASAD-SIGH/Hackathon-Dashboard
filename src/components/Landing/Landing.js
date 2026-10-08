@@ -21,9 +21,8 @@ const steps = [
 ];
 
 const ticker = [
-  'HackTheMountains 2025', 'DevPost Global Hack', 'MLH Spring League',
-  'Google Solution Challenge', 'Smart India Hackathon', 'HackMIT 2025',
-  'ETHGlobal', 'NASA Space Apps', 'HackNITR', 'CodeForces Round',
+  'Devpost', 'HackerEarth', 'Topcoder', 'CodeChef', 'HackerRank',
+  'Track rounds', 'Find teams', 'Smart recommendations', 'AI filter', 'Team chat', 'Calendar sync',
 ];
 
 export default function Landing() {
@@ -97,7 +96,7 @@ export default function Landing() {
 
       {/* Ticker */}
       <div className="landing-ticker">
-        <span className="ticker-label">◉ LIVE</span>
+        <span className="ticker-label">◉ WORKS WITH</span>
         <div className="ticker-track">
           <div className="ticker-inner" style={{ transform: `translateX(${offset % (tickerStr.length * 9)}px)` }}>
             {tickerStr}{tickerStr}
