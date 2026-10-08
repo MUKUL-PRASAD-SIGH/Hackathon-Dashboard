@@ -39,6 +39,7 @@ const usersRoutes = require('./routes/users');
 const Hackathon = require('./models/Hackathon');
 const ideaVotingRoutes = require('./routes/ideaVoting');
 const fileRoutes = require('./routes/files');
+const recommendationRoutes = require('./routes/recommendations');
 
 // Import middleware
 const { errorHandler, asyncHandler } = require('./middleware/errorHandler');
@@ -1006,6 +1007,8 @@ console.log('✅ Hackathon routes loaded successfully');
 console.log('👤 Loading users routes at /api/users/*');
 app.use('/api/users', usersRoutes);
 console.log('✅ Users routes loaded successfully');
+
+app.use('/api/recommendations', recommendationRoutes);
 
 console.log('📎 Loading file routes at /api/files/*');
 app.use('/api/files', fileRoutes);
