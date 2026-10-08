@@ -202,6 +202,19 @@ router.get('/', authMiddleware, asyncHandler(async (req, res) => {
   });
 }));
 
+// Get notifications for user
+router.get('/notifications', authMiddleware, asyncHandler(async (req, res) => {
+  const Notification = require('../models/Notification');
+  const notifications = await Notification.find({ userEmail: req.user.email })
+    .sort({ createdAt: -1 })
+    .limit(50);
+
+  res.json({
+    success: true,
+    notifications
+  });
+}));
+
 // Get a single hackathon by ID (leader or team member)
 router.get('/:id', authMiddleware, asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -617,19 +630,6 @@ router.post('/:id/join-request', authMiddleware, asyncHandler(async (req, res) =
   res.json({
     success: true,
     message: 'Join request sent successfully'
-  });
-}));
-
-// Get notifications for user
-router.get('/notifications', authMiddleware, asyncHandler(async (req, res) => {
-  const Notification = require('../models/Notification');
-  const notifications = await Notification.find({ userEmail: req.user.email })
-    .sort({ createdAt: -1 })
-    .limit(50);
-
-  res.json({
-    success: true,
-    notifications
   });
 }));
 
