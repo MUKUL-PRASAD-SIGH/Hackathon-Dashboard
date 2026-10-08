@@ -22,7 +22,6 @@ const AIFilterBar = ({ placeholder, examples = [], onChange, resultCount }) => {
   useEffect(() => {
     onChange(filter);
     // onChange identity is not part of the contract; only react to the parsed filter
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 
   return (

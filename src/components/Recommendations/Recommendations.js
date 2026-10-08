@@ -28,7 +28,6 @@ const Recommendations = ({ title, subtitle, load, renderItem, emptyText, refresh
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
     // load is recreated by parents on each render; reload only when refreshKey changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshKey]);
 
   const visible = filterItems ? filterItems(items) : items;
