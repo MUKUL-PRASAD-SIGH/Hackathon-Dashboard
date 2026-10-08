@@ -126,12 +126,6 @@ restore-*.js
 cleanup-*.js
 create-test-*.js
 
-# Test directories and files
-server/tests/
-*.test.js
-*.spec.js
-tests/
-__tests__/
 
 # HTML debug/test pages
 clear-localStorage.html
