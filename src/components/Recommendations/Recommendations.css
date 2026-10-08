@@ -1,0 +1,122 @@
+.reco {
+  margin: 1.25rem 0;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--cyber-border);
+  border-radius: 14px;
+  background: var(--cyber-panel);
+}
+
+.reco-title {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  color: var(--neon-cyan);
+}
+
+.reco-subtitle {
+  margin: 0.2rem 0 0.8rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.reco-state {
+  margin: 0.6rem 0 0;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.reco-state--error {
+  color: var(--error);
+}
+
+.reco-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.9rem;
+}
+
+.reco-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.9rem;
+  border: 1px solid var(--cyber-border);
+  border-radius: 10px;
+  background: var(--cyber-panel-strong);
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.reco-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--cyber-border-bright);
+}
+
+.reco-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.reco-card-name {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-bright);
+  word-break: break-word;
+}
+
+.reco-card-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.reco-score {
+  flex-shrink: 0;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.reco-score.high { color: #0b0f1a; background: var(--neon-green); }
+.reco-score.mid { color: #0b0f1a; background: var(--neon-amber); }
+.reco-score.low { color: var(--text-primary); background: rgba(127, 138, 167, 0.3); }
+
+.reco-reasons {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.reco-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.reco-skill {
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  color: var(--neon-purple);
+  background: rgba(122, 108, 255, 0.12);
+}
+
+.reco-action {
+  margin-top: auto;
+  align-self: flex-start;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--cyber-border-bright);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--neon-cyan);
+  font-size: 0.78rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.reco-action:hover {
+  background: var(--primary-dim);
+}
