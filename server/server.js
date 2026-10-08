@@ -1326,7 +1326,15 @@ app.get('/api/recover-hackathons', asyncHandler(async (req, res) => {
 
 // Health check and monitoring endpoints
 app.get('/health', healthCheck);
-app.get('/metrics', metricsEndpoint);
+// Metrics expose traffic details: in production require METRICS_TOKEN, otherwise hide the route
+app.get('/metrics', (req, res, next) => {
+  if (process.env.NODE_ENV !== 'production') return metricsEndpoint(req, res, next);
+  const token = process.env.METRICS_TOKEN;
+  if (!token || req.headers['x-metrics-token'] !== token) {
+    return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Not found' } });
+  }
+  return metricsEndpoint(req, res, next);
+});
 
 // Error handling middleware (must be last)
 app.use(errorHandler);
