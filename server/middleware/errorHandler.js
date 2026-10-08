@@ -19,6 +19,13 @@ const errorHandler = (err, req, res, next) => {
     timestamp: new Date().toISOString()
   });
 
+  // Disallowed CORS origin is a client error, not a server fault
+  if (typeof err.message === 'string' && err.message.startsWith('Not allowed by CORS')) {
+    return res.status(403).json(
+      createErrorResponse('CORS_FORBIDDEN', 'Origin not allowed')
+    );
+  }
+
   // Handle specific error types
   if (err.name === 'ValidationError') {
     return res.status(400).json(
