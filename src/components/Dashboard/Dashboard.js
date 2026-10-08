@@ -8,6 +8,8 @@ import './Dashboard.css';
 import './UserInfo.css';
 import './VibrantCards.css';
 import { getApiUrl } from '../../utils/apiBase';
+import { filterHackathons } from '../../utils/aiFilter';
+import AIFilterBar from '../AIFilterBar/AIFilterBar';
 
 const API = getApiUrl();
 
@@ -35,6 +37,7 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
     dateRange: ''
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [aiFilter, setAiFilter] = useState(null);
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('asc');
   const [editingHackathon, setEditingHackathon] = useState(null);
@@ -115,7 +118,7 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
       }))
     });
     applyFiltersAndSorting();
-  }, [hackathons, filters, searchTerm, sortBy, sortOrder]);
+  }, [hackathons, filters, searchTerm, sortBy, sortOrder, aiFilter]);
   
   // Fetch joined hackathons
   useEffect(() => {
@@ -189,6 +192,11 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
     }
     if (filters.status) {
       filtered = filtered.filter(h => h.status === filters.status);
+    }
+
+    // Apply natural-language AI filter
+    if (aiFilter) {
+      filtered = filterHackathons(filtered, aiFilter);
     }
 
     // Apply sorting
@@ -513,6 +521,13 @@ const Dashboard = ({ hackathons = [], loading, onUpdateHackathon, onDeleteHackat
             )}
           </div>
           
+          <AIFilterBar
+            placeholder='Ask in plain English, e.g. "devpost hackathons next month where I am planning"'
+            examples={['upcoming this month', 'won on devpost', 'solo planning', 'past hackathons']}
+            onChange={setAiFilter}
+            resultCount={filteredHackathons.length}
+          />
+
           <div className="filters-section grid grid-4">
             <div className="form-group">
               <label className="form-label">Platform</label>
